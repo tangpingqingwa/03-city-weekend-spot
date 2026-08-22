@@ -12,4 +12,4 @@ Clone of [outbid.lol](https://outbid.lol/) mechanics: public board, USD whole do
 bash scripts/test.sh
 ```
 
-Offline until a later PR adds the app. Live Polar is never required to keep `main` green.
+`GET /healthz` returns `{ ok: true }`. Live Polar is never required to keep `main` green.
