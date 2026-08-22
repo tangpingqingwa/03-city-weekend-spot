@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Offline gate for main. Must exit 0 on a clean clone with no secrets.
-# When application code lands, add unit/contract tests here. Do not delete the
-# contract checks. Do not require live Polar or any third-party network.
+# Contract checks stay. Once src/ exists this script typechecks and runs
+# node:test. Do not require live Polar or any third-party network.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -66,6 +66,18 @@ fi
 echo "== markdown is UTF-8 text =="
 file -b --mime-encoding README.md SPEC.md BUILD.md CONTRIBUTING.md | grep -qiE 'utf-8|us-ascii' \
   || fail "docs are not UTF-8/ASCII"
+
+echo "== skeleton files =="
+for f in package.json tsconfig.json src/app/healthz/route.ts; do
+  [[ -f "$f" ]] || fail "missing $f"
+  [[ -s "$f" ]] || fail "empty $f"
+done
+grep -q '/healthz' src/app/healthz/route.ts || grep -q 'HealthzOk' src/app/healthz/route.ts \
+  || fail "src/app/healthz/route.ts missing healthz contract"
+grep -q 'ok: true' src/app/healthz/route.ts || fail "healthz route missing { ok: true }"
+if grep -RInE 'https?://([^/]*\.)?polar\.sh' src tests >/dev/null 2>&1; then
+  fail "src/tests must not hard-code polar.sh HTTP"
+fi
 
 if [[ -f package.json ]]; then
   echo "== install =="
