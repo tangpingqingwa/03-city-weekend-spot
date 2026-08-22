@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getBoardListings, resolveCity } from "../../core/cities";
+import { resolveCity } from "../../core/cities";
+import { getBoardListings } from "../../core/rank";
 import { CityBoard } from "./board";
 
 export const dynamic = "force-dynamic";
