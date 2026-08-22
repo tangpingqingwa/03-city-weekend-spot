@@ -107,6 +107,31 @@ if grep -RInE 'createCheckout|POLAR_LIVE|polar\.sh' src/app src/core >/dev/null 
   fail "PR 2 board UI must not wire Polar checkout"
 fi
 
+echo "== city lanes and weekend window =="
+for f in \
+  src/core/window.ts \
+  src/core/rank.ts \
+  src/core/listing.ts \
+  src/db.ts \
+  tests/window.test.ts \
+  tests/rank.test.ts
+do
+  [[ -f "$f" ]] || fail "missing $f"
+  [[ -s "$f" ]] || fail "empty $f"
+done
+grep -q 'currentWindow' src/core/window.ts || fail "window.ts must export currentWindow"
+grep -q 'America/New_York' src/core/cities.ts || fail "NYC timezone must stay catalog data"
+grep -q 'export function rankListings' src/core/rank.ts || fail "rank.ts must export rankListings"
+grep -q 'firstPaidAt' src/core/rank.ts || fail "rank.ts must tie-break on firstPaidAt"
+grep -q 'query.city' src/core/rank.ts || fail "rank.ts ranking must take city"
+grep -q 'venueName' src/core/listing.ts || fail "listing.ts must require venueName"
+grep -q 'bookingUrl' src/core/listing.ts || fail "listing.ts must require bookingUrl"
+grep -q 'venueKey' src/core/listing.ts || fail "listing.ts must define venueKey"
+grep -q 'CREATE TABLE' src/db.ts || fail "db.ts must declare cities/windows/listings schema"
+if grep -RInE 'createCheckout|POLAR_LIVE=1' src/core src/db.ts tests/window.test.ts tests/rank.test.ts >/dev/null 2>&1; then
+  fail "PR 3 must not wire Polar checkout"
+fi
+
 if [[ -f package.json ]]; then
   echo "== install =="
   if [[ ! -d node_modules ]]; then
