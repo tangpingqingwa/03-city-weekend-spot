@@ -1,4 +1,5 @@
 import { resolveCity, type BoardListing, type CitySlug } from "./cities";
+import { getDb, listingsForCityWindow, type AppDb } from "../db";
 import type { Listing } from "./listing";
 import { currentWindow } from "./window";
 
@@ -78,11 +79,15 @@ export function toBoardListing(listing: RankedListing): BoardListing {
 export function getBoardListings(
   city: CitySlug,
   now: Date = new Date(),
+  db: AppDb = getDb(),
 ): BoardListing[] {
   const resolved = resolveCity(city);
   if (!resolved.ok) {
     return [];
   }
   const window = currentWindow(resolved.city, now);
-  return rankListings([], { city, windowId: window.id }).map(toBoardListing);
+  return rankListings(listingsForCityWindow(db, city, window.id), {
+    city,
+    windowId: window.id,
+  }).map(toBoardListing);
 }

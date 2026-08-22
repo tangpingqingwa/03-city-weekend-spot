@@ -75,8 +75,13 @@ done
 grep -q '/healthz' src/app/healthz/route.ts || grep -q 'HealthzOk' src/app/healthz/route.ts \
   || fail "src/app/healthz/route.ts missing healthz contract"
 grep -q 'ok: true' src/app/healthz/route.ts || fail "healthz route missing { ok: true }"
-if grep -RInE 'https?://([^/]*\.)?polar\.sh' src tests >/dev/null 2>&1; then
-  fail "src/tests must not hard-code polar.sh HTTP"
+if grep -RInE 'https?://([^/]*\.)?polar\.sh' src tests \
+  | grep -v 'src/billing/polar.ts' >/dev/null 2>&1; then
+  fail "only src/billing/polar.ts may mention the Polar HTTP host"
+fi
+if grep -RInE 'from ["'"'"']\.\./.*billing/polar|from ["'"'"']\.\./\.\./.*billing/polar' \
+  src/app >/dev/null 2>&1; then
+  fail "HTTP / pages must not import billing/polar.ts directly"
 fi
 
 echo "== board UI files =="
@@ -103,8 +108,10 @@ grep -q 'board.css' src/app/layout.tsx || fail "root layout must load board styl
 if grep -RInEi '★|star rating|4\.8 stars|review count' src/app src/core >/dev/null; then
   fail "board UI must not render stars or review chrome"
 fi
-if grep -RInE 'createCheckout|POLAR_LIVE|polar\.sh' src/app src/core >/dev/null 2>&1; then
-  fail "PR 2 board UI must not wire Polar checkout"
+if grep -RInE 'createCheckout|POLAR_LIVE|polar\.sh' \
+  src/app/page.tsx src/app/layout.tsx src/app/board.css src/app/\[city\] src/core \
+  >/dev/null 2>&1; then
+  fail "board UI / core must not import Polar checkout"
 fi
 
 echo "== city lanes and weekend window =="
@@ -129,7 +136,41 @@ grep -q 'bookingUrl' src/core/listing.ts || fail "listing.ts must require bookin
 grep -q 'venueKey' src/core/listing.ts || fail "listing.ts must define venueKey"
 grep -q 'CREATE TABLE' src/db.ts || fail "db.ts must declare cities/windows/listings schema"
 if grep -RInE 'createCheckout|POLAR_LIVE=1' src/core src/db.ts tests/window.test.ts tests/rank.test.ts >/dev/null 2>&1; then
-  fail "PR 3 must not wire Polar checkout"
+  fail "city/window/rank must not wire Polar checkout"
+fi
+
+echo "== Polar checkout and fixture =="
+for f in \
+  src/billing/port.ts \
+  src/billing/fixture.ts \
+  src/billing/polar.ts \
+  src/app/api/checkout/route.ts \
+  src/app/api/polar/webhook/route.ts \
+  tests/checkout.test.ts
+do
+  [[ -f "$f" ]] || fail "missing $f"
+  [[ -s "$f" ]] || fail "empty $f"
+done
+grep -q 'createCheckout' src/billing/port.ts \
+  || fail "port.ts must define createCheckout"
+grep -q 'handleWebhook' src/billing/port.ts \
+  || fail "port.ts must define handleWebhook"
+grep -q 'export type PaymentPort' src/billing/port.ts \
+  || fail "port.ts must export PaymentPort"
+grep -q 'POLAR_FIXTURE_ONLY' src/billing/port.ts \
+  || fail "port.ts must honor POLAR_FIXTURE_ONLY"
+grep -q 'polarLiveEnabled' src/billing/port.ts \
+  || fail "live Polar client is not env-gated"
+grep -q 'export class FixturePayment' src/billing/fixture.ts \
+  || fail "fixture.ts must export FixturePayment"
+grep -q 'export class PolarPayment' src/billing/polar.ts \
+  || fail "polar.ts must export PolarPayment"
+grep -q 'POLAR_LIVE=1' src/billing/polar.ts \
+  || fail "polar.ts must stay env-gated"
+grep -q 'applyPaidEvent' src/billing/port.ts \
+  || fail "port.ts must apply paid events only"
+if grep -nE 'fetch\(|polar\.sh|api\.polar' src/billing/fixture.ts src/billing/port.ts >/dev/null; then
+  fail "fixture/port must not call Polar over the network"
 fi
 
 if [[ -f package.json ]]; then
@@ -153,12 +194,16 @@ if [[ -f package.json ]]; then
   test_log="$(mktemp)"
   trap 'rm -f "$test_log"' EXIT
   set +e
-  npx tsx --test --test-reporter spec 'tests/**/*.test.ts' | tee "$test_log"
+  npx tsx --test --test-concurrency=1 --test-reporter spec 'tests/**/*.test.ts' | tee "$test_log"
   test_status=${PIPESTATUS[0]}
   set -e
   [[ $test_status -eq 0 ]] || fail "unit tests failed"
   grep -Eq 'tests[[:space:]]+[1-9][0-9]*' "$test_log" \
     || fail "test runner reported 0 tests"
+  grep -q 'fixture create' "$test_log" \
+    || fail "checkout fixture test did not run"
+  grep -q 'abandoned checkout' "$test_log" \
+    || fail "abandoned checkout test did not run"
 fi
 
 echo "OK: buildable and testable"
