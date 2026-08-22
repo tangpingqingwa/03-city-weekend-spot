@@ -79,6 +79,34 @@ if grep -RInE 'https?://([^/]*\.)?polar\.sh' src tests >/dev/null 2>&1; then
   fail "src/tests must not hard-code polar.sh HTTP"
 fi
 
+echo "== board UI files =="
+for f in \
+  src/app/page.tsx \
+  src/app/\[city\]/page.tsx \
+  src/core/cities.ts \
+  src/app/board.css
+do
+  [[ -f "$f" ]] || fail "missing $f"
+  [[ -s "$f" ]] || fail "empty $f"
+done
+grep -q 'redirect' src/app/page.tsx || fail "src/app/page.tsx must redirect / to the default city"
+grep -q 'defaultBoardPath' src/app/page.tsx || fail "src/app/page.tsx must use defaultBoardPath"
+grep -q 'slug: "nyc"' src/core/cities.ts || fail "cities.ts must catalog nyc"
+grep -q 'America/New_York' src/core/cities.ts || fail "cities.ts must use America/New_York for nyc"
+grep -q 'getBoardListings' src/core/cities.ts || fail "cities.ts must expose getBoardListings"
+grep -q 'return \[\]' src/core/cities.ts || fail "live board must invent no venues"
+grep -q 'Outbid' src/app/\[city\]/bid-form.tsx || fail "bid form must render Outbid"
+grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have an honest empty state"
+grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
+grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
+grep -q 'board.css' src/app/layout.tsx || fail "root layout must load board styles"
+if grep -RInEi '★|star rating|4\.8 stars|review count' src/app src/core >/dev/null; then
+  fail "board UI must not render stars or review chrome"
+fi
+if grep -RInE 'createCheckout|POLAR_LIVE|polar\.sh' src/app src/core >/dev/null 2>&1; then
+  fail "PR 2 board UI must not wire Polar checkout"
+fi
+
 if [[ -f package.json ]]; then
   echo "== install =="
   if [[ ! -d node_modules ]]; then
