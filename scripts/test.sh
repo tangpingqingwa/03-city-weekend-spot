@@ -189,6 +189,63 @@ if grep -nE 'fetch\(|polar\.sh|api\.polar' src/billing/fixture.ts src/billing/po
   fail "fixture/port must not call Polar over the network"
 fi
 
+echo "== rules, about, and URL hygiene =="
+for f in \
+  src/app/about/page.tsx \
+  src/app/rules/page.tsx \
+  src/core/url.ts \
+  tests/listing.test.ts
+do
+  [[ -f "$f" ]] || fail "missing $f"
+  [[ -s "$f" ]] || fail "empty $f"
+done
+grep -q 'href="/about"' src/app/layout.tsx || fail "nav must link to /about"
+grep -q 'href="/rules"' src/app/layout.tsx || fail "nav must link to /rules"
+grep -q 'Rank is money, not stars' src/app/about/page.tsx \
+  || fail "about must state rank is money, not stars"
+grep -q 'no fake reviews' src/app/about/page.tsx \
+  || fail "about must forbid fake reviews"
+grep -q 'city-weekend-spot' src/app/about/page.tsx \
+  || fail "about must name the city-weekend-spot vertical"
+grep -q 'outbid.lol' src/app/about/page.tsx || fail "about must name outbid.lol"
+grep -q 'NYC' src/app/about/page.tsx || fail "about must name NYC v1"
+grep -q 'global English' src/app/about/page.tsx \
+  || fail "about must state global English"
+grep -Fq 'min $5' src/app/rules/page.tsx || fail "rules must state min \$5"
+grep -q 'older wins ties' src/app/rules/page.tsx \
+  || fail "rules must state older wins ties"
+grep -q 'raise pays difference' src/app/rules/page.tsx \
+  || fail "rules must state raise pays difference"
+grep -q 'no fake reviews' src/app/rules/page.tsx \
+  || fail "rules must forbid fake reviews"
+grep -q 'reviews_forbidden' src/app/rules/page.tsx \
+  || fail "rules must name reviews_forbidden"
+grep -q 'NSFW' src/app/rules/page.tsx || fail "rules must document NSFW rejects"
+grep -q 'utm_' src/core/url.ts || fail "url.ts must strip utm_ tracking keys"
+grep -q 'url_forbidden' src/core/url.ts || fail "url.ts must reject forbidden URLs"
+grep -q 't.me' src/core/url.ts || fail "url.ts must reject telegram invites"
+grep -q 'export function canonicalizeBookingUrl' src/core/url.ts \
+  || fail "url.ts must export canonicalizeBookingUrl"
+grep -q 'canonicalBookingUrl' src/core/listing.ts \
+  || fail "listing.ts must store the stripped booking URL"
+grep -q 'url_forbidden' src/core/listing.ts \
+  || fail "listing.ts must reject forbidden booking URLs"
+grep -q 'reviews_forbidden' src/core/listing.ts \
+  || fail "listing.ts must reject review-speak"
+grep -q 'utm_source' tests/listing.test.ts \
+  || fail "listing tests must cover tracking strip"
+grep -q 't.me' tests/listing.test.ts || fail "listing tests must reject telegram"
+grep -q 'reviews_forbidden' tests/listing.test.ts \
+  || fail "listing tests must reject review-speak"
+grep -q '4.9 stars' tests/listing.test.ts \
+  || fail "listing tests must cover 4.9 stars"
+if grep -RInE '4\.8 stars' src/app/about/page.tsx src/app/rules/page.tsx >/dev/null; then
+  fail "about/rules must not invent review scores"
+fi
+if grep -RInEi '★|star rating|4\.8 stars' src/app/about src/app/rules >/dev/null; then
+  fail "about/rules must not render stars"
+fi
+
 if [[ -f package.json ]]; then
   echo "== install =="
   if [[ ! -d node_modules ]]; then
@@ -224,6 +281,12 @@ if [[ -f package.json ]]; then
     || fail "raise-bid test did not run"
   grep -q 'bid_not_higher' "$test_log" \
     || fail "bid_not_higher test did not run"
+  grep -q 'utm_source' "$test_log" \
+    || fail "URL hygiene tracking-strip test did not run"
+  grep -q 'reviews_forbidden' "$test_log" \
+    || fail "reviews_forbidden test did not run"
+  grep -q 'url_forbidden' "$test_log" \
+    || fail "url_forbidden test did not run"
 fi
 
 echo "OK: buildable and testable"
