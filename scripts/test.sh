@@ -246,6 +246,41 @@ if grep -RInEi '★|star rating|4\.8 stars' src/app/about src/app/rules >/dev/nu
   fail "about/rules must not render stars"
 fi
 
+echo "== public click counts =="
+for f in \
+  src/app/api/click/\[id\]/route.ts \
+  tests/click.test.ts
+do
+  [[ -f "$f" ]] || fail "missing $f"
+  [[ -s "$f" ]] || fail "empty $f"
+done
+grep -q 'export async function GET' src/app/api/click/\[id\]/route.ts \
+  || fail "click route must export GET"
+grep -q '302' src/app/api/click/\[id\]/route.ts \
+  || fail "click route must 302 to the booking URL"
+grep -q 'incrementListingClicks' src/app/api/click/\[id\]/route.ts \
+  || fail "click route must increment the public counter"
+grep -q 'listing_not_found' src/app/api/click/\[id\]/route.ts \
+  || fail "unknown click id must 404"
+grep -q 'canonicalizeBookingUrl' src/app/api/click/\[id\]/route.ts \
+  || fail "click hop must use the cleaned booking URL"
+if grep -nE 'billing/polar|POLAR_LIVE=1|polar\.sh' src/app/api/click/\[id\]/route.ts >/dev/null; then
+  fail "click route must not import live Polar"
+fi
+grep -q '302s to the stripped booking URL' tests/click.test.ts \
+  || fail "click tests must cover 302 + increment"
+grep -q 'unknown listing click' tests/click.test.ts \
+  || fail "click tests must cover unknown id 404"
+grep -q 'data-clicks' tests/click.test.ts \
+  || fail "click tests must assert clicks are visible on the card"
+grep -q 'SPEC acceptance 9' tests/click.test.ts \
+  || fail "click tests must cover SPEC acceptance 9"
+grep -q 'utm_source' tests/click.test.ts \
+  || fail "click tests must 302 to the stripped booking URL"
+if grep -Eq '^\s*(bash )?scripts/live-smoke\.sh' scripts/test.sh; then
+  fail "test.sh must not invoke live-smoke.sh"
+fi
+
 if [[ -f package.json ]]; then
   echo "== install =="
   if [[ ! -d node_modules ]]; then
@@ -287,6 +322,12 @@ if [[ -f package.json ]]; then
     || fail "reviews_forbidden test did not run"
   grep -q 'url_forbidden' "$test_log" \
     || fail "url_forbidden test did not run"
+  grep -q 'stripped booking URL' "$test_log" \
+    || fail "click 302 increment test did not run"
+  grep -q 'unknown listing click' "$test_log" \
+    || fail "unknown click id test did not run"
+  grep -q 'SPEC acceptance 9' "$test_log" \
+    || fail "SPEC acceptance 9 click test did not run"
 fi
 
 echo "OK: buildable and testable"
