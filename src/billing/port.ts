@@ -2,18 +2,25 @@ import { MIN_BID_USD, getCity, resolveCity, type CitySlug } from "../core/cities
 import {
   ListingError,
   createListing,
-  parseBidUsd,
   parsePitch,
+  parseTargetBidUsd,
   parseVenueKind,
+  quoteBid,
+  raiseListing,
+  targetBidAfterPayment,
+  venueKey,
+  type BidQuote,
   type Listing,
   type ListingDraft,
 } from "../core/listing";
 import { assertWindowOpen, currentWindow } from "../core/window";
 import {
+  findListingByVenueKey as findDbListingByVenueKey,
   getDb,
   insertListing,
   listingFromRow,
   resetDbCache,
+  updateListing,
   upsertWindow,
   type AppDb,
 } from "../db";
@@ -118,25 +125,8 @@ export function checkoutNow(): Date {
 }
 
 export function parseAmountUsd(raw: unknown): number {
-  if (typeof raw === "boolean") {
-    throw new CheckoutError("bid_not_whole", 400);
-  }
-  if (typeof raw === "number") {
-    return wrapListingBid(raw);
-  }
-  if (typeof raw !== "string" || raw.trim() === "") {
-    throw new CheckoutError("bid_not_whole", 400);
-  }
-  const trimmed = raw.trim().replace(/^\$/, "");
-  if (!/^\d+$/.test(trimmed)) {
-    throw new CheckoutError("bid_not_whole", 400);
-  }
-  return wrapListingBid(Number(trimmed));
-}
-
-function wrapListingBid(value: number): number {
   try {
-    return parseBidUsd(value);
+    return parseTargetBidUsd(raw);
   } catch (error) {
     if (error instanceof ListingError) {
       throw new CheckoutError(error.code, error.http, error.message);
@@ -260,30 +250,30 @@ export function listingForSession(
   return row ? listingFromRow(row) : undefined;
 }
 
-/** Rank updates only after a successful paid event. Session replay is a no-op. */
-export function applyPaidEvent(event: PaidEvent, db: AppDb = getDb()): Listing {
-  const existing = paymentForSession(db, event.sessionId);
-  if (existing) {
-    const row = db.listings.get(existing.listing_id);
-    if (!row) {
-      throw new Error(`checkout ${event.sessionId} points at a missing listing`);
-    }
-    return listingFromRow(row);
-  }
+export function findPaidByVenueKey(
+  draft: ListingDraft,
+  db: AppDb = getDb(),
+): Listing | undefined {
+  const key = venueKey(draft);
+  return findDbListingByVenueKey(db, key);
+}
 
-  const listing = createListing({
-    id: `lst_${event.sessionId}`,
-    city: event.listingDraft.city,
-    windowId: event.listingDraft.windowId,
-    venueName: event.listingDraft.venueName,
-    bookingUrl: event.listingDraft.bookingUrl,
-    kind: event.listingDraft.kind,
-    pitch: event.listingDraft.pitch,
-    bidUsd: event.amountUsd,
-    firstPaidAt: event.paidAt,
-    lastPaidAt: event.paidAt,
-    clicks: 0,
-  });
+export function quoteCheckout(
+  draft: ListingDraft,
+  targetBidUsd: number,
+  db: AppDb = getDb(),
+): BidQuote {
+  try {
+    return quoteBid(findPaidByVenueKey(draft, db), targetBidUsd);
+  } catch (error) {
+    if (error instanceof ListingError) {
+      throw new CheckoutError(error.code, error.http, error.message);
+    }
+    throw error;
+  }
+}
+
+function ensureWindow(db: AppDb, listing: Listing): void {
   const city = getCity(listing.city);
   if (city) {
     const window = currentWindow(city, checkoutNow());
@@ -291,7 +281,65 @@ export function applyPaidEvent(event: PaidEvent, db: AppDb = getDb()): Listing {
       upsertWindow(db, window);
     }
   }
-  insertListing(db, listing);
+}
+
+/** Rank updates only after a successful paid event. Session replay is a no-op. */
+export function applyPaidEvent(event: PaidEvent, db: AppDb = getDb()): Listing {
+  const replayed = paymentForSession(db, event.sessionId);
+  if (replayed) {
+    const row = db.listings.get(replayed.listing_id);
+    if (!row) {
+      throw new Error(`checkout ${event.sessionId} points at a missing listing`);
+    }
+    return listingFromRow(row);
+  }
+
+  const existing = findPaidByVenueKey(event.listingDraft, db);
+  let listing: Listing;
+  try {
+    const targetBidUsd = targetBidAfterPayment(
+      existing,
+      event.amountUsd,
+      event.kind,
+    );
+    quoteBid(existing, targetBidUsd);
+    if (existing) {
+      listing = raiseListing(existing, {
+        targetBidUsd,
+        lastPaidAt: event.paidAt,
+        venueName: event.listingDraft.venueName,
+        bookingUrl: event.listingDraft.bookingUrl,
+        kind: event.listingDraft.kind,
+        pitch: event.listingDraft.pitch,
+      });
+    } else {
+      listing = createListing({
+        id: `lst_${event.sessionId}`,
+        city: event.listingDraft.city,
+        windowId: event.listingDraft.windowId,
+        venueName: event.listingDraft.venueName,
+        bookingUrl: event.listingDraft.bookingUrl,
+        kind: event.listingDraft.kind,
+        pitch: event.listingDraft.pitch,
+        bidUsd: targetBidUsd,
+        firstPaidAt: event.paidAt,
+        lastPaidAt: event.paidAt,
+        clicks: 0,
+      });
+    }
+  } catch (error) {
+    if (error instanceof ListingError) {
+      throw new CheckoutError(error.code, error.http, error.message);
+    }
+    throw error;
+  }
+
+  ensureWindow(db, listing);
+  if (existing) {
+    updateListing(db, listing);
+  } else {
+    insertListing(db, listing);
+  }
   db.payments.set(event.sessionId, {
     id: event.sessionId,
     listing_id: listing.id,

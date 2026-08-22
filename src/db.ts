@@ -208,6 +208,24 @@ export function listingsForCityWindow(
   return rows;
 }
 
+export function findListingByVenueKey(
+  db: AppDb,
+  venueKey: string,
+): Listing | undefined {
+  for (const row of db.listings.values()) {
+    if (row.venue_key === venueKey) {
+      return listingFromRow(row);
+    }
+  }
+  return undefined;
+}
+
+export function updateListing(db: AppDb, listing: Listing): ListingRow {
+  const row = listingToRow(listing);
+  db.listings.set(row.id, row);
+  return row;
+}
+
 export function openDatabase(_path: string = defaultDatabasePath()): AppDb {
   if (_path !== ":memory:") {
     ensureDatabaseDir(_path);

@@ -4,6 +4,7 @@ import {
   getPaymentPort,
   parseAmountUsd,
   parseListingDraft,
+  quoteCheckout,
   resolveCheckoutWindow,
 } from "../../../billing/port";
 
@@ -53,13 +54,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const amountUsd = parseAmountUsd(body.amountUsd ?? body.bidUsd);
+    const targetBidUsd = parseAmountUsd(body.amountUsd ?? body.bidUsd);
     const { city, windowId } = resolveCheckoutWindow(body.city);
     const listingDraft = parseListingDraft(body, windowId, city);
+    const quote = quoteCheckout(listingDraft, targetBidUsd);
     const started = await getPaymentPort().createCheckout({
       listingDraft,
-      amountUsd,
-      kind: "create",
+      amountUsd: quote.chargeUsd,
+      kind: quote.kind,
     });
     if (json) {
       return NextResponse.json({
