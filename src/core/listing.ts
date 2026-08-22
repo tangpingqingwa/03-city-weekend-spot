@@ -1,4 +1,5 @@
 import { MIN_BID_USD, type CitySlug, type VenueKind } from "./cities";
+import { canonicalizeBookingUrl, isNsfwCopy, UrlError } from "./url";
 
 export const VENUE_NAME_MAX = 80;
 export const PITCH_MAX = 120;
@@ -9,6 +10,7 @@ export type ListingErrorCode =
   | "bid_below_min"
   | "bid_not_higher"
   | "url_insecure"
+  | "url_forbidden"
   | "reviews_forbidden"
   | "listing_invalid";
 
@@ -87,21 +89,32 @@ function rejectReviewSpeak(text: string): void {
   }
 }
 
-function bookingHost(bookingUrl: string): string {
-  let parsed: URL;
+function rejectNsfwCopy(text: string): void {
+  if (isNsfwCopy(text)) {
+    throw new ListingError("url_forbidden", "NSFW copy is not allowed");
+  }
+}
+
+/** Store and match the stripped booking URL only. */
+export function canonicalBookingUrl(raw: string): string {
   try {
-    parsed = new URL(bookingUrl);
-  } catch {
-    throw new ListingError("url_insecure", "booking URL must be https");
+    return canonicalizeBookingUrl(raw);
+  } catch (error) {
+    if (error instanceof UrlError) {
+      throw new ListingError(
+        error.code,
+        error.code === "url_insecure"
+          ? "booking URL must be https"
+          : "booking URL is forbidden",
+      );
+    }
+    throw error;
   }
-  if (parsed.protocol !== "https:") {
-    throw new ListingError("url_insecure", "booking URL must be https");
-  }
-  const host = parsed.hostname.trim().toLowerCase();
-  if (!host) {
-    throw new ListingError("url_insecure", "booking URL must be https");
-  }
-  return host;
+}
+
+function bookingHost(bookingUrl: string): string {
+  const canonical = canonicalBookingUrl(bookingUrl);
+  return new URL(canonical).hostname;
 }
 
 /**
@@ -147,6 +160,7 @@ export function parsePitch(value: unknown): string | null {
     throw new ListingError("listing_invalid", `pitch must be ≤ ${PITCH_MAX} characters`);
   }
   rejectReviewSpeak(trimmed);
+  rejectNsfwCopy(trimmed);
   return trimmed;
 }
 
@@ -278,8 +292,8 @@ export function raiseListing(
 export function createListing(input: ListingInput): Listing {
   const venueName = requireTrimmed(input.venueName, "venueName", VENUE_NAME_MAX);
   rejectReviewSpeak(venueName);
-  const bookingUrl = input.bookingUrl.trim();
-  bookingHost(bookingUrl);
+  rejectNsfwCopy(venueName);
+  const bookingUrl = canonicalBookingUrl(input.bookingUrl);
   const kind = parseVenueKind(input.kind);
   const pitch = parsePitch(input.pitch);
   const bidUsd = parseBidUsd(input.bidUsd);
