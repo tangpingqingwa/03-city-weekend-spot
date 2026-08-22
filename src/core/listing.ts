@@ -7,9 +7,18 @@ export const VENUE_KINDS = ["restaurant", "bar", "show"] as const;
 export type ListingErrorCode =
   | "bid_not_whole"
   | "bid_below_min"
+  | "bid_not_higher"
   | "url_insecure"
   | "reviews_forbidden"
   | "listing_invalid";
+
+export type CheckoutKind = "create" | "raise";
+
+export type BidQuote = {
+  kind: CheckoutKind;
+  targetBidUsd: number;
+  chargeUsd: number;
+};
 
 export class ListingError extends Error {
   readonly code: ListingErrorCode;
@@ -141,18 +150,129 @@ export function parsePitch(value: unknown): string | null {
   return trimmed;
 }
 
+/** Whole US dollars. Floor and raise-vs-create live in quoteBid. */
+export function parseTargetBidUsd(value: unknown): number {
+  if (typeof value === "boolean") {
+    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
+  }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || !Number.isInteger(value) || value < 1) {
+      throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
+    }
+    return value;
+  }
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
+  }
+  const trimmed = value.trim().replace(/^\$/, "");
+  if (!/^\d+$/.test(trimmed)) {
+    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
+  }
+  const parsed = Number(trimmed);
+  if (parsed < 1) {
+    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
+  }
+  return parsed;
+}
+
 /** Whole dollars only. First bid in a window must be ≥ $5. */
 export function parseBidUsd(value: unknown): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
-  }
-  if (!Number.isInteger(value)) {
-    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
-  }
-  if (value < MIN_BID_USD) {
+  const parsed = parseTargetBidUsd(value);
+  if (parsed < MIN_BID_USD) {
     throw new ListingError("bid_below_min", `first bid must be at least $${MIN_BID_USD}`);
   }
-  return value;
+  return parsed;
+}
+
+/**
+ * First listing this city + window pays the full bid (≥ $5).
+ * Same venue key pays only new − current. Raise must be ≥ current + $1.
+ */
+export function quoteBid(
+  existing: Pick<Listing, "bidUsd"> | undefined,
+  targetBidUsd: number,
+): BidQuote {
+  if (!Number.isInteger(targetBidUsd) || targetBidUsd < 1) {
+    throw new ListingError("bid_not_whole", "bid must be a whole USD amount");
+  }
+  if (!existing) {
+    if (targetBidUsd < MIN_BID_USD) {
+      throw new ListingError(
+        "bid_below_min",
+        `first bid must be at least $${MIN_BID_USD}`,
+      );
+    }
+    return { kind: "create", targetBidUsd, chargeUsd: targetBidUsd };
+  }
+  if (targetBidUsd <= existing.bidUsd) {
+    throw new ListingError(
+      "bid_not_higher",
+      "raise must be greater than the current bid",
+    );
+  }
+  return {
+    kind: "raise",
+    targetBidUsd,
+    chargeUsd: targetBidUsd - existing.bidUsd,
+  };
+}
+
+export function targetBidAfterPayment(
+  existing: Pick<Listing, "bidUsd"> | undefined,
+  chargedUsd: number,
+  kind: CheckoutKind,
+): number {
+  if (kind === "raise") {
+    if (!existing) {
+      throw new ListingError(
+        "bid_not_higher",
+        "raise must be greater than the current bid",
+      );
+    }
+    return existing.bidUsd + chargedUsd;
+  }
+  return chargedUsd;
+}
+
+export function findListingByVenueKey(
+  listings: readonly Listing[],
+  input: {
+    venueName: string;
+    bookingUrl: string;
+    city: CitySlug;
+    windowId: string;
+  },
+): Listing | undefined {
+  const key = venueKey(input);
+  return listings.find((row) => row.venueKey === key);
+}
+
+/** Same row, new bid. firstPaidAt and clicks stay put. */
+export function raiseListing(
+  existing: Listing,
+  input: {
+    targetBidUsd: number;
+    lastPaidAt: string;
+    venueName?: string;
+    bookingUrl?: string;
+    kind?: VenueKind | null;
+    pitch?: string | null;
+  },
+): Listing {
+  const quote = quoteBid(existing, input.targetBidUsd);
+  return createListing({
+    id: existing.id,
+    city: existing.city,
+    windowId: existing.windowId,
+    venueName: input.venueName ?? existing.venueName,
+    bookingUrl: input.bookingUrl ?? existing.bookingUrl,
+    kind: input.kind !== undefined ? input.kind : existing.kind,
+    pitch: input.pitch !== undefined ? input.pitch : existing.pitch,
+    bidUsd: quote.targetBidUsd,
+    firstPaidAt: existing.firstPaidAt,
+    lastPaidAt: input.lastPaidAt,
+    clicks: existing.clicks,
+  });
 }
 
 export function createListing(input: ListingInput): Listing {

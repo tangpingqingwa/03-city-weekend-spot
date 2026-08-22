@@ -13,10 +13,12 @@ import {
   getPaymentPort,
   parseAmountUsd,
   polarLiveEnabled,
+  quoteCheckout,
   resetCheckoutState,
   setCheckoutNow,
 } from "../src/billing/port";
 import { MIN_BID_USD, getCity, type City } from "../src/core/cities";
+import { ListingError, quoteBid } from "../src/core/listing";
 import { rankListings } from "../src/core/rank";
 import { currentWindow } from "../src/core/window";
 import { getDb, listingsForCityWindow } from "../src/db";
@@ -215,8 +217,8 @@ test("bids below $5 and cents are rejected and never charged", async () => {
   assert.deepEqual(await cents.json(), { error: "bid_not_whole" });
   assert.equal(rankedNyc().length, 0);
 
-  assert.throws(() => parseAmountUsd("4"), (err: unknown) => {
-    assert.ok(err instanceof CheckoutError);
+  assert.throws(() => quoteBid(undefined, 4), (err: unknown) => {
+    assert.ok(err instanceof ListingError);
     assert.equal(err.code, "bid_below_min");
     return true;
   });
@@ -422,4 +424,197 @@ test("live Polar webhook signed paid event lists", async () => {
   assert.equal(ranked[0]?.bidUsd, 8);
   assert.equal(ranked[0]?.venueName, "Underbid");
   assert.equal(ranked[0]?.rank, 1);
+});
+
+test("quoteBid charges the full first bid and only the raise difference", () => {
+  assert.deepEqual(quoteBid(undefined, 5), {
+    kind: "create",
+    targetBidUsd: 5,
+    chargeUsd: 5,
+  });
+  assert.deepEqual(quoteBid({ bidUsd: 5 }, 12), {
+    kind: "raise",
+    targetBidUsd: 12,
+    chargeUsd: 7,
+  });
+  assert.throws(() => quoteBid({ bidUsd: 5 }, 5), (err: unknown) => {
+    assert.ok(err instanceof ListingError);
+    assert.equal(err.code, "bid_not_higher");
+    return true;
+  });
+  assert.throws(() => quoteBid({ bidUsd: 12 }, 7), (err: unknown) => {
+    assert.ok(err instanceof ListingError);
+    assert.equal(err.code, "bid_not_higher");
+    return true;
+  });
+});
+
+test("SPEC acceptance 5: #2 raises $5 → $12 pays $7; firstPaidAt unchanged", async () => {
+  setCheckoutNow(OPEN_NYC);
+  const port = getPaymentPort();
+  const firstPaidAt = "2026-08-20T16:00:00.000Z";
+  const incumbent = applyPaidEvent({
+    sessionId: "chk_incumbent_12",
+    listingDraft: draft({
+      venueName: "Twelve Dollar",
+      bookingUrl: "https://book.example.com/twelve",
+    }),
+    amountUsd: 12,
+    kind: "create",
+    paidAt: "2026-08-20T17:00:00.000Z",
+  });
+  const opener = applyPaidEvent({
+    sessionId: "chk_opener_5",
+    listingDraft: draft({
+      venueName: "Sunday Roast",
+      bookingUrl: "https://book.example.com/roast",
+    }),
+    amountUsd: 5,
+    kind: "create",
+    paidAt: firstPaidAt,
+  });
+  const before = rankedNyc();
+  assert.equal(before[0]?.id, incumbent.id);
+  assert.equal(before[1]?.id, opener.id);
+  assert.equal(before[1]?.bidUsd, 5);
+
+  const raiseJson = await postJson({
+    city: "nyc",
+    venueName: "Sunday Roast",
+    bookingUrl: "https://book.example.com/roast",
+    amountUsd: 12,
+    kind: "restaurant",
+  });
+  assert.equal(raiseJson.status, 200);
+  const raiseBody = (await raiseJson.json()) as {
+    checkoutUrl: string;
+    sessionId: string;
+  };
+  const raiseSession = port.getCheckout(raiseBody.sessionId);
+  assert.equal(raiseSession?.kind, "raise");
+  assert.equal(raiseSession?.amountUsd, 7);
+  assert.equal(rankedNyc().length, 2);
+  assert.equal(rankedNyc().find((row) => row.id === opener.id)?.bidUsd, 5);
+
+  const paid = await port.completeCheckout(raiseBody.sessionId);
+  assert.equal(paid.kind, "raise");
+  assert.equal(paid.amountUsd, 7);
+  const raised = applyPaidEvent(paid);
+  assert.equal(raised.id, opener.id);
+  assert.equal(raised.bidUsd, 12);
+  assert.equal(raised.firstPaidAt, firstPaidAt);
+  assert.notEqual(raised.lastPaidAt, firstPaidAt);
+
+  const ranked = rankedNyc();
+  assert.equal(ranked.length, 2);
+  assert.equal(ranked[0]?.id, opener.id);
+  assert.equal(ranked[0]?.rank, 1);
+  assert.equal(ranked[0]?.bidUsd, 12);
+  assert.equal(ranked[0]?.firstPaidAt, firstPaidAt);
+  assert.equal(ranked[1]?.id, incumbent.id);
+  assert.equal(ranked[1]?.bidUsd, 12);
+});
+
+test("different listing pays the full amount and cannot steal a raise difference", async () => {
+  setCheckoutNow(OPEN_NYC);
+  applyPaidEvent({
+    sessionId: "chk_cover_12",
+    listingDraft: draft({
+      venueName: "Cover Bar",
+      bookingUrl: "https://book.example.com/cover",
+    }),
+    amountUsd: 12,
+    kind: "create",
+    paidAt: "2026-08-20T16:00:00.000Z",
+  });
+
+  const steal = await postJson({
+    city: "nyc",
+    venueName: "Rival Room",
+    bookingUrl: "https://book.example.com/rival",
+    amountUsd: 7,
+  });
+  assert.equal(steal.status, 200);
+  const stealBody = (await steal.json()) as { sessionId: string };
+  const stealSession = getPaymentPort().getCheckout(stealBody.sessionId);
+  assert.equal(stealSession?.kind, "create");
+  assert.equal(stealSession?.amountUsd, 7);
+
+  const paid = await getPaymentPort().completeCheckout(stealBody.sessionId);
+  applyPaidEvent(paid);
+
+  const ranked = rankedNyc();
+  assert.equal(ranked.length, 2);
+  assert.equal(ranked[0]?.venueName, "Cover Bar");
+  assert.equal(ranked[0]?.bidUsd, 12);
+  assert.equal(ranked[0]?.rank, 1);
+  assert.equal(ranked[1]?.venueName, "Rival Room");
+  assert.equal(ranked[1]?.bidUsd, 7);
+  assert.equal(ranked[1]?.rank, 2);
+});
+
+test("bid_not_higher when raise is not above the current bid", async () => {
+  setCheckoutNow(OPEN_NYC);
+  applyPaidEvent({
+    sessionId: "chk_stay_8",
+    listingDraft: draft({
+      venueName: "Stay Spot",
+      bookingUrl: "https://book.example.com/stay",
+    }),
+    amountUsd: 8,
+    kind: "create",
+    paidAt: "2026-08-20T16:00:00.000Z",
+  });
+
+  const same = await postJson({
+    city: "nyc",
+    venueName: "Stay Spot",
+    bookingUrl: "https://book.example.com/stay",
+    amountUsd: 8,
+  });
+  assert.equal(same.status, 400);
+  assert.deepEqual(await same.json(), { error: "bid_not_higher" });
+
+  const lower = await postJson({
+    city: "nyc",
+    venueName: "Stay Spot",
+    bookingUrl: "https://book.example.com/stay",
+    amountUsd: 5,
+  });
+  assert.equal(lower.status, 400);
+  assert.deepEqual(await lower.json(), { error: "bid_not_higher" });
+
+  const ranked = rankedNyc();
+  assert.equal(ranked.length, 1);
+  assert.equal(ranked[0]?.bidUsd, 8);
+  assert.equal(getPaymentPort().getCheckout("unused"), undefined);
+});
+
+test("same venue next weekend window is a new full-bid listing", () => {
+  setCheckoutNow(OPEN_NYC);
+  applyPaidEvent({
+    sessionId: "chk_last_week",
+    listingDraft: draft({
+      windowId: "nyc:2026-W33",
+      venueName: "Sunday Roast",
+      bookingUrl: "https://book.example.com/roast",
+    }),
+    amountUsd: 20,
+    kind: "create",
+    paidAt: "2026-08-13T16:00:00.000Z",
+  });
+  const quote = quoteCheckout(draft(), 5);
+  assert.equal(quote.kind, "create");
+  assert.equal(quote.chargeUsd, 5);
+  const next = applyPaidEvent({
+    sessionId: "chk_this_week",
+    listingDraft: draft(),
+    amountUsd: 5,
+    kind: "create",
+    paidAt: "2026-08-20T16:00:00.000Z",
+  });
+  assert.equal(next.bidUsd, 5);
+  assert.equal(next.windowId, windowIdAt());
+  assert.equal(rankedNyc().length, 1);
+  assert.equal(rankedNyc()[0]?.id, next.id);
 });

@@ -169,6 +169,22 @@ grep -q 'POLAR_LIVE=1' src/billing/polar.ts \
   || fail "polar.ts must stay env-gated"
 grep -q 'applyPaidEvent' src/billing/port.ts \
   || fail "port.ts must apply paid events only"
+grep -q 'export function quoteBid' src/core/listing.ts \
+  || fail "listing.ts must quote create vs raise"
+grep -q 'bid_not_higher' src/core/listing.ts \
+  || fail "listing.ts must reject a non-increasing raise"
+grep -q 'venueKey' src/core/listing.ts \
+  || fail "listing.ts must key raises on venueKey"
+grep -q 'findListingByVenueKey' src/db.ts \
+  || fail "db.ts must look up the same venue key in this window"
+grep -q 'quoteCheckout' src/app/api/checkout/route.ts \
+  || fail "checkout must charge the raise difference"
+grep -q 'quote.kind' src/app/api/checkout/route.ts \
+  || fail "checkout raise path must pass create or raise"
+grep -q 'bid_not_higher' tests/checkout.test.ts \
+  || fail "checkout tests must cover bid_not_higher"
+grep -q 'pays \$7' tests/checkout.test.ts \
+  || fail "checkout tests must cover SPEC acceptance 5"
 if grep -nE 'fetch\(|polar\.sh|api\.polar' src/billing/fixture.ts src/billing/port.ts >/dev/null; then
   fail "fixture/port must not call Polar over the network"
 fi
@@ -204,6 +220,10 @@ if [[ -f package.json ]]; then
     || fail "checkout fixture test did not run"
   grep -q 'abandoned checkout' "$test_log" \
     || fail "abandoned checkout test did not run"
+  grep -q 'raises' "$test_log" \
+    || fail "raise-bid test did not run"
+  grep -q 'bid_not_higher' "$test_log" \
+    || fail "bid_not_higher test did not run"
 fi
 
 echo "OK: buildable and testable"
