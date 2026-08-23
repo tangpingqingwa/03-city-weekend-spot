@@ -194,6 +194,32 @@ a:hover {
   color: var(--accent-ink);
 }
 
+.list-after-book-hop-line {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.list-after-book-hop {
+  display: inline-block;
+  min-width: 8.5rem;
+  height: 2.35rem;
+  padding: 0 1.15rem;
+  line-height: 2.2rem;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.list-after-book-hop:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .list-after-book-line {
   margin: 1.15rem 0 0;
   text-align: center;

@@ -159,12 +159,18 @@ grep -q 'data-book-after-list' src/app/\[city\]/board.tsx \
   || fail "occupied masthead must expose Book after the list hop"
 grep -q 'after the list hop' src/app/\[city\]/board.tsx \
   || fail "Book after list must sit after the list hop"
+grep -q 'data-list-after-book-hop' src/app/\[city\]/board.tsx \
+  || fail "occupied masthead must list after Book follows List"
+grep -q 'after Book follows List' src/app/\[city\]/board.tsx \
+  || fail "list-after-book-hop must sit after Book follows List"
 grep -q 'list-venue' src/app/board.css \
   || fail "poster CSS must style the List a venue hop"
 grep -q 'list-after-book' src/app/board.css \
   || fail "poster CSS must style the list-after-book hop"
 grep -q 'book-after-list' src/app/board.css \
   || fail "poster CSS must style the book-after-list hop"
+grep -q 'list-after-book-hop' src/app/board.css \
+  || fail "poster CSS must style the list-after-book-hop"
 grep -q 'weekend-answer' src/app/board.css \
   || fail "poster CSS must style the occupied weekend answer"
 grep -q '\.book-one' src/app/board.css \
@@ -422,6 +428,8 @@ if [[ -f package.json ]]; then
     || fail "occupied list-after-book test did not run"
   grep -q 'books after the list hop' "$test_log" \
     || fail "occupied book-after-list test did not run"
+  grep -q 'lists after Book follows the list hop' "$test_log" \
+    || fail "occupied list-after-book-hop test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \

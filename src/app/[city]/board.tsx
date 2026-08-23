@@ -233,6 +233,16 @@ export function CityBoard({
               />{" "}
               after the list hop.
             </p>
+            <p className="list-after-book-hop-line">
+              <a
+                className="list-after-book-hop"
+                href="#claim"
+                data-list-after-book-hop=""
+              >
+                List a venue
+              </a>{" "}
+              after Book follows List.
+            </p>
           </>
         ) : null}
       </header>
