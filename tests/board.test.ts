@@ -88,9 +88,11 @@ test("empty board reads like an unpublished weekend poster", () => {
   assert.match(html, />New York City</);
   assert.match(html, /One city · one weekend/);
   assert.match(html, /This Friday \/ Saturday/);
-  assert.match(html, /This weekend is unpublished/);
+  assert.match(html, /class="empty-answer"/);
   assert.match(html, /No #1/);
+  assert.match(html, /This weekend is unpublished/);
   assert.match(html, /Nothing is invented here/);
+  assert.doesNotMatch(html, /empty-kicker/);
   assert.doesNotMatch(html, /city-kicker/);
   assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
   assert.doesNotMatch(html, /second prize|editor.?s pick|rated 4\.9/i);
@@ -103,8 +105,11 @@ test("first-time visitor reads the weekend answer before claim chrome", () => {
   const emptyAnswer = empty.indexOf("data-empty-board");
   const emptyClaim = empty.indexOf("data-bid-form");
   assert.ok(emptyAnswer >= 0 && emptyClaim > emptyAnswer);
-  assert.match(empty, /No #1/);
-  assert.match(empty, /This weekend is unpublished/);
+  const noOne = empty.indexOf("No #1");
+  const unpublished = empty.indexOf("This weekend is unpublished");
+  assert.ok(noOne >= 0 && unpublished > noOne);
+  assert.match(empty, /class="empty-answer"/);
+  assert.match(empty, /class="empty-note"/);
   assert.match(empty, /Claim #1 for/);
   assert.match(empty, /action="\/api\/checkout"/);
 

@@ -121,6 +121,11 @@ grep -q '+' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the plus 
 grep -q 'amount-field' src/app/\[city\]/bid-form.tsx || fail "bid form must keep the dashed amount field"
 grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have an honest empty state"
 grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
+grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must print No #1 as the weekend answer"
+grep -q 'empty-note' src/app/\[city\]/board.tsx || fail "unpublished must sit under No #1, not above it"
+if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
+  fail "empty board must not keep unpublished as the large kicker"
+fi
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
 grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
 grep -q 'data-kind' src/app/\[city\]/board.tsx || fail "place card must show kind"
