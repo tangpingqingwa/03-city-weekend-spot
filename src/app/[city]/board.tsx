@@ -29,7 +29,65 @@ function kindLabel(kind: BoardListing["kind"]): string | null {
   return "Show";
 }
 
+function BookingHop({
+  listing,
+  className,
+  primary,
+}: {
+  listing: BoardListing;
+  className: string;
+  primary?: boolean;
+}) {
+  return (
+    <a
+      className={className}
+      href={listingClickPath(listing.id)}
+      rel="noreferrer"
+      data-booking-url={listing.bookingUrl}
+      {...(primary ? { "data-book-number-one": "" } : {})}
+      aria-label={`Book ${listing.venueName}`}
+    >
+      Book
+    </a>
+  );
+}
+
+function NumberOnePlace({ listing }: { listing: BoardListing }) {
+  const kind = kindLabel(listing.kind);
+  return (
+    <article
+      className="number-one"
+      data-listing-card=""
+      data-rank={listing.rank}
+      data-listing-id={listing.id}
+      data-weekend-answer=""
+    >
+      <span className="rank">#{listing.rank}</span>
+      <h2 className="weekend-answer" data-venue="">
+        {listing.venueName}
+      </h2>
+      {kind ? (
+        <p className="kind" data-kind="">
+          {kind}
+        </p>
+      ) : null}
+      {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
+      <p className="bid" data-bid="">
+        {formatUsd(listing.bidUsd)}
+      </p>
+      <BookingHop listing={listing} className="book-one" primary />
+      <p className="clicks" data-clicks="">
+        {formatClicks(listing.clicks)}
+      </p>
+    </article>
+  );
+}
+
 export function ListingCard({ listing }: { listing: BoardListing }) {
+  if (listing.rank === 1) {
+    return <NumberOnePlace listing={listing} />;
+  }
+
   const kind = kindLabel(listing.kind);
   return (
     <article
@@ -55,14 +113,7 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
         <span className="clicks" data-clicks="">
           {formatClicks(listing.clicks)}
         </span>
-        <a
-          className="booking"
-          href={listingClickPath(listing.id)}
-          rel="noreferrer"
-          data-booking-url={listing.bookingUrl}
-        >
-          Book
-        </a>
+        <BookingHop listing={listing} className="booking" />
       </footer>
     </article>
   );
@@ -99,7 +150,10 @@ export function Leaderboard({
       </p>
       <ol className="leaderboard" data-leaderboard="">
         {listings.map((listing) => (
-          <li key={listing.id}>
+          <li
+            key={listing.id}
+            className={listing.rank === 1 ? "is-number-one" : "is-rest"}
+          >
             <ListingCard listing={listing} />
           </li>
         ))}

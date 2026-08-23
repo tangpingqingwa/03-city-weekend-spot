@@ -133,6 +133,8 @@ test("cards show rank, venue, kind, $bid, clicks, and Book — not stars", () =>
     createElement(ListingCard, { listing: withPitch }),
   );
   assert.match(html, /data-rank="1"/);
+  assert.match(html, /data-weekend-answer=""/);
+  assert.match(html, /data-book-number-one=""/);
   assert.match(html, /#1/);
   assert.match(html, /Sunday Roast/);
   assert.match(html, /data-kind=""/);
@@ -161,6 +163,41 @@ test("ranked cards keep money order in markup", () => {
   assert.match(html, /Bar/);
   assert.doesNotMatch(html, /data-empty-board/);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars/i);
+});
+
+test("occupied NYC board books the paid #1 as the weekend answer", () => {
+  const html = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const answer = html.indexOf("data-weekend-answer");
+  const bookOne = html.indexOf("data-book-number-one");
+  const later = html.indexOf("Late Bar");
+  const claim = html.indexOf("data-bid-form");
+  const outbid = html.indexOf(">Outbid<");
+  assert.ok(answer >= 0 && bookOne > answer);
+  assert.ok(later > bookOne && claim > later && outbid > claim);
+  assert.match(html, /class="weekend-answer"/);
+  assert.match(html, /class="book-one"/);
+  assert.equal(html.split("data-book-number-one").length - 1, 1);
+  assert.match(html, /href="\/api\/click\/lst_top"/);
+  assert.match(html, /data-rank="1"/);
+  assert.match(html, /Sunday Roast/);
+  assert.match(html, /\$12/);
+  assert.match(html, /action="\/api\/checkout"/);
+  assert.match(html, /Claim #1 for/);
+  assert.doesNotMatch(html, /data-empty-board/);
+  assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const laterCard = renderToStaticMarkup(
+    createElement(ListingCard, { listing: rankedCards[1] }),
+  );
+  assert.match(laterCard, /data-rank="2"/);
+  assert.match(laterCard, />Book</);
+  assert.match(laterCard, /href="\/api\/click\/lst_two"/);
+  assert.doesNotMatch(laterCard, /data-weekend-answer/);
+  assert.doesNotMatch(laterCard, /data-book-number-one/);
+  assert.doesNotMatch(laterCard, /class="book-one"/);
 });
 
 test("failed checkout returns an honest error on the poster, not a stub", () => {
