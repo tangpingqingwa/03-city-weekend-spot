@@ -70,11 +70,13 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
       data-rank={listing.rank}
       data-listing-id={listing.id}
       data-weekend-answer=""
+      data-book-one-certain=""
     >
       <span className="rank">#{listing.rank}</span>
       <h2 className="weekend-answer" data-venue="">
         {listing.venueName}
       </h2>
+      <BookingHop listing={listing} className="book-one" primary />
       {kind ? (
         <p className="kind" data-kind="">
           {kind}
@@ -84,7 +86,6 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
       <p className="bid" data-bid="">
         {formatUsd(listing.bidUsd)}
       </p>
-      <BookingHop listing={listing} className="book-one" primary />
       <p className="clicks" data-clicks="">
         {formatClicks(listing.clicks)}
       </p>

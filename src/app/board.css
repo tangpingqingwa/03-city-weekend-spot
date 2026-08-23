@@ -227,23 +227,25 @@ a:hover {
 }
 
 .book-after-list-hop {
-  display: inline-block;
-  min-width: 8.5rem;
-  height: 2.35rem;
-  padding: 0 1.15rem;
-  line-height: 2.2rem;
-  border: 1px solid var(--rule);
-  background: var(--ink);
-  color: var(--paper);
+  display: inline;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  line-height: inherit;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  vertical-align: middle;
+  border-bottom: 1px dashed var(--rule);
+  vertical-align: baseline;
 }
 
 .book-after-list-hop:hover {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: transparent;
+  color: var(--accent);
 }
 
 .list-after-book-line {
@@ -475,17 +477,21 @@ a:hover {
 
 .book-one {
   display: inline-block;
-  margin-top: 0.95rem;
-  min-width: 10.5rem;
-  height: 2.7rem;
-  padding: 0 1.4rem;
-  line-height: 2.55rem;
+  margin-top: 0.85rem;
+  min-width: 12rem;
+  height: 3rem;
+  padding: 0 1.55rem;
+  line-height: 2.85rem;
   border: 1px solid var(--rule);
   background: var(--ink);
   color: var(--paper);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.number-one[data-book-one-certain] .book-one {
+  margin-bottom: 0.35rem;
 }
 
 .book-one:hover {
