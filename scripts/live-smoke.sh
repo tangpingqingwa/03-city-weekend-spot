@@ -46,6 +46,8 @@ BASE="${LIVE_SMOKE_BASE:-}"
 OP_POLAR_LIVE="${POLAR_LIVE:-}"
 OP_POLAR_ACCESS_TOKEN="${POLAR_ACCESS_TOKEN:-}"
 OP_POLAR_WEBHOOK_SECRET="${POLAR_WEBHOOK_SECRET:-}"
+OP_POLAR_API_BASE="${POLAR_API_BASE:-}"
+OP_POLAR_PRODUCT_ID="${POLAR_PRODUCT_ID:-}"
 
 kill_tree() {
   local pid="${1:-}"
@@ -336,7 +338,8 @@ start_smoke_server() {
   shift 3
   (
     cd "$root"
-    unset POLAR_LIVE POLAR_ACCESS_TOKEN POLAR_WEBHOOK_SECRET POLAR_FIXTURE_ONLY || true
+    unset POLAR_LIVE POLAR_ACCESS_TOKEN POLAR_WEBHOOK_SECRET POLAR_FIXTURE_ONLY \
+      POLAR_API_BASE POLAR_PRODUCT_ID || true
     export POLAR_FIXTURE_ONLY=1
     export PORT="${port}"
     export PUBLIC_BASE_URL="http://127.0.0.1:${port}"
@@ -507,6 +510,12 @@ fi
 
 echo "base=${BASE}"
 echo "operator POLAR_LIVE=${OP_POLAR_LIVE:-<unset>}"
+if [[ -n "${OP_POLAR_API_BASE}" ]]; then
+  echo "operator POLAR_API_BASE=${OP_POLAR_API_BASE}"
+else
+  echo "operator POLAR_API_BASE=<unset default production>"
+fi
+echo "operator POLAR_PRODUCT_ID=$([ -n "${OP_POLAR_PRODUCT_ID}" ] && echo set || echo unset)"
 
 # --- healthz ---
 health_body="${WORKDIR}/healthz.json"
@@ -595,6 +604,8 @@ if [[ "${OP_POLAR_LIVE}" == "1" ]]; then
       "POLAR_LIVE=1" \
       "POLAR_ACCESS_TOKEN=${OP_POLAR_ACCESS_TOKEN}" \
       "POLAR_WEBHOOK_SECRET=${OP_POLAR_WEBHOOK_SECRET:-}" \
+      "POLAR_API_BASE=${OP_POLAR_API_BASE:-}" \
+      "POLAR_PRODUCT_ID=${OP_POLAR_PRODUCT_ID:-}" \
       "POLAR_FIXTURE_ONLY=")"
     if ! wait_health "$live_base"; then
       if grep -q 'BLOCKED-SECRET: POLAR_ACCESS_TOKEN' "${live_log}"; then
@@ -615,8 +626,10 @@ if [[ "${OP_POLAR_LIVE}" == "1" ]]; then
       http_get "$live_base" "/nyc" "$live_board" >/dev/null || true
       if html_has "$live_board" 'Live Polar Venue'; then
         record "create-checkout" "FAIL" "unpaid live Polar session appeared on the board"
+      elif [[ "$live_code" == "200" && "$live_url" == https://sandbox.polar.sh/* ]]; then
+        record "create-checkout" "PASS" "live Polar sandbox Checkout URL; unpaid session not listed"
       elif [[ "$live_code" == "200" && "$live_url" == https://*polar.sh* ]]; then
-        record "create-checkout" "PASS" "live Polar checkout URL returned; unpaid session not listed"
+        record "create-checkout" "FAIL" "Polar checkout URL is not sandbox.polar.sh (got non-sandbox host)"
       elif [[ "$live_code" == "503" && "$live_err" == "polar_unavailable" ]]; then
         record "create-checkout" "PASS-ERROR" "polar_unavailable; no invented paid rank"
       else

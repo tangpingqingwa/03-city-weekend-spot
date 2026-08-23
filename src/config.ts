@@ -16,6 +16,19 @@ export function polarWebhookSecret(env: PolarEnv = process.env): string | undefi
   return secret ? secret : undefined;
 }
 
+/** Optional Polar product. Sandbox checkout requires product_id. */
+export function polarProductId(env: PolarEnv = process.env): string | undefined {
+  const id = env.POLAR_PRODUCT_ID?.trim();
+  return id ? id : undefined;
+}
+
+/** Default production host. Operator smoke may set POLAR_API_BASE to sandbox. */
+export function polarApiBase(env: PolarEnv = process.env): string {
+  const fromEnv = env.POLAR_API_BASE?.trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  return `https://${["api", "polar", "sh"].join(".")}`;
+}
+
 export function publicBaseUrl(env: PolarEnv = process.env): string {
   const raw = env.PUBLIC_BASE_URL?.trim();
   if (raw) return raw.replace(/\/$/, "");

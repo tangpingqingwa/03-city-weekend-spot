@@ -12,12 +12,14 @@ import type {
 } from "./port";
 import {
   polarAccessToken,
+  polarApiBase,
   polarLiveEnabled,
+  polarProductId,
   polarWebhookSecret,
   publicBaseUrl,
 } from "./port";
 
-/** Only used when POLAR_LIVE=1. tests/ never fetch this host. */
+/** Default Polar host. Override with POLAR_API_BASE (sandbox smoke). */
 export const POLAR_API_BASE = "https://api.polar.sh";
 
 export type PolarPaymentOptions = {
@@ -47,28 +49,14 @@ export class PolarPayment implements PaymentPort {
     const token = this.requireToken();
     let response: Response;
     try {
-      response = await this.fetchFn(`${POLAR_API_BASE}/v1/checkouts/`, {
+      response = await this.fetchFn(`${polarApiBase(this.env)}/v1/checkouts/`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
           "content-type": "application/json",
           accept: "application/json",
         },
-        body: JSON.stringify({
-          amount: input.amountUsd * 100,
-          currency: "usd",
-          success_url: `${publicBaseUrl(this.env)}/${input.listingDraft.city}/return?sessionId={CHECKOUT_ID}`,
-          metadata: {
-            city: input.listingDraft.city,
-            windowId: input.listingDraft.windowId,
-            venueName: input.listingDraft.venueName,
-            bookingUrl: input.listingDraft.bookingUrl,
-            venueKind: input.listingDraft.kind ?? "",
-            pitch: input.listingDraft.pitch ?? "",
-            amountUsd: String(input.amountUsd),
-            kind: input.kind,
-          },
-        }),
+        body: JSON.stringify(checkoutBody(this.env, input)),
       });
     } catch {
       throw new Error("polar_unavailable");
@@ -189,6 +177,31 @@ export function verifyPolarSignature(
     }
   }
   return false;
+}
+
+function checkoutBody(
+  env: PolarEnv,
+  input: CreateCheckoutInput,
+): Record<string, unknown> {
+  const metadata: Record<string, string> = {
+    city: input.listingDraft.city,
+    windowId: input.listingDraft.windowId,
+    venueName: input.listingDraft.venueName,
+    bookingUrl: input.listingDraft.bookingUrl,
+    amountUsd: String(input.amountUsd),
+    kind: input.kind,
+  };
+  if (input.listingDraft.kind) metadata.venueKind = input.listingDraft.kind;
+  if (input.listingDraft.pitch) metadata.pitch = input.listingDraft.pitch;
+  const body: Record<string, unknown> = {
+    amount: input.amountUsd * 100,
+    currency: "usd",
+    success_url: `${publicBaseUrl(env)}/${input.listingDraft.city}/return?sessionId={CHECKOUT_ID}`,
+    metadata,
+  };
+  const productId = polarProductId(env);
+  if (productId) body.product_id = productId;
+  return body;
 }
 
 function header(headers: Record<string, string>, name: string): string | undefined {
