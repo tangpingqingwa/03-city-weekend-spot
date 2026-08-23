@@ -137,6 +137,12 @@ grep -q 'data-book-number-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must expose a primary Book hop"
 grep -q 'book-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 Book must use the primary booking class"
+grep -q 'data-later-book' src/app/\[city\]/board.tsx \
+  || fail "later ranks must stamp Book as a later hop"
+grep -q 'data-book-later' src/app/\[city\]/board.tsx \
+  || fail "later ranks must expose a Book hop"
+grep -q 'book-later' src/app/\[city\]/board.tsx \
+  || fail "later-rank Book must use the later booking class"
 grep -q 'data-list-venue' src/app/\[city\]/board.tsx \
   || fail "occupied board must mark List a venue"
 grep -q 'href="#claim"' src/app/\[city\]/board.tsx \
@@ -151,6 +157,10 @@ grep -q 'weekend-answer' src/app/board.css \
   || fail "poster CSS must style the occupied weekend answer"
 grep -q '\.book-one' src/app/board.css \
   || fail "poster CSS must style the primary Book hop"
+grep -q 'book-later' src/app/board.css \
+  || fail "poster CSS must style later-rank Book"
+grep -q 'data-later-book' src/app/board.css \
+  || fail "poster CSS must style later-rank places"
 grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
 grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
 grep -q 'listingClickPath' src/app/\[city\]/board.tsx || fail "Book CTA must hop through the public click route"
@@ -394,6 +404,8 @@ if [[ -f package.json ]]; then
     || fail "occupied #1 booking test did not run"
   grep -q 'List a venue hop to the claim form' "$test_log" \
     || fail "occupied List a venue hop test did not run"
+  grep -q 'later ranks stamp Book as the certain hop' "$test_log" \
+    || fail "occupied later-rank Book test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \

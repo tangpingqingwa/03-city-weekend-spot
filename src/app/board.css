@@ -403,25 +403,12 @@ a:hover {
 }
 
 .leaderboard li.is-rest .place {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.95rem;
 }
 
 .leaderboard li.is-rest .title {
   font-size: 1.15rem;
-}
-
-.leaderboard li.is-rest .booking {
-  border: 0;
-  padding: 0;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.leaderboard li.is-rest .booking:hover {
-  background: transparent;
-  color: var(--accent);
 }
 
 .place {
@@ -435,6 +422,17 @@ a:hover {
     "foot foot";
   gap: 0.15rem 1rem;
   padding: 1rem 0.15rem 1.05rem;
+}
+
+.place[data-later-book] {
+  grid-template-areas:
+    "rank rank"
+    "title title"
+    "kind kind"
+    "pitch pitch"
+    "book book"
+    "bid foot";
+  align-items: baseline;
 }
 
 .rank {
@@ -491,24 +489,41 @@ a:hover {
   font-size: 0.82rem;
 }
 
-.clicks {
-  font-weight: 600;
-  color: var(--ink);
+.place[data-later-book] .bid {
+  margin: 0.7rem 0 0;
+  font-size: 0.95rem;
+  text-align: left;
 }
 
-.booking {
+.place[data-later-book] .place-foot {
+  justify-content: flex-end;
+}
+
+.book-later {
+  grid-area: book;
   display: inline-block;
-  padding: 0.2rem 0.7rem 0.15rem;
+  justify-self: start;
+  margin-top: 0.7rem;
+  min-width: 8.5rem;
+  height: 2.35rem;
+  padding: 0 1.15rem;
+  line-height: 2.2rem;
   border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink);
 }
 
-.booking:hover {
+.book-later:hover {
   background: var(--ink);
   color: var(--paper);
+}
+
+.clicks {
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .doc-page {
@@ -601,6 +616,17 @@ a:hover {
       "title"
       "kind"
       "pitch"
+      "bid"
+      "foot";
+  }
+
+  .place[data-later-book] {
+    grid-template-areas:
+      "rank"
+      "title"
+      "kind"
+      "pitch"
+      "book"
       "bid"
       "foot";
   }
