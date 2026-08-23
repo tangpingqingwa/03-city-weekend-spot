@@ -35,12 +35,14 @@ function BookingHop({
   primary,
   later,
   afterList,
+  afterListHop,
 }: {
   listing: BoardListing;
   className: string;
   primary?: boolean;
   later?: boolean;
   afterList?: boolean;
+  afterListHop?: boolean;
 }) {
   return (
     <a
@@ -51,6 +53,7 @@ function BookingHop({
       {...(primary ? { "data-book-number-one": "" } : {})}
       {...(later ? { "data-book-later": "" } : {})}
       {...(afterList ? { "data-book-after-list": "" } : {})}
+      {...(afterListHop ? { "data-book-after-list-hop": "" } : {})}
       aria-label={`Book ${listing.venueName}`}
     >
       Book
@@ -242,6 +245,14 @@ export function CityBoard({
                 List a venue
               </a>{" "}
               after Book follows List.
+            </p>
+            <p className="book-after-list-hop-line">
+              <BookingHop
+                listing={numberOne}
+                className="book-after-list-hop"
+                afterListHop
+              />{" "}
+              after List follows Book.
             </p>
           </>
         ) : null}
