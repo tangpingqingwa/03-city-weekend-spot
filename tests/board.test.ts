@@ -142,6 +142,7 @@ test("cards show rank, venue, kind, $bid, clicks, and Book — not stars", () =>
   );
   assert.match(html, /data-rank="1"/);
   assert.match(html, /data-weekend-answer=""/);
+  assert.match(html, /data-book-one-first=""/);
   assert.match(html, /data-book-number-one=""/);
   assert.match(html, /#1/);
   assert.match(html, /Sunday Roast/);
@@ -254,6 +255,7 @@ test("occupied NYC board books the paid #1 as the weekend answer", () => {
   assert.match(laterCard, />Book</);
   assert.match(laterCard, /href="\/api\/click\/lst_two"/);
   assert.doesNotMatch(laterCard, /data-weekend-answer/);
+  assert.doesNotMatch(laterCard, /data-book-one-first/);
   assert.doesNotMatch(laterCard, /data-book-number-one/);
   assert.doesNotMatch(laterCard, /class="book-one"/);
 });
@@ -285,6 +287,7 @@ test("occupied later ranks stamp Book as the certain hop, not a second #1", () =
   assert.match(laterCard, /Late Bar/);
   assert.match(laterCard, /\$8/);
   assert.doesNotMatch(laterCard, /data-weekend-answer/);
+  assert.doesNotMatch(laterCard, /data-book-one-first/);
   assert.doesNotMatch(laterCard, /data-book-number-one/);
   assert.doesNotMatch(laterCard, /class="book-one"/);
   assert.doesNotMatch(laterCard, /class="booking"/);
@@ -638,6 +641,96 @@ test("occupied NYC board books after List follows Book", () => {
   assert.match(html, /List a venue this weekend/);
   assert.match(html, /Claim #1 for/);
   assert.match(html, /action="\/api\/checkout"/);
+  assert.doesNotMatch(html, /data-empty-board/);
+  assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
+test("occupied NYC board books #1 as the first hop without another Book", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  assert.doesNotMatch(empty, /data-book-one-first/);
+  assert.doesNotMatch(empty, /data-book-number-one/);
+  assert.doesNotMatch(empty, /class="book-one"/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /action="\/api\/checkout"/);
+
+  const onlyOne = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [rankedCards[0]] }),
+  );
+  const onlyStamp = onlyOne.indexOf('data-book-one-first=""');
+  const onlyAnswer = onlyOne.indexOf("data-weekend-answer");
+  const onlyBookOne = onlyOne.indexOf("data-book-number-one");
+  const onlyBid = onlyOne.indexOf('data-bid=""');
+  const onlyAfterListHop = onlyOne.indexOf('data-book-after-list-hop=""');
+  assert.ok(onlyAfterListHop >= 0 && onlyStamp > onlyAfterListHop);
+  assert.ok(onlyAnswer > onlyStamp && onlyBookOne > onlyAnswer);
+  assert.ok(onlyBid > onlyBookOne);
+  assert.match(onlyOne, /class="book-one"/);
+  assert.match(onlyOne, /href="\/api\/click\/lst_top"/);
+  assert.equal((onlyOne.match(/data-book-one-first=""/g) ?? []).length, 1);
+  assert.equal((onlyOne.match(/data-book-number-one/g) ?? []).length, 1);
+  assert.equal((onlyOne.match(/class="book-one"/g) ?? []).length, 1);
+  assert.equal((onlyOne.match(/href="#claim"/g) ?? []).length, 2);
+  assert.doesNotMatch(onlyOne, /data-later-book|data-book-later|book-later/);
+  assert.doesNotMatch(onlyOne, /data-list-after-book=""/);
+
+  const laterCard = renderToStaticMarkup(
+    createElement(ListingCard, { listing: rankedCards[1] }),
+  );
+  assert.doesNotMatch(laterCard, /data-book-one-first/);
+  assert.doesNotMatch(laterCard, /data-book-number-one/);
+  assert.doesNotMatch(laterCard, /class="book-one"/);
+  assert.match(laterCard, /data-later-book=""/);
+  assert.match(laterCard, /data-book-later=""/);
+
+  const html = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const listHop = html.indexOf('data-list-venue=""');
+  const afterList = html.indexOf('data-book-after-list=""');
+  const afterBook = html.indexOf('data-list-after-book-hop=""');
+  const afterListHop = html.indexOf('data-book-after-list-hop=""');
+  const stamp = html.indexOf('data-book-one-first=""');
+  const answer = html.indexOf("data-weekend-answer");
+  const bookOne = html.indexOf("data-book-number-one");
+  const bid = html.indexOf('data-bid=""');
+  const laterHop = html.indexOf("data-book-later");
+  const lastHref = html.indexOf('href="/api/click/lst_three"');
+  const listAfter = html.indexOf('data-list-after-book=""');
+  const claim = html.indexOf('id="claim"');
+  const form = html.indexOf("data-bid-form");
+  assert.ok(listHop >= 0 && afterList > listHop && afterBook > afterList);
+  assert.ok(afterListHop > afterBook && stamp > afterListHop);
+  assert.ok(answer > stamp && bookOne > answer && bid > bookOne);
+  assert.ok(laterHop > bid && lastHref > laterHop);
+  assert.ok(listAfter > lastHref && claim > listAfter && form > claim);
+  assert.equal((html.match(/data-book-one-first=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-book-number-one/g) ?? []).length, 1);
+  assert.equal((html.match(/class="book-one"/g) ?? []).length, 1);
+  assert.equal((html.match(/data-book-after-list-hop=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-book-after-list=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-list-after-book-hop=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-list-venue=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-list-after-book=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-book-later/g) ?? []).length, 2);
+  assert.equal((html.match(/href="#claim"/g) ?? []).length, 3);
+  assert.match(html, /class="book-one"[^>]*href="\/api\/click\/lst_top"/);
+  assert.match(html, /class="book-after-list-hop"[^>]*href="\/api\/click\/lst_top"/);
+  assert.match(html, /after List follows Book/);
+  assert.match(html, /class="list-after-book-hop"[^>]*href="#claim"/);
+  assert.match(html, /after Book follows List/);
+  assert.match(html, /class="book-after-list"[^>]*href="\/api\/click\/lst_top"/);
+  assert.match(html, /after the list hop/);
+  assert.match(html, />List a venue</);
+  assert.match(html, /after later Books/);
+  assert.match(html, /List a venue this weekend/);
+  assert.match(html, /Claim #1 for/);
+  assert.match(html, /action="\/api\/checkout"/);
+  assert.doesNotMatch(html.slice(laterHop), /data-book-one-first|data-book-number-one|class="book-one"/);
   assert.doesNotMatch(html, /data-empty-board/);
   assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);

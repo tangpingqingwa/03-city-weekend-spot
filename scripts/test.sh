@@ -137,6 +137,14 @@ grep -q 'data-book-number-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must expose a primary Book hop"
 grep -q 'book-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 Book must use the primary booking class"
+grep -q 'data-book-one-first' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must stamp Book as the first hop"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-one-first'; then
+  fail "empty board must not stamp Book #1"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-one-first'; then
+  fail "later ranks must not stamp Book #1 as the first hop"
+fi
 grep -q 'data-later-book' src/app/\[city\]/board.tsx \
   || fail "later ranks must stamp Book as a later hop"
 grep -q 'data-book-later' src/app/\[city\]/board.tsx \
@@ -181,6 +189,8 @@ grep -q 'weekend-answer' src/app/board.css \
   || fail "poster CSS must style the occupied weekend answer"
 grep -q '\.book-one' src/app/board.css \
   || fail "poster CSS must style the primary Book hop"
+grep -q 'data-book-one-first' src/app/board.css \
+  || fail "poster CSS must concentrate Book #1"
 grep -q 'book-later' src/app/board.css \
   || fail "poster CSS must style later-rank Book"
 grep -q 'data-later-book' src/app/board.css \
@@ -438,6 +448,8 @@ if [[ -f package.json ]]; then
     || fail "occupied list-after-book-hop test did not run"
   grep -q 'books after List follows Book' "$test_log" \
     || fail "occupied book-after-list-hop test did not run"
+  grep -q 'books #1 as the first hop without another Book' "$test_log" \
+    || fail "occupied Book #1 first-hop test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
