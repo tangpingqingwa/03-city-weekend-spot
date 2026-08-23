@@ -36,6 +36,7 @@ function BookingHop({
   later,
   afterList,
   afterListHop,
+  afterListOne,
 }: {
   listing: BoardListing;
   className: string;
@@ -43,6 +44,7 @@ function BookingHop({
   later?: boolean;
   afterList?: boolean;
   afterListHop?: boolean;
+  afterListOne?: boolean;
 }) {
   return (
     <a
@@ -54,6 +56,7 @@ function BookingHop({
       {...(later ? { "data-book-later": "" } : {})}
       {...(afterList ? { "data-book-after-list": "" } : {})}
       {...(afterListHop ? { "data-book-after-list-hop": "" } : {})}
+      {...(afterListOne ? { "data-book-after-list-one": "" } : {})}
       aria-label={`Book ${listing.venueName}`}
     >
       Book
@@ -82,7 +85,7 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
         </p>
       ) : null}
       {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
-      <BookingHop listing={listing} className="book-one" primary />
+      <BookingHop listing={listing} className="book-one" primary afterListOne />
       <p className="bid" data-bid="">
         {formatUsd(listing.bidUsd)}
       </p>
