@@ -165,6 +165,43 @@ test("ranked cards keep money order in markup", () => {
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars/i);
 });
 
+test("occupied NYC board names one List a venue hop to the claim form", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  assert.doesNotMatch(empty, /data-list-venue/);
+  assert.doesNotMatch(empty, /List a venue/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /Print this weekend/);
+  assert.match(empty, /id="claim"/);
+  assert.match(empty, /action="\/api\/checkout"/);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const hop = occupied.indexOf('data-list-venue=""');
+  const answer = occupied.indexOf("data-weekend-answer");
+  const bookOne = occupied.indexOf("data-book-number-one");
+  const later = occupied.indexOf("Late Bar");
+  const claim = occupied.indexOf('id="claim"');
+  const form = occupied.indexOf("data-bid-form");
+  assert.ok(hop >= 0 && answer > hop);
+  assert.ok(bookOne > answer && later > bookOne && claim > later && form > claim);
+  assert.equal((occupied.match(/data-list-venue=""/g) ?? []).length, 1);
+  assert.equal((occupied.match(/href="#claim"/g) ?? []).length, 1);
+  assert.match(occupied, /class="list-venue"[^>]*href="#claim"/);
+  assert.match(occupied, />List a venue</);
+  assert.match(occupied, /List a venue this weekend/);
+  assert.match(occupied, /class="book-one"/);
+  assert.match(occupied, /Claim #1 for/);
+  assert.match(occupied, /action="\/api\/checkout"/);
+  assert.doesNotMatch(occupied, /Print this weekend/);
+  assert.doesNotMatch(occupied, /data-empty-board/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
 test("occupied NYC board books the paid #1 as the weekend answer", () => {
   const html = renderToStaticMarkup(
     createElement(CityBoard, { city: nyc, listings: rankedCards }),

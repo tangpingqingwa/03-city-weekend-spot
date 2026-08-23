@@ -189,6 +189,7 @@ export function CityBoard({
   const topBid = listings[0]?.bidUsd ?? 0;
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
   const errorCopy = checkoutErrorCopy(checkoutError);
+  const occupied = listings.length > 0;
 
   return (
     <main className="poster" data-board="" data-city={city.slug}>
@@ -199,11 +200,19 @@ export function CityBoard({
         <p className="period-meta">
           This weekend, #1 is whoever paid the most. Rank is money, not stars.
         </p>
+        {occupied ? (
+          <p className="list-venue-line">
+            <a className="list-venue" href="#claim" data-list-venue="">
+              List a venue
+            </a>
+          </p>
+        ) : null}
       </header>
       <Leaderboard city={city} listings={listings} />
       <BidForm
         city={city}
         defaultAmount={defaultAmount}
+        occupied={occupied}
         notice={errorCopy}
       />
     </main>
