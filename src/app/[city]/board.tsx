@@ -34,11 +34,13 @@ function BookingHop({
   className,
   primary,
   later,
+  afterList,
 }: {
   listing: BoardListing;
   className: string;
   primary?: boolean;
   later?: boolean;
+  afterList?: boolean;
 }) {
   return (
     <a
@@ -48,6 +50,7 @@ function BookingHop({
       data-booking-url={listing.bookingUrl}
       {...(primary ? { "data-book-number-one": "" } : {})}
       {...(later ? { "data-book-later": "" } : {})}
+      {...(afterList ? { "data-book-after-list": "" } : {})}
       aria-label={`Book ${listing.venueName}`}
     >
       Book
@@ -204,6 +207,7 @@ export function CityBoard({
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
   const errorCopy = checkoutErrorCopy(checkoutError);
   const occupied = listings.length > 0;
+  const numberOne = listings.find((listing) => listing.rank === 1);
 
   return (
     <main className="poster" data-board="" data-city={city.slug}>
@@ -214,12 +218,22 @@ export function CityBoard({
         <p className="period-meta">
           This weekend, #1 is whoever paid the most. Rank is money, not stars.
         </p>
-        {occupied ? (
-          <p className="list-venue-line">
-            <a className="list-venue" href="#claim" data-list-venue="">
-              List a venue
-            </a>
-          </p>
+        {occupied && numberOne ? (
+          <>
+            <p className="list-venue-line">
+              <a className="list-venue" href="#claim" data-list-venue="">
+                List a venue
+              </a>
+            </p>
+            <p className="book-after-list-line">
+              <BookingHop
+                listing={numberOne}
+                className="book-after-list"
+                afterList
+              />{" "}
+              after the list hop.
+            </p>
+          </>
         ) : null}
       </header>
       <Leaderboard city={city} listings={listings} />
