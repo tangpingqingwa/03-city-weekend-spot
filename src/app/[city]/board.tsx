@@ -82,10 +82,10 @@ export function Leaderboard({
           unpublished
         </p>
         <div className="empty-board" data-empty-board="true">
-          <p className="empty-kicker">This weekend is unpublished.</p>
-          <p>
-            No #1. No venue has paid to print on the {city.name} poster.
-            Nothing is invented here.
+          <p className="empty-answer">No #1</p>
+          <p className="empty-note">
+            This weekend is unpublished. No venue has paid to print on the{" "}
+            {city.name} poster. Nothing is invented here.
           </p>
         </div>
       </section>
