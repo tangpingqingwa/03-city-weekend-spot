@@ -89,10 +89,34 @@ test("empty board reads like an unpublished weekend poster", () => {
   assert.match(html, /One city · one weekend/);
   assert.match(html, /This Friday \/ Saturday/);
   assert.match(html, /This weekend is unpublished/);
-  assert.match(html, /nothing is invented here/);
+  assert.match(html, /No #1/);
+  assert.match(html, /Nothing is invented here/);
   assert.doesNotMatch(html, /city-kicker/);
   assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
   assert.doesNotMatch(html, /second prize|editor.?s pick|rated 4\.9/i);
+});
+
+test("first-time visitor reads the weekend answer before claim chrome", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  const emptyAnswer = empty.indexOf("data-empty-board");
+  const emptyClaim = empty.indexOf("data-bid-form");
+  assert.ok(emptyAnswer >= 0 && emptyClaim > emptyAnswer);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /action="\/api\/checkout"/);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const topCard = occupied.indexOf("data-listing-card");
+  const occupiedClaim = occupied.indexOf("data-bid-form");
+  assert.ok(topCard >= 0 && occupiedClaim > topCard);
+  assert.match(occupied, /Sunday Roast/);
+  assert.match(occupied, /\$12/);
+  assert.doesNotMatch(occupied, /data-empty-board/);
 });
 
 test("cards show rank, venue, kind, $bid, clicks, and Book — not stars", () => {
