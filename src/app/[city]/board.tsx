@@ -11,6 +11,7 @@ type CityBoardProps = {
   city: City;
   listings: readonly BoardListing[];
   weekendLabel?: string;
+  checkoutError?: string;
 };
 
 export function formatUsd(amount: number): string {
@@ -107,13 +108,33 @@ export function Leaderboard({
   );
 }
 
+const CHECKOUT_ERROR_COPY: Record<string, string> = {
+  bid_below_min: "First bid must be at least $5. No charge and no rank claimed.",
+  bid_not_whole: "Bids are whole US dollars only. No charge and no rank claimed.",
+  bid_not_higher: "A raise must beat the current bid. No charge and no rank claimed.",
+  listing_invalid: "Need a venue name and a https booking URL. No rank claimed.",
+  url_insecure: "Booking URL must be https. No charge and no rank claimed.",
+  url_forbidden: "That booking URL is not allowed. No charge and no rank claimed.",
+  reviews_forbidden: "No star scores or review-speak. No charge and no rank claimed.",
+  window_closed: "This weekend window is closed. No charge and no rank claimed.",
+  payment_incomplete: "Checkout was not paid. The poster is unchanged.",
+  polar_unavailable: "Checkout is unavailable. No charge and no rank claimed.",
+};
+
+export function checkoutErrorCopy(code: string | undefined): string | null {
+  if (!code) return null;
+  return CHECKOUT_ERROR_COPY[code] ?? "Checkout did not start. No rank claimed.";
+}
+
 export function CityBoard({
   city,
   listings,
   weekendLabel = "This Friday / Saturday",
+  checkoutError,
 }: CityBoardProps) {
   const topBid = listings[0]?.bidUsd ?? 0;
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
+  const errorCopy = checkoutErrorCopy(checkoutError);
 
   return (
     <main className="poster" data-board="" data-city={city.slug}>
@@ -125,7 +146,11 @@ export function CityBoard({
           This weekend, #1 is whoever paid the most. Rank is money, not stars.
         </p>
       </header>
-      <BidForm city={city} defaultAmount={defaultAmount} />
+      <BidForm
+        city={city}
+        defaultAmount={defaultAmount}
+        notice={errorCopy}
+      />
       <Leaderboard city={city} listings={listings} />
     </main>
   );

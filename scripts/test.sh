@@ -102,6 +102,20 @@ grep -q 'getBoardListings' src/core/cities.ts || fail "cities.ts must expose get
 grep -q 'return \[\]' src/core/cities.ts || fail "live board must invent no venues"
 grep -q 'Outbid' src/app/\[city\]/bid-form.tsx || fail "bid form must render Outbid"
 grep -q 'Claim #1' src/app/\[city\]/bid-form.tsx || fail "bid form must clone Claim #1"
+grep -q 'action="/api/checkout"' src/app/\[city\]/bid-form.tsx \
+  || fail "bid form must POST to Polar checkout"
+if grep -q 'Checkout is not live' src/app/\[city\]/bid-form.tsx; then
+  fail "poster claim form must not stub checkout"
+fi
+if grep -q 'data-checkout-stub' src/app/\[city\]/bid-form.tsx; then
+  fail "poster claim form must not keep the checkout stub"
+fi
+grep -q 'parsePosterVenue' src/core/listing.ts \
+  || fail "listing.ts must parse the poster venue field"
+grep -q 'data-return="paid"' src/app/\[city\]/return/page.tsx \
+  || fail "return page must mark paid checkout"
+grep -q 'data-return="pending"' src/app/\[city\]/return/page.tsx \
+  || fail "return page must mark pending checkout"
 grep -q '−' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the minus stepper"
 grep -q '+' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the plus stepper"
 grep -q 'amount-field' src/app/\[city\]/bid-form.tsx || fail "bid form must keep the dashed amount field"
@@ -351,6 +365,10 @@ if [[ -f package.json ]]; then
     || fail "weekend poster empty-state test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
+  grep -q 'poster form POST' "$test_log" \
+    || fail "poster Polar checkout form test did not run"
+  grep -q 'never trusts query alone' "$test_log" \
+    || fail "checkout return page test did not run"
 fi
 
 echo "OK: buildable and testable"

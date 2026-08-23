@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { afterEach, test } from "node:test";
+import { renderToStaticMarkup } from "react-dom/server";
 import { POST as postCheckout } from "../src/app/api/checkout/route";
+import ReturnPage, { resolveReturn } from "../src/app/[city]/return/page";
 import { POST as postWebhook } from "../src/app/api/polar/webhook/route";
 import { FixturePayment } from "../src/billing/fixture";
 import { PolarPayment, POLAR_API_BASE } from "../src/billing/polar";
@@ -81,6 +83,17 @@ async function postJson(payload: Record<string, unknown>): Promise<Response> {
         accept: "application/json",
       },
       body: JSON.stringify(payload),
+    }),
+  );
+}
+
+async function postForm(fields: Record<string, string>): Promise<Response> {
+  const body = new URLSearchParams(fields);
+  return postCheckout(
+    new Request("http://localhost/api/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body,
     }),
   );
 }
@@ -171,6 +184,72 @@ test("open fixture session lists only after paid event", async () => {
   });
   assert.equal(rankedNyc().length, 0);
   applyPaidEvent(await port.completeCheckout(started.sessionId));
+  assert.equal(rankedNyc()[0]?.rank, 1);
+});
+
+test("poster form POST /api/checkout starts Polar checkout and does not list unpaid", async () => {
+  setCheckoutNow(OPEN_NYC);
+  const started = await postForm({
+    city: "nyc",
+    venue: "Sunday Roast https://book.example.com/roast",
+    amountUsd: "5",
+  });
+  assert.equal(started.status, 303);
+  const location = started.headers.get("location") ?? "";
+  assert.match(location, /\/nyc\/return\?sessionId=/);
+  assert.equal(rankedNyc().length, 0);
+
+  const sessionId = new URL(location).searchParams.get("sessionId");
+  assert.ok(sessionId);
+  const result = await resolveReturn({ sessionId });
+  assert.equal(result.status, "paid");
+  const ranked = rankedNyc();
+  assert.equal(ranked.length, 1);
+  assert.equal(ranked[0]?.rank, 1);
+  assert.equal(ranked[0]?.bidUsd, 5);
+  assert.equal(ranked[0]?.venueName, "Sunday Roast");
+  assert.equal(ranked[0]?.bookingUrl, "https://book.example.com/roast");
+});
+
+test("poster form with only a venue name is listing_invalid and stays off the board", async () => {
+  setCheckoutNow(OPEN_NYC);
+  const missing = await postForm({
+    city: "nyc",
+    venue: "Sunday Roast",
+    amountUsd: "5",
+  });
+  assert.equal(missing.status, 303);
+  const location = missing.headers.get("location") ?? "";
+  assert.match(location, /\/nyc\?error=listing_invalid/);
+  assert.equal(rankedNyc().length, 0);
+});
+
+test("GET /nyc/return markup shows paid or pending and never trusts query alone", async () => {
+  setCheckoutNow(OPEN_NYC);
+  const pendingHtml = renderToStaticMarkup(
+    await ReturnPage({
+      params: Promise.resolve({ city: "nyc" }),
+      searchParams: Promise.resolve({ status: "paid" }),
+    }),
+  );
+  assert.match(pendingHtml, /data-return="pending"/);
+  assert.match(pendingHtml, /not yet paid|abandoned/i);
+  assert.doesNotMatch(pendingHtml, /data-return="paid"/);
+  assert.equal(rankedNyc().length, 0);
+
+  const started = await getPaymentPort().createCheckout({
+    listingDraft: draft(),
+    amountUsd: 5,
+    kind: "create",
+  });
+  const paidHtml = renderToStaticMarkup(
+    await ReturnPage({
+      params: Promise.resolve({ city: "nyc" }),
+      searchParams: Promise.resolve({ sessionId: started.sessionId }),
+    }),
+  );
+  assert.match(paidHtml, /data-return="paid"/);
+  assert.match(paidHtml, /on the poster/i);
   assert.equal(rankedNyc()[0]?.rank, 1);
 });
 
