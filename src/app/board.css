@@ -493,6 +493,19 @@ a:hover {
   color: var(--accent-ink);
 }
 
+.number-one[data-book-one-first] .book-one {
+  margin-top: 0.75rem;
+  min-width: 12.5rem;
+  height: 3.05rem;
+  padding: 0 1.65rem;
+  line-height: 2.9rem;
+  letter-spacing: 0.16em;
+}
+
+.number-one[data-book-one-first] .bid {
+  margin-top: 0.85rem;
+}
+
 .number-one .clicks {
   margin: 0.55rem 0 0;
   font-size: 0.82rem;
