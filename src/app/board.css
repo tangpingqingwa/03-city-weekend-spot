@@ -319,6 +319,94 @@ a:hover {
   font-size: 0.95rem;
 }
 
+.leaderboard li.is-number-one {
+  border-bottom: 1px solid var(--rule);
+}
+
+.number-one {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.35rem 0.35rem 1.45rem;
+}
+
+.number-one .rank {
+  color: var(--accent);
+}
+
+.weekend-answer {
+  margin: 0.3rem 0 0;
+  font-size: clamp(2.2rem, 7vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.94;
+}
+
+.number-one .kind,
+.number-one .pitch {
+  margin-top: 0.45rem;
+}
+
+.number-one .pitch {
+  max-width: 28rem;
+}
+
+.number-one .bid {
+  margin: 0.55rem 0 0;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.book-one {
+  display: inline-block;
+  margin-top: 0.95rem;
+  min-width: 10.5rem;
+  height: 2.7rem;
+  padding: 0 1.4rem;
+  line-height: 2.55rem;
+  border: 1px solid var(--rule);
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.book-one:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.number-one .clicks {
+  margin: 0.55rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.leaderboard li.is-rest .place {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.leaderboard li.is-rest .title {
+  font-size: 1.15rem;
+}
+
+.leaderboard li.is-rest .booking {
+  border: 0;
+  padding: 0;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.leaderboard li.is-rest .booking:hover {
+  background: transparent;
+  color: var(--accent);
+}
+
 .place {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -338,10 +426,6 @@ a:hover {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
-}
-
-.place[data-rank="1"] .rank {
-  color: var(--accent);
 }
 
 .title {

@@ -131,6 +131,16 @@ grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must 
 grep -q 'data-kind' src/app/\[city\]/board.tsx || fail "place card must show kind"
 grep -q 'className="pitch"' src/app/\[city\]/board.tsx || fail "place card must show pitch"
 grep -q 'Book' src/app/\[city\]/board.tsx || fail "place card must keep the Book CTA"
+grep -q 'data-weekend-answer' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must be the weekend answer"
+grep -q 'data-book-number-one' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must expose a primary Book hop"
+grep -q 'book-one' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 Book must use the primary booking class"
+grep -q 'weekend-answer' src/app/board.css \
+  || fail "poster CSS must style the occupied weekend answer"
+grep -q '\.book-one' src/app/board.css \
+  || fail "poster CSS must style the primary Book hop"
 grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
 grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
 grep -q 'listingClickPath' src/app/\[city\]/board.tsx || fail "Book CTA must hop through the public click route"
@@ -370,6 +380,8 @@ if [[ -f package.json ]]; then
     || fail "weekend poster empty-state test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
+  grep -q 'books the paid #1 as the weekend answer' "$test_log" \
+    || fail "occupied #1 booking test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
