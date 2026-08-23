@@ -84,8 +84,8 @@ export function Leaderboard({
         <div className="empty-board" data-empty-board="true">
           <p className="empty-kicker">This weekend is unpublished.</p>
           <p>
-            No venue has paid to print on the {city.name} poster. Rank is the
-            bid — nothing is invented here. Rank is money, not stars.
+            No #1. No venue has paid to print on the {city.name} poster.
+            Nothing is invented here.
           </p>
         </div>
       </section>
@@ -146,12 +146,12 @@ export function CityBoard({
           This weekend, #1 is whoever paid the most. Rank is money, not stars.
         </p>
       </header>
+      <Leaderboard city={city} listings={listings} />
       <BidForm
         city={city}
         defaultAmount={defaultAmount}
         notice={errorCopy}
       />
-      <Leaderboard city={city} listings={listings} />
     </main>
   );
 }
