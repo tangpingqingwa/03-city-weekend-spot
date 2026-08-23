@@ -233,6 +233,7 @@ export function CityBoard({
                 href="#claim"
                 data-list-venue=""
                 data-list-after-book-one=""
+                data-list-after-book-two=""
               >
                 List a venue
               </a>
