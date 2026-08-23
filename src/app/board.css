@@ -1,14 +1,13 @@
 :root {
-  --bg: #f4efe8;
-  --fg: #1c1917;
-  --muted: #78716c;
-  --card: #fffcf8;
-  --line: #e7ddd2;
-  --primary: #e24a16;
-  --primary-fg: #fffaf6;
-  --primary-soft: rgba(226, 74, 22, 0.12);
-  --shadow: 0 12px 40px rgba(40, 38, 36, 0.08);
-  --max: 52rem;
+  --paper: #f3ead6;
+  --ink: #1b1410;
+  --muted: #6a5848;
+  --rule: #2a2118;
+  --rule-soft: #c9b89a;
+  --panel: #fff8ea;
+  --accent: #9c2b18;
+  --accent-ink: #fff6ec;
+  --max: 44rem;
 }
 
 * {
@@ -19,9 +18,15 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: "DM Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #2a241c;
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at 20% 0%, #3a3228 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 100%, #1a1612 0%, transparent 50%);
 }
 
 a {
@@ -30,60 +35,72 @@ a {
 }
 
 a:hover {
-  color: var(--primary);
+  color: var(--accent);
 }
 
-.site-header {
-  width: 100%;
+.sheet {
+  width: min(100% - 1.5rem, 52rem);
+  margin: 1.25rem auto 2.5rem;
+  background: var(--paper);
+  background-image:
+    linear-gradient(180deg, rgba(255, 248, 232, 0.55), transparent 8rem),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 31px,
+      rgba(42, 33, 24, 0.035) 32px
+    );
+  border: 1px solid #1b1410;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 
 .site-header-inner,
-.board {
+.poster,
+.doc-page {
   width: 100%;
   max-width: var(--max);
   margin: 0 auto;
-  padding: 1.25rem 1rem 0;
+  padding: 1.1rem 1.25rem 0;
 }
 
 .site-header-inner {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 .logo {
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: -0.04em;
-}
-
-.logo span {
-  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .site-nav ul {
   display: flex;
-  gap: 1.1rem;
+  gap: 1rem;
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .site-nav a[aria-current="page"] {
-  color: var(--fg);
+  color: var(--ink);
 }
 
 .site-nav a:not([aria-current="page"]) {
   color: var(--muted);
 }
 
-.board {
-  padding-top: 1.5rem;
-  padding-bottom: 4rem;
+.poster {
+  padding-top: 1.4rem;
+  padding-bottom: 3.5rem;
 }
 
 .sr-only {
@@ -98,21 +115,55 @@ a:hover {
   border: 0;
 }
 
-.city-kicker {
-  margin: 0 0 0.35rem;
+.masthead {
   text-align: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  padding: 0.4rem 0 1.4rem;
+  border-bottom: 4px double var(--rule);
+}
+
+.edition {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--muted);
+}
+
+.city-name {
+  margin: 0;
+  font-size: clamp(3rem, 11vw, 5.4rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.weekend-slot {
+  margin: 0.85rem 0 0;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .period-meta {
-  margin: 0 0 1.5rem;
-  text-align: center;
+  margin: 0.55rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.claim {
+  margin-top: 1.4rem;
+  padding: 1.1rem 0 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.claim-kicker {
+  margin: 0 0 0.45rem;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .claim h2 {
@@ -122,7 +173,7 @@ a:hover {
   justify-content: center;
   gap: 0.5rem 0.65rem;
   margin: 0;
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: clamp(1.55rem, 4vw, 2.25rem);
   letter-spacing: -0.03em;
   text-align: center;
 }
@@ -134,22 +185,23 @@ a:hover {
 }
 
 .step {
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary);
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
   font-weight: 700;
   cursor: pointer;
 }
 
 .step:hover {
-  background: rgba(226, 74, 22, 0.22);
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .amount-field {
-  color: var(--primary);
+  color: var(--accent);
   text-decoration: underline dashed;
   text-underline-offset: 0.3em;
   font-variant-numeric: tabular-nums;
@@ -174,35 +226,38 @@ a:hover {
 .bid-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 1rem;
+  gap: 0.55rem;
+  margin-top: 0.95rem;
 }
 
 .bid-row input[name="venue"] {
   flex: 1 1 16rem;
   min-width: 0;
-  height: 2.75rem;
-  padding: 0 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 0.85rem;
-  background: var(--card);
+  height: 2.7rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: var(--panel);
   font: inherit;
 }
 
 .outbid {
-  height: 2.75rem;
-  padding: 0 1.4rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--primary);
-  color: var(--primary-fg);
+  height: 2.7rem;
+  padding: 0 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--paper);
   font: inherit;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .outbid:hover {
-  filter: brightness(0.95);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .stub-note,
@@ -214,121 +269,152 @@ a:hover {
 }
 
 .stub-note {
-  color: var(--fg);
+  color: var(--ink);
+}
+
+.fold {
+  margin-top: 1.35rem;
+}
+
+.fold-rule {
+  margin: 0 0 0.9rem;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .leaderboard {
   list-style: none;
-  margin: 1.75rem 0 0;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0;
+}
+
+.leaderboard li + li {
+  border-top: 1px dashed var(--rule-soft);
 }
 
 .empty-board {
-  margin: 1.75rem 0 0;
-  padding: 1.25rem 1rem;
-  border-radius: 1rem;
-  background: var(--card);
+  margin: 0;
+  padding: 1.6rem 0.4rem 0.4rem;
   color: var(--muted);
   text-align: center;
-  box-shadow: var(--shadow);
 }
 
-.card {
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-  padding: 0.9rem 1rem;
-  border-radius: 1rem;
-  background: var(--card);
-  box-shadow: var(--shadow);
+.empty-kicker {
+  margin: 0 0 0.45rem;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.92rem;
 }
 
-.card[data-rank="1"] {
-  border: 2px solid var(--primary);
-  background: rgba(226, 74, 22, 0.1);
+.empty-board p {
+  margin: 0;
+}
+
+.place {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "rank bid"
+    "title bid"
+    "kind bid"
+    "pitch pitch"
+    "foot foot";
+  gap: 0.15rem 1rem;
+  padding: 1rem 0.15rem 1.05rem;
 }
 
 .rank {
-  min-width: 2.4rem;
-  font-weight: 700;
+  grid-area: rank;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.card[data-rank="1"] .rank,
-.card[data-rank="2"] .rank,
-.card[data-rank="3"] .rank {
-  color: var(--primary-fg);
-  background: var(--primary);
-  border-radius: 999px;
-  text-align: center;
-  padding: 0.1rem 0.45rem;
-}
-
-.card-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: baseline;
+.place[data-rank="1"] .rank {
+  color: var(--accent);
 }
 
 .title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
+  grid-area: title;
+  margin: 0.15rem 0 0;
+  font-size: 1.55rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
 }
 
-.kind,
-.pitch {
-  margin: 0.15rem 0 0;
+.kind {
+  grid-area: kind;
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 0.9rem;
+}
+
+.pitch {
+  grid-area: pitch;
+  margin: 0.45rem 0 0;
+  color: var(--ink);
+  font-size: 0.98rem;
 }
 
 .bid {
-  margin: 0;
-  color: var(--primary);
+  grid-area: bid;
+  margin: 0.15rem 0 0;
+  color: var(--accent);
   font-weight: 700;
+  font-size: 1.2rem;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
-.meta {
+.place-foot {
+  grid-area: foot;
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
   gap: 0.75rem;
   align-items: baseline;
-  margin: 0.35rem 0 0;
+  margin: 0.7rem 0 0;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .clicks {
   font-weight: 600;
-  color: var(--fg);
+  color: var(--ink);
 }
 
 .booking {
-  font-weight: 600;
-  color: var(--primary);
+  display: inline-block;
+  padding: 0.2rem 0.7rem 0.15rem;
+  border: 1px solid var(--rule);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.booking:hover {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .doc-page {
-  width: 100%;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 1.5rem 1rem 4rem;
+  padding: 1.6rem 1.25rem 3.5rem;
 }
 
 .doc-page h1 {
   margin: 0 0 0.85rem;
-  font-size: 1.9rem;
+  font-size: 2.2rem;
   letter-spacing: -0.03em;
 }
 
@@ -346,7 +432,7 @@ a:hover {
 }
 
 .doc-page a {
-  color: var(--primary);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -354,10 +440,8 @@ a:hover {
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 1rem;
-  background: var(--card);
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: var(--shadow);
+  background: var(--panel);
+  border: 1px solid var(--rule);
 }
 
 .doc-page th,
@@ -365,14 +449,14 @@ a:hover {
   text-align: left;
   vertical-align: top;
   padding: 0.7rem 0.9rem;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--rule-soft);
   font-size: 0.92rem;
   line-height: 1.45;
 }
 
 .doc-page th {
   width: 11rem;
-  color: var(--fg);
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -393,4 +477,32 @@ a:hover {
 .doc-page ul {
   margin: 0 0 1rem;
   padding-left: 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .sheet {
+    width: 100%;
+    margin: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .city-name {
+    font-size: clamp(2.4rem, 16vw, 3.6rem);
+  }
+
+  .place {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "rank"
+      "title"
+      "kind"
+      "pitch"
+      "bid"
+      "foot";
+  }
+
+  .bid {
+    text-align: left;
+  }
 }
