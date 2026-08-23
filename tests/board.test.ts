@@ -68,23 +68,47 @@ test("empty NYC window renders the bid form and no cards", () => {
   assert.match(html, /Venue name or booking URL/);
   assert.match(html, /name="amountUsd"/);
   assert.match(html, />Outbid</);
+  assert.match(html, /Claim #1 for/);
   assert.match(html, /data-empty-board="true"/);
   assert.match(html, /Rank is money, not stars/);
   assert.doesNotMatch(html, /data-listing-card/);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count/i);
 });
 
-test("cards show rank, venue, $bid, clicks, and booking — not stars", () => {
+test("empty board reads like an unpublished weekend poster", () => {
   const html = renderToStaticMarkup(
-    createElement(ListingCard, { listing: rankedCards[0] }),
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  assert.match(html, /class="city-name"/);
+  assert.match(html, />New York City</);
+  assert.match(html, /One city · one weekend/);
+  assert.match(html, /This Friday \/ Saturday/);
+  assert.match(html, /This weekend is unpublished/);
+  assert.match(html, /nothing is invented here/);
+  assert.doesNotMatch(html, /city-kicker/);
+  assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(html, /second prize|editor.?s pick|rated 4\.9/i);
+});
+
+test("cards show rank, venue, kind, $bid, clicks, and Book — not stars", () => {
+  const withPitch: BoardListing = {
+    ...rankedCards[0],
+    pitch: "Friday roast, walk-ins after nine.",
+  };
+  const html = renderToStaticMarkup(
+    createElement(ListingCard, { listing: withPitch }),
   );
   assert.match(html, /data-rank="1"/);
   assert.match(html, /#1/);
   assert.match(html, /Sunday Roast/);
+  assert.match(html, /data-kind=""/);
+  assert.match(html, /Restaurant/);
+  assert.match(html, /Friday roast, walk-ins after nine/);
   assert.match(html, /\$12/);
   assert.match(html, /4 clicks/);
-  assert.match(html, /Book/);
-  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count/i);
+  assert.match(html, />Book</);
+  assert.match(html, /href="\/api\/click\/lst_top"/);
+  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
 });
 
 test("ranked cards keep money order in markup", () => {
@@ -94,10 +118,13 @@ test("ranked cards keep money order in markup", () => {
   const roast = html.indexOf("Sunday Roast");
   const bar = html.indexOf("Late Bar");
   assert.ok(roast >= 0 && bar > roast);
+  assert.match(html, /class="city-name"/);
   assert.match(html, /\$12/);
   assert.match(html, /\$8/);
   assert.match(html, /4 clicks/);
   assert.match(html, /1 click/);
+  assert.match(html, /data-kind=""/);
+  assert.match(html, /Bar/);
   assert.doesNotMatch(html, /data-empty-board/);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars/i);
 });

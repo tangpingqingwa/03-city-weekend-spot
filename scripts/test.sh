@@ -101,11 +101,30 @@ grep -q 'America/New_York' src/core/cities.ts || fail "cities.ts must use Americ
 grep -q 'getBoardListings' src/core/cities.ts || fail "cities.ts must expose getBoardListings"
 grep -q 'return \[\]' src/core/cities.ts || fail "live board must invent no venues"
 grep -q 'Outbid' src/app/\[city\]/bid-form.tsx || fail "bid form must render Outbid"
+grep -q 'Claim #1' src/app/\[city\]/bid-form.tsx || fail "bid form must clone Claim #1"
+grep -q '−' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the minus stepper"
+grep -q '+' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the plus stepper"
+grep -q 'amount-field' src/app/\[city\]/bid-form.tsx || fail "bid form must keep the dashed amount field"
 grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have an honest empty state"
+grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
+grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
+grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
+grep -q 'data-kind' src/app/\[city\]/board.tsx || fail "place card must show kind"
+grep -q 'className="pitch"' src/app/\[city\]/board.tsx || fail "place card must show pitch"
+grep -q 'Book' src/app/\[city\]/board.tsx || fail "place card must keep the Book CTA"
 grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
 grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
+grep -q 'listingClickPath' src/app/\[city\]/board.tsx || fail "Book CTA must hop through the public click route"
 grep -q 'board.css' src/app/layout.tsx || fail "root layout must load board styles"
-if grep -RInEi '★|star rating|4\.8 stars|review count' src/app src/core >/dev/null; then
+grep -q 'masthead' src/app/board.css || fail "poster CSS must style the city masthead"
+grep -q '\.place' src/app/board.css || fail "poster CSS must style venue places"
+if grep -q 'city-kicker' src/app/\[city\]/board.tsx; then
+  fail "city name must be the masthead, not a kicker afterthought"
+fi
+if grep -RInEi 'leaflet|openstreetmap|google.maps|mapbox' src/app >/dev/null; then
+  fail "one city, one weekend — do not add a map"
+fi
+if grep -RInEi '★|star rating|4\.8 stars|review count|rated 4\.9' src/app src/core >/dev/null; then
   fail "board UI must not render stars or review chrome"
 fi
 if grep -RInE 'createCheckout|POLAR_LIVE|polar\.sh' \
@@ -328,6 +347,10 @@ if [[ -f package.json ]]; then
     || fail "unknown click id test did not run"
   grep -q 'SPEC acceptance 9' "$test_log" \
     || fail "SPEC acceptance 9 click test did not run"
+  grep -q 'unpublished weekend poster' "$test_log" \
+    || fail "weekend poster empty-state test did not run"
+  grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
+    || fail "place-card test did not run"
 fi
 
 echo "OK: buildable and testable"

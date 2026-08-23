@@ -29,6 +29,7 @@ export function BidForm({ city, defaultAmount }: BidFormProps) {
 
   return (
     <section className="claim" id="claim">
+      <p className="claim-kicker">Print this weekend</p>
       <form onSubmit={onSubmit} data-bid-form="" data-city={city.slug}>
         <h2>
           <span>Claim #1 for</span>
