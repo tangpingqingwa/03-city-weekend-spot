@@ -159,6 +159,20 @@ grep -q 'List a venue' src/app/\[city\]/board.tsx \
   || fail "occupied masthead must say List a venue"
 grep -q 'List a venue this weekend' src/app/\[city\]/bid-form.tsx \
   || fail "occupied claim must say List a venue this weekend"
+grep -q 'data-list-after-book-one' src/app/\[city\]/board.tsx \
+  || fail "occupied List a venue must stamp after Book #1"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
+  fail "empty board must not stamp List after Book #1"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
+  fail "later ranks must not stamp List after Book #1"
+fi
+if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
+  fail "list-after-later-Books must not stamp List after Book #1"
+fi
+if grep -n 'data-list-after-book-hop=""' -B 6 -A 4 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
+  fail "list-after-book-hop must not stamp List after Book #1"
+fi
 grep -q 'data-list-after-book' src/app/\[city\]/board.tsx \
   || fail "later ranks must offer a list-after-book hop"
 grep -q 'after later Books' src/app/\[city\]/board.tsx \
@@ -177,6 +191,8 @@ grep -q 'after List follows Book' src/app/\[city\]/board.tsx \
   || fail "book-after-list-hop must sit after List follows Book"
 grep -q 'list-venue' src/app/board.css \
   || fail "poster CSS must style the List a venue hop"
+grep -q 'data-list-after-book-one' src/app/board.css \
+  || fail "poster CSS must concentrate List after Book #1"
 grep -q 'list-after-book' src/app/board.css \
   || fail "poster CSS must style the list-after-book hop"
 grep -q 'book-after-list' src/app/board.css \
@@ -450,6 +466,8 @@ if [[ -f package.json ]]; then
     || fail "occupied book-after-list-hop test did not run"
   grep -q 'books #1 as the first hop without another Book' "$test_log" \
     || fail "occupied Book #1 first-hop test did not run"
+  grep -q 'lists after Book #1 without another Book' "$test_log" \
+    || fail "occupied List after Book #1 test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \

@@ -225,7 +225,12 @@ export function CityBoard({
         {occupied && numberOne ? (
           <>
             <p className="list-venue-line">
-              <a className="list-venue" href="#claim" data-list-venue="">
+              <a
+                className="list-venue"
+                href="#claim"
+                data-list-venue=""
+                data-list-after-book-one=""
+              >
                 List a venue
               </a>
             </p>
