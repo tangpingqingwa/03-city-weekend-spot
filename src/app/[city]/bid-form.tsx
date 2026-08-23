@@ -7,6 +7,7 @@ type BidFormProps = {
   city: City;
   defaultAmount: number;
   notice?: string | null;
+  occupied?: boolean;
 };
 
 function clampAmount(value: number): number {
@@ -14,7 +15,12 @@ function clampAmount(value: number): number {
   return Math.max(MIN_BID_USD, Math.trunc(value));
 }
 
-export function BidForm({ city, defaultAmount, notice }: BidFormProps) {
+export function BidForm({
+  city,
+  defaultAmount,
+  notice,
+  occupied = false,
+}: BidFormProps) {
   const [amount, setAmount] = useState(() => clampAmount(defaultAmount));
   const [venue, setVenue] = useState("");
 
@@ -24,7 +30,9 @@ export function BidForm({ city, defaultAmount, notice }: BidFormProps) {
 
   return (
     <section className="claim" id="claim">
-      <p className="claim-kicker">Print this weekend</p>
+      <p className="claim-kicker">
+        {occupied ? "List a venue this weekend" : "Print this weekend"}
+      </p>
       <form
         method="post"
         action="/api/checkout"

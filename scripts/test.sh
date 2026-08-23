@@ -137,6 +137,16 @@ grep -q 'data-book-number-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must expose a primary Book hop"
 grep -q 'book-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 Book must use the primary booking class"
+grep -q 'data-list-venue' src/app/\[city\]/board.tsx \
+  || fail "occupied board must mark List a venue"
+grep -q 'href="#claim"' src/app/\[city\]/board.tsx \
+  || fail "List a venue must hop to the claim form"
+grep -q 'List a venue' src/app/\[city\]/board.tsx \
+  || fail "occupied masthead must say List a venue"
+grep -q 'List a venue this weekend' src/app/\[city\]/bid-form.tsx \
+  || fail "occupied claim must say List a venue this weekend"
+grep -q 'list-venue' src/app/board.css \
+  || fail "poster CSS must style the List a venue hop"
 grep -q 'weekend-answer' src/app/board.css \
   || fail "poster CSS must style the occupied weekend answer"
 grep -q '\.book-one' src/app/board.css \
@@ -382,6 +392,8 @@ if [[ -f package.json ]]; then
     || fail "place-card test did not run"
   grep -q 'books the paid #1 as the weekend answer' "$test_log" \
     || fail "occupied #1 booking test did not run"
+  grep -q 'List a venue hop to the claim form' "$test_log" \
+    || fail "occupied List a venue hop test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
