@@ -151,8 +151,14 @@ grep -q 'List a venue' src/app/\[city\]/board.tsx \
   || fail "occupied masthead must say List a venue"
 grep -q 'List a venue this weekend' src/app/\[city\]/bid-form.tsx \
   || fail "occupied claim must say List a venue this weekend"
+grep -q 'data-list-after-book' src/app/\[city\]/board.tsx \
+  || fail "later ranks must offer a list-after-book hop"
+grep -q 'after later Books' src/app/\[city\]/board.tsx \
+  || fail "list-after-book hop must sit after later Books"
 grep -q 'list-venue' src/app/board.css \
   || fail "poster CSS must style the List a venue hop"
+grep -q 'list-after-book' src/app/board.css \
+  || fail "poster CSS must style the list-after-book hop"
 grep -q 'weekend-answer' src/app/board.css \
   || fail "poster CSS must style the occupied weekend answer"
 grep -q '\.book-one' src/app/board.css \
@@ -406,6 +412,8 @@ if [[ -f package.json ]]; then
     || fail "occupied List a venue hop test did not run"
   grep -q 'later ranks stamp Book as the certain hop' "$test_log" \
     || fail "occupied later-rank Book test did not run"
+  grep -q 'lists after later-rank Book' "$test_log" \
+    || fail "occupied list-after-book test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \

@@ -147,6 +147,8 @@ export function Leaderboard({
     );
   }
 
+  const hasLater = listings.some((listing) => listing.rank > 1);
+
   return (
     <section className="fold" aria-label={`${city.name} weekend listings`}>
       <p className="fold-rule" aria-hidden="true">
@@ -162,6 +164,14 @@ export function Leaderboard({
           </li>
         ))}
       </ol>
+      {hasLater ? (
+        <p className="list-after-book-line">
+          <a className="list-after-book" href="#claim" data-list-after-book="">
+            List a venue
+          </a>{" "}
+          after later Books. Paying less than #1 still lists.
+        </p>
+      ) : null}
     </section>
   );
 }
