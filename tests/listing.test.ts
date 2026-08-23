@@ -17,6 +17,7 @@ import {
   canonicalBookingUrl,
   createListing,
   parsePitch,
+  parsePosterVenue,
 } from "../src/core/listing";
 import { listingsForCityWindow, getDb } from "../src/db";
 import {
@@ -80,6 +81,28 @@ async function postJson(payload: Record<string, unknown>): Promise<Response> {
     }),
   );
 }
+
+test("poster venue field splits name and booking URL", () => {
+  assert.deepEqual(
+    parsePosterVenue("Sunday Roast https://book.example.com/roast"),
+    {
+      venueName: "Sunday Roast",
+      bookingUrl: "https://book.example.com/roast",
+    },
+  );
+  assert.deepEqual(parsePosterVenue("https://book.example.com/roast"), {
+    venueName: "book.example.com",
+    bookingUrl: "https://book.example.com/roast",
+  });
+  assert.throws(
+    () => parsePosterVenue("Sunday Roast"),
+    (err: unknown) => {
+      assert.ok(err instanceof ListingError);
+      assert.equal(err.code, "listing_invalid");
+      return true;
+    },
+  );
+});
 
 test("listing requires venue + city + booking URL", () => {
   assert.throws(

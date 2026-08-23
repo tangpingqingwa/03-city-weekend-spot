@@ -3,6 +3,7 @@ import {
   ListingError,
   createListing,
   parsePitch,
+  parsePosterVenue,
   parseTargetBidUsd,
   parseVenueKind,
   quoteBid,
@@ -153,8 +154,31 @@ export function parseListingDraft(
   windowId: string,
   city: CitySlug,
 ): ListingDraft {
-  const venueName = readRequiredText(body.venueName ?? body.venue, "venueName");
-  const bookingUrl = readRequiredText(body.bookingUrl, "bookingUrl");
+  const hasExplicit =
+    typeof body.venueName === "string" &&
+    body.venueName.trim() !== "" &&
+    typeof body.bookingUrl === "string" &&
+    body.bookingUrl.trim() !== "";
+  let venueName: string;
+  let bookingUrl: string;
+  if (hasExplicit) {
+    venueName = readRequiredText(body.venueName, "venueName");
+    bookingUrl = readRequiredText(body.bookingUrl, "bookingUrl");
+  } else if (typeof body.venue === "string" && body.venue.trim() !== "") {
+    try {
+      const parsed = parsePosterVenue(body.venue);
+      venueName = parsed.venueName;
+      bookingUrl = parsed.bookingUrl;
+    } catch (error) {
+      if (error instanceof ListingError) {
+        throw new CheckoutError(error.code, error.http, error.message);
+      }
+      throw error;
+    }
+  } else {
+    venueName = readRequiredText(body.venueName ?? body.venue, "venueName");
+    bookingUrl = readRequiredText(body.bookingUrl, "bookingUrl");
+  }
   const venueKind =
     body.kind === "create" || body.kind === "raise" ? body.venueKind : body.kind;
   try {

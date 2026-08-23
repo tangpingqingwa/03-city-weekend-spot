@@ -76,13 +76,18 @@ export async function POST(request: Request): Promise<Response> {
   } catch (error) {
     if (error instanceof CheckoutError) {
       if (json) return jsonError(error.code, error.http);
-      const back = new URL("/", origin);
+      const citySlug = typeof body.city === "string" ? body.city.trim() : "";
+      const back = new URL(citySlug ? `/${citySlug}` : "/", origin);
       back.searchParams.set("error", error.code);
       return NextResponse.redirect(back, 303);
     }
     const message = error instanceof Error ? error.message : "";
     if (message === "polar_unavailable" || message.startsWith("BLOCKED-SECRET")) {
-      return jsonError("polar_unavailable", 503);
+      if (json) return jsonError("polar_unavailable", 503);
+      const citySlug = typeof body.city === "string" ? body.city.trim() : "";
+      const back = new URL(citySlug ? `/${citySlug}` : "/", origin);
+      back.searchParams.set("error", "polar_unavailable");
+      return NextResponse.redirect(back, 303);
     }
     throw error;
   }

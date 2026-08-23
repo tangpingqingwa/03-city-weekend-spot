@@ -65,12 +65,17 @@ test("empty NYC window renders the bid form and no cards", () => {
   assert.match(html, /data-board=""/);
   assert.match(html, /data-city="nyc"/);
   assert.match(html, /data-bid-form=""/);
-  assert.match(html, /Venue name or booking URL/);
+  assert.match(html, /Venue name and https booking URL/);
   assert.match(html, /name="amountUsd"/);
+  assert.match(html, /action="\/api\/checkout"/);
+  assert.match(html, /name="city"/);
+  assert.match(html, /value="nyc"/);
   assert.match(html, />Outbid</);
   assert.match(html, /Claim #1 for/);
   assert.match(html, /data-empty-board="true"/);
   assert.match(html, /Rank is money, not stars/);
+  assert.doesNotMatch(html, /Checkout is not live/);
+  assert.doesNotMatch(html, /data-checkout-stub/);
   assert.doesNotMatch(html, /data-listing-card/);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count/i);
 });
@@ -127,4 +132,18 @@ test("ranked cards keep money order in markup", () => {
   assert.match(html, /Bar/);
   assert.doesNotMatch(html, /data-empty-board/);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars/i);
+});
+
+test("failed checkout returns an honest error on the poster, not a stub", () => {
+  const html = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      checkoutError: "listing_invalid",
+    }),
+  );
+  assert.match(html, /data-checkout-error="true"/);
+  assert.match(html, /Need a venue name and a https booking URL/);
+  assert.doesNotMatch(html, /Checkout is not live/);
+  assert.doesNotMatch(html, /data-listing-card/);
 });

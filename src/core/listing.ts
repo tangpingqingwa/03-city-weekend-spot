@@ -145,6 +145,53 @@ export function parseVenueKind(value: unknown): VenueKind | null {
   throw new ListingError("listing_invalid", "kind must be restaurant, bar, or show");
 }
 
+/** Poster field is “venue name and https booking URL”. Split that into both required parts. */
+export function looksLikeBookingUrl(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (trimmed.length < 1) return false;
+  try {
+    const parsed = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+    return parsed.hostname.includes(".");
+  } catch {
+    return false;
+  }
+}
+
+export function parsePosterVenue(raw: unknown): {
+  venueName: string;
+  bookingUrl: string;
+} {
+  if (typeof raw !== "string" || raw.trim().length < 1) {
+    throw new ListingError("listing_invalid", "venue is required");
+  }
+  const trimmed = raw.trim();
+  const parts = trimmed.split(/\s+/);
+  const last = parts[parts.length - 1] ?? "";
+  if (looksLikeBookingUrl(last) && parts.length > 1) {
+    return {
+      venueName: parts.slice(0, -1).join(" "),
+      bookingUrl: last,
+    };
+  }
+  if (looksLikeBookingUrl(trimmed)) {
+    const host = (() => {
+      try {
+        const parsed = new URL(
+          trimmed.includes("://") ? trimmed : `https://${trimmed}`,
+        );
+        return parsed.hostname.replace(/^www\./, "");
+      } catch {
+        return trimmed;
+      }
+    })();
+    return { venueName: host, bookingUrl: trimmed };
+  }
+  throw new ListingError(
+    "listing_invalid",
+    "include a https booking URL with the venue name",
+  );
+}
+
 export function parsePitch(value: unknown): string | null {
   if (value === undefined || value === null) {
     return null;

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, type FormEvent } from "react";
+import React, { useState } from "react";
 import { MIN_BID_USD, type City } from "../../core/cities";
 
 type BidFormProps = {
   city: City;
   defaultAmount: number;
+  notice?: string | null;
 };
 
 function clampAmount(value: number): number {
@@ -13,24 +14,24 @@ function clampAmount(value: number): number {
   return Math.max(MIN_BID_USD, Math.trunc(value));
 }
 
-export function BidForm({ city, defaultAmount }: BidFormProps) {
+export function BidForm({ city, defaultAmount, notice }: BidFormProps) {
   const [amount, setAmount] = useState(() => clampAmount(defaultAmount));
   const [venue, setVenue] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
 
   function bump(delta: number) {
     setAmount((current) => clampAmount(current + delta));
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNotice("Checkout is not live. No charge and no rank claimed.");
-  }
-
   return (
     <section className="claim" id="claim">
       <p className="claim-kicker">Print this weekend</p>
-      <form onSubmit={onSubmit} data-bid-form="" data-city={city.slug}>
+      <form
+        method="post"
+        action="/api/checkout"
+        data-bid-form=""
+        data-city={city.slug}
+      >
+        <input type="hidden" name="city" value={city.slug} />
         <h2>
           <span>Claim #1 for</span>
           <span className="amount-stepper">
@@ -76,7 +77,7 @@ export function BidForm({ city, defaultAmount }: BidFormProps) {
             name="venue"
             value={venue}
             onChange={(event) => setVenue(event.target.value)}
-            placeholder="Venue name or booking URL"
+            placeholder="Venue name and https booking URL"
             autoComplete="off"
             spellCheck={false}
             required
@@ -87,9 +88,10 @@ export function BidForm({ city, defaultAmount }: BidFormProps) {
         </div>
         <p className="raise-hint">
           Already on this board? Enter the same venue or booking URL and raise.
+          Rank updates only after Polar checkout is paid.
         </p>
         {notice ? (
-          <p className="stub-note" data-checkout-stub="">
+          <p className="stub-note" data-checkout-error="true">
             {notice}
           </p>
         ) : null}
