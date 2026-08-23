@@ -198,6 +198,19 @@ a:hover {
   color: var(--paper);
 }
 
+.list-venue[data-list-after-book-three] {
+  min-width: 17rem;
+  height: 3.95rem;
+  padding: 0 2.25rem;
+  line-height: 3.8rem;
+  letter-spacing: 0.22em;
+}
+
+.list-venue[data-list-after-book-three]:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .book-after-list-line {
   margin: 0.75rem 0 0;
   color: var(--muted);
