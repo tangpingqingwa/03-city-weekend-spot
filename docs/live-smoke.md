@@ -21,11 +21,20 @@ The script:
 
 Overrides: `LIVE_SMOKE_BASE`, `LIVE_SMOKE_PORT`.
 
-Live Polar (operator machine with a real token):
+Live Polar sandbox (operator machine; source `~/.polar/sandbox.env`, never commit it):
 
 ```bash
-POLAR_LIVE=1 POLAR_ACCESS_TOKEN=… bash scripts/live-smoke.sh
+set -a
+# shellcheck disable=SC1091
+source "$HOME/.polar/sandbox.env"
+set +a
+unset POLAR_FIXTURE_ONLY
+export POLAR_LIVE=1
+export POLAR_API_BASE=https://sandbox-api.polar.sh
+bash scripts/live-smoke.sh
 ```
+
+Sandbox tokens return `401` on `https://api.polar.sh`. The live client defaults to production and honors `POLAR_API_BASE`. A PASS checkout URL must be a real `https://sandbox.polar.sh/…` Checkout, not a fixture `/{city}/return` listing. Missing `POLAR_ACCESS_TOKEN` stays `BLOCKED-SECRET`.
 
 ## Verdicts
 
@@ -38,20 +47,18 @@ POLAR_LIVE=1 POLAR_ACCESS_TOKEN=… bash scripts/live-smoke.sh
 
 ## This session
 
-Ran `bash scripts/live-smoke.sh` on **2026-08-22** from `feat/live-smoke` (parent `5d35c92`, public clicks on `origin/main`). Local process started by the script on `http://127.0.0.1:56932`. Weekend window `nyc:2026-W34` (`America/New_York`). `POLAR_LIVE` unset. `POLAR_ACCESS_TOKEN` unset. Fixture path for click only. No invented paid rank: empty NYC board first, then one fixture-paid `book.example.com/smoke-*` URL unique to this run after the paid webhook.
-
-Also refused `CI=true` (`FAIL: live-smoke refuses CI=true`) and `GITHUB_ACTIONS=true`.
+Ran `bash scripts/test.sh` (offline, Polar env unset, `POLAR_FIXTURE_ONLY=1`) then `bash scripts/live-smoke.sh` on **2026-08-23** from `feat/live-polar-sandbox-smoke` (parent `bf84c38` on `origin/main`). Operator sourced `~/.polar/sandbox.env` (mode 600; token length 53, webhook length 49, product id length 36 — values never printed or committed). `POLAR_LIVE=1`. `POLAR_FIXTURE_ONLY` unset. `POLAR_API_BASE=https://sandbox-api.polar.sh`. Sandbox token against production `https://api.polar.sh` is `401`. Script started a fixture process on `http://127.0.0.1:56887` for board/click, then a second live-flagged process for checkout. Weekend window `nyc:2026-W34` (`America/New_York`).
 
 | Flow | Result | Note |
 |---|---|---|
 | NYC board | **PASS** | `GET /` 302 `/nyc`. `GET /nyc` 200 window `nyc:2026-W34`. Empty board + bid form. No star UI. |
 | About / rules | **PASS** | `GET /about` and `GET /rules` 200. Min $5, older wins ties, raise pays difference, no fake reviews. |
-| Create checkout | **BLOCKED-SECRET** | `BLOCKED-SECRET: POLAR_ACCESS_TOKEN` |
-| Click | **PASS** | Fixture listing allowed. `GET /api/click/lst_fix_5696b54b-6313-44f9-b193-073bd551be95` 302 to stripped `https://book.example.com/smoke-…`. Clicks `0→1`. Tracking query not stored. |
+| Create checkout | **PASS** | Live Polar sandbox Checkout URL (`https://sandbox.polar.sh/…`). Not a fixture `/{city}/return` listing. Unpaid session not listed. |
+| Click | **PASS** | Fixture listing allowed for the hop. `GET /api/click/lst_fix_0dbcbbfd-d0fb-454f-b33a-418da2e11475` 302 to stripped `https://book.example.com/smoke-…`. Clicks `0→1`. |
 | Unknown city | **PASS** | `GET /london` 404 `city_unknown`. NYC rank untouched. |
 | Bid below min | **PASS-ERROR** | `POST /api/checkout` $4 → 400 `bid_below_min`. Board unchanged. |
 
-Process exit 0 (`PASS=4` `PASS-ERROR=1` `BLOCKED-SECRET=1` `FAIL=0`). Re-run with `POLAR_LIVE=1` and a real token to complete Polar Checkout; missing token must stay `BLOCKED-SECRET`, never a fixture listing.
+Process exit 0 (`PASS=5` `PASS-ERROR=1` `BLOCKED-SECRET=0` `FAIL=0`). Missing Polar secret would still be `BLOCKED-SECRET`, never an invented paid rank.
 
 ## What this does not do
 

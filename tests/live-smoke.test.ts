@@ -29,6 +29,8 @@ test("live-smoke.sh is executable and operator-only", () => {
   assert.match(script, /city_unknown/);
   assert.match(script, /\/london/);
   assert.match(script, /no invented paid rank|Do not invent a paid rank/i);
+  assert.match(script, /sandbox\.polar\.sh/);
+  assert.match(script, /POLAR_API_BASE/);
   assert.doesNotMatch(script, /invented paid #1/);
 });
 
