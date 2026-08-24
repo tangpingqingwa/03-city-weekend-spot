@@ -487,6 +487,11 @@ a:hover {
   font-size: 0.9rem;
 }
 
+.claim-note[data-unpaid-off-board] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .bid-row {
   display: flex;
   flex-wrap: wrap;
