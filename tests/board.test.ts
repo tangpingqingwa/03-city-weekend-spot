@@ -335,7 +335,8 @@ test("occupied later ranks stamp Book as the certain hop, not a second #1", () =
   assert.ok(laterHref > later && last > later && lastHref > last);
   assert.ok(listAfter > lastHref && claim > listAfter && form > claim);
   assert.equal((html.match(/data-book-number-one/g) ?? []).length, 1);
-  assert.equal((html.match(/data-later-book/g) ?? []).length, 2);
+  assert.equal((html.match(/data-later-book=""/g) ?? []).length, 2);
+  assert.equal((html.match(/data-later-book-foot=""/g) ?? []).length, 4);
   assert.equal((html.match(/data-book-later/g) ?? []).length, 2);
   assert.equal((html.match(/class="book-later"/g) ?? []).length, 2);
   assert.doesNotMatch(html.slice(0, later), /data-later-book|data-book-later|book-later/);
@@ -450,7 +451,7 @@ test("occupied later Book stays quieter than Book #1 after $bid is a later fact"
     /\[data-occupied="true"\] \.number-one\[data-paid-at\] \.later-facts\[data-later-fact\]\s*\{([^}]*)\}/,
   );
   const laterBook = css.match(
-    /\[data-occupied="true"\] \.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}/,
+    /\[data-occupied="true"\]\s*\.place\[data-later-book\]\s*\.place-foot\[data-later-book-foot\]\s*\.book-later\[data-later-book-foot\]\s*\{([^}]*)\}/,
   );
   const bookOne = css.match(
     /\[data-occupied="true"\] \.book-one\[data-book-after-list-seven\]\s*\{[^}]*min-height:\s*([\d.]+)rem/,
@@ -3645,8 +3646,9 @@ test("empty NYC weekend keeps Book #1 and later Book off unpublished", () => {
   assert.match(css, /\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.book-later/);
   assert.match(css, /\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.later-facts/);
   assert.match(css, /\[data-occupied="true"\] \.book-one/);
-  assert.match(css, /\[data-occupied="true"\] \.book-later/);
+  assert.match(css, /\[data-occupied="true"\][\s\S]*\.book-later\[data-later-book-foot\]/);
   assert.match(css, /\[data-occupied="true"\] \.place-foot/);
+  assert.match(css, /place-foot\[data-later-book-foot\]/);
   assert.doesNotMatch(css, /^[\s]*\.book-one\s*\{/m);
   assert.doesNotMatch(css, /^[\s]*\.book-later\s*[,{]/m);
   assert.doesNotMatch(css, /^[\s]*\.place-foot\s*\{/m);
@@ -3863,7 +3865,7 @@ test("occupied later venues stay quieter than occupied #1 — prize stays first"
     /\[data-occupied="true"\] \.later-stack\[data-later-stack\] \.place\[data-later-rank\] \.rest-name\s*\{([^}]*)\}/,
   );
   const laterBook = css.match(
-    /\[data-occupied="true"\] \.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}/,
+    /\[data-occupied="true"\]\s*\.place\[data-later-book\]\s*\.place-foot\[data-later-book-foot\]\s*\.book-later\[data-later-book-foot\]\s*\{([^}]*)\}/,
   );
   assert.ok(prizeSize);
   assert.ok(restName);
@@ -4030,6 +4032,148 @@ test("abandoned unpaid checkout stays off occupied /nyc — No #1 until Polar re
   assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
   assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
   assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
+test("occupied later Book stays a foot hop — Book #1 is the only filled hop", () => {
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  const laterFoot = css.match(
+    /\[data-occupied="true"\] \.place\[data-later-book\] \.place-foot\[data-later-book-foot\]\s*\{([^}]*)\}/,
+  );
+  const laterBook = css.match(
+    /\[data-occupied="true"\]\s*\.place\[data-later-book\]\s*\.place-foot\[data-later-book-foot\]\s*\.book-later\[data-later-book-foot\]\s*\{([^}]*)\}/,
+  );
+  const bookOne = css.match(
+    /\[data-occupied="true"\] \.book-one\[data-book-after-list-seven\]\s*\{([^}]*)\}/,
+  );
+  assert.ok(laterFoot);
+  assert.ok(laterBook);
+  assert.ok(bookOne);
+  assert.match(css, /Book #1 is the only filled hop/);
+  assert.match(laterFoot[1], /border-top:\s*1px dashed var\(--rule-soft\)/);
+  assert.match(laterBook[1], /display:\s*inline/);
+  assert.match(laterBook[1], /min-width:\s*0/);
+  assert.match(laterBook[1], /border:\s*0/);
+  assert.match(laterBook[1], /background:\s*transparent/);
+  assert.match(laterBook[1], /color:\s*var\(--muted\)/);
+  assert.doesNotMatch(laterBook[1], /var\(--accent\)/);
+  assert.doesNotMatch(laterBook[1], /background:\s*var\(--ink\)/);
+  assert.doesNotMatch(laterBook[1], /min-height:\s*[1-9]/);
+  assert.doesNotMatch(laterBook[1], /min-width:\s*10\.5rem/);
+  assert.match(bookOne[1], /min-height:\s*9\.05rem/);
+  assert.doesNotMatch(css, /^[\s]*\.book-later\s*[,{]/m);
+  assert.doesNotMatch(css, /data-later-quiet/);
+  assert.doesNotMatch(css, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  assert.doesNotMatch(empty, /data-later-book-foot|data-later-book|data-book-later|book-later|place-foot/);
+  assert.doesNotMatch(empty, /data-book-number-one|class="book-one"|data-guest-first/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /data-empty-unpublished=""/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /action="\/api\/checkout"/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const onlyOne = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [rankedCards[0]] }),
+  );
+  assert.doesNotMatch(onlyOne, /data-later-book-foot|data-later-book|data-book-later|book-later|place-foot/);
+  assert.match(onlyOne, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(onlyOne, /data-book-number-one=""/);
+  assert.match(onlyOne, /data-prize=""/);
+  assert.match(onlyOne, /Sunday Roast/);
+  assert.equal((onlyOne.match(/class="book-one"/g) ?? []).length, 1);
+  assert.doesNotMatch(onlyOne, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const laterCard = renderToStaticMarkup(
+    createElement(ListingCard, { listing: rankedCards[1] }),
+  );
+  const stamp = laterCard.indexOf("data-later-book");
+  const laterRank = laterCard.indexOf("data-later-rank");
+  const restName = laterCard.indexOf('class="rest-name"');
+  const bid = laterCard.indexOf("data-bid");
+  const foot = laterCard.indexOf('class="place-foot"');
+  const footStamp = laterCard.indexOf('data-later-book-foot=""');
+  const hop = laterCard.indexOf("data-book-later");
+  const book = laterCard.indexOf(">Book<");
+  const clicks = laterCard.indexOf("data-clicks");
+  const footEnd = laterCard.indexOf("</footer>", foot);
+  assert.ok(stamp >= 0 && laterRank >= 0 && restName >= 0);
+  assert.ok(restName > laterRank && bid > restName && foot > bid);
+  assert.ok(footStamp > foot && hop > footStamp && book > hop);
+  assert.ok(clicks > hop && clicks < footEnd);
+  assert.match(laterCard, /data-rank="2"/);
+  assert.match(laterCard, /data-later-book=""/);
+  assert.match(laterCard, /data-later-rank=""/);
+  assert.match(laterCard, /class="rest-name"/);
+  assert.match(laterCard, /class="place-foot"[^>]*data-later-book-foot=""/);
+  assert.match(laterCard, /class="book-later"[^>]*data-later-book-foot=""/);
+  assert.match(laterCard, /data-book-later=""/);
+  assert.match(laterCard, />Book</);
+  assert.match(laterCard, /href="\/api\/click\/lst_two"/);
+  assert.match(laterCard, /Late Bar/);
+  assert.match(laterCard, /\$8/);
+  assert.doesNotMatch(laterCard, /class="book-one"|data-book-number-one|data-guest-first|data-book-one-first/);
+  assert.doesNotMatch(laterCard, /data-weekend-answer|data-prize-before-price|data-prize=/);
+  assert.doesNotMatch(laterCard, /data-later-quiet|class="title"|later-facts/);
+  assert.doesNotMatch(laterCard, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(laterCard, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const html = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const prize = html.indexOf('data-prize=""');
+  const bookOneStamp = html.indexOf("data-book-number-one");
+  const guestHop = html.indexOf('data-guest-first=""', bookOneStamp);
+  const later = html.indexOf('data-listing-id="lst_two"');
+  const laterFootStamp = html.indexOf('data-later-book-foot=""', later);
+  const laterHop = html.indexOf("data-book-later", later);
+  const last = html.indexOf('data-listing-id="lst_three"');
+  const lastFoot = html.indexOf('data-later-book-foot=""', last);
+  const lastHop = html.indexOf("data-book-later", last);
+  const form = html.indexOf("data-bid-form");
+  assert.ok(prize >= 0 && bookOneStamp > prize && guestHop > bookOneStamp);
+  assert.ok(later > guestHop && laterFootStamp > later && laterHop > laterFootStamp);
+  assert.ok(last > laterHop && lastFoot > last && lastHop > lastFoot && form > lastHop);
+  assert.equal((html.match(/class="book-one"/g) ?? []).length, 1);
+  assert.equal((html.match(/data-book-number-one/g) ?? []).length, 1);
+  assert.equal((html.match(/data-guest-first=""/g) ?? []).length, 2);
+  assert.equal((html.match(/class="book-later"/g) ?? []).length, 2);
+  assert.equal((html.match(/data-book-later=""/g) ?? []).length, 2);
+  assert.equal((html.match(/data-later-book-foot=""/g) ?? []).length, 4);
+  assert.equal((html.match(/data-prize=""/g) ?? []).length, 1);
+  assert.match(html, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(html, /class="book-later"[^>]*data-later-book-foot=""/);
+  assert.match(html, /class="place-foot"[^>]*data-later-book-foot=""/);
+  assert.match(html, /data-occupied="true"/);
+  assert.match(html, /Sunday Roast/);
+  assert.match(html, /Late Bar/);
+  assert.match(html, /Claim #1 for/);
+  assert.match(html, /action="\/api\/checkout"/);
+  assert.doesNotMatch(html.slice(0, later), /data-later-book-foot|class="book-later"/);
+  assert.doesNotMatch(html.slice(later), /data-weekend-answer|data-prize=|class="book-one"|data-guest-first/);
+  assert.doesNotMatch(html, /data-later-quiet/);
+  assert.doesNotMatch(html, /data-empty-board|unpublished-weekend/);
+  assert.doesNotMatch(html, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const unpaid = fixtureListing({
+    id: "lst_ghost",
+    venueName: "Ghost Bar",
+    bidUsd: 99,
+    rank: 1,
+    firstPaidAt: "1970-01-01T00:00:00.000Z",
+  });
+  const unpaidHtml = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [unpaid] }),
+  );
+  assert.match(unpaidHtml, /No #1/);
+  assert.match(unpaidHtml, /data-occupied="false"/);
+  assert.doesNotMatch(unpaidHtml, /Ghost Bar/);
+  assert.doesNotMatch(unpaidHtml, /data-later-book-foot|class="book-later"|class="book-one"/);
 });
 
 test("failed checkout returns an honest error on the poster, not a stub", () => {

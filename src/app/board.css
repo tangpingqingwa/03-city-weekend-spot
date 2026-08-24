@@ -716,6 +716,7 @@ a:hover {
 .poster[data-occupied="false"] .book-later,
 .poster[data-occupied="false"] .later-facts,
 .poster[data-occupied="false"] .place-foot,
+.poster[data-occupied="false"] .place-foot[data-later-book-foot],
 .poster[data-occupied="false"] .weekend-answer,
 .poster[data-occupied="false"] .number-one,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .fold,
@@ -723,6 +724,7 @@ a:hover {
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-later,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-facts,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .place-foot,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .place-foot[data-later-book-foot],
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .weekend-answer,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .number-one,
 .poster[data-occupied="false"] .later-stack,
@@ -1046,18 +1048,30 @@ a:hover {
   font-size: 0.95rem;
 }
 
-.poster[data-occupied="true"] .place[data-later-book] .place-foot {
+.poster[data-occupied="true"] .place[data-later-book] .place-foot[data-later-book-foot] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: baseline;
+  gap: 0.55rem 0.85rem;
+  margin: 0.35rem 0 0;
+  padding-top: 0.2rem;
+  border-top: 1px dashed var(--rule-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
-/* Later Book is a foot hop, not a second Book #1 button. Occupied only. */
-.poster[data-occupied="true"] .book-later,
-.poster[data-occupied="true"] .place[data-later-book] .place-foot .book-later {
+/* Occupied #2+: later Book is a foot hop. Book #1 is the only filled hop. */
+.poster[data-occupied="true"]
+  .place[data-later-book]
+  .place-foot[data-later-book-foot]
+  .book-later[data-later-book-foot] {
   display: inline;
   grid-area: auto;
   justify-self: auto;
   min-width: 0;
   min-height: 0;
+  width: auto;
   height: auto;
   margin: 0;
   padding: 0;
@@ -1074,8 +1088,10 @@ a:hover {
   border-bottom: 1px dashed var(--rule);
 }
 
-.poster[data-occupied="true"] .book-later:hover,
-.poster[data-occupied="true"] .place[data-later-book] .place-foot .book-later:hover {
+.poster[data-occupied="true"]
+  .place[data-later-book]
+  .place-foot[data-later-book-foot]
+  .book-later[data-later-book-foot]:hover {
   background: transparent;
   color: var(--ink);
   outline: none;
@@ -1153,7 +1169,7 @@ a:hover {
   grid-area: bid;
 }
 
-.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] .place-foot {
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] .place-foot[data-later-book-foot] {
   grid-area: foot;
 }
 
