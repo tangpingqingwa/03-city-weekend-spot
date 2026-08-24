@@ -176,7 +176,11 @@ export function Leaderboard({
         <p className="fold-rule" aria-hidden="true">
           unpublished
         </p>
-        <div className="empty-board" data-empty-board="true">
+        <div
+          className="empty-board"
+          data-empty-board="true"
+          data-empty-unpublished=""
+        >
           <p className="empty-answer">No #1</p>
           <p className="empty-note">
             This weekend is unpublished. No venue has paid to print on the{" "}
@@ -247,7 +251,12 @@ export function CityBoard({
   const numberOne = listings.find((listing) => listing.rank === 1);
 
   return (
-    <main className="poster" data-board="" data-city={city.slug}>
+    <main
+      className="poster"
+      data-board=""
+      data-city={city.slug}
+      data-occupied={occupied ? "true" : "false"}
+    >
       <header className="masthead">
         <p className="edition">One city · one weekend</p>
         <h1 className="city-name">{city.name}</h1>

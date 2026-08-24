@@ -100,6 +100,8 @@ test("empty board reads like an unpublished weekend poster", () => {
   assert.match(html, /No #1/);
   assert.match(html, /This weekend is unpublished/);
   assert.match(html, /Nothing is invented here/);
+  assert.match(html, /data-empty-unpublished=""/);
+  assert.match(html, /data-occupied="false"/);
   assert.doesNotMatch(html, /empty-kicker/);
   assert.doesNotMatch(html, /city-kicker/);
   assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
@@ -3150,24 +3152,65 @@ test("occupied NYC #1 reads the venue prize before price, larger than $bid", () 
   assert.doesNotMatch(html.slice(laterHop), /data-prize-before-price|data-prize=/);
 });
 
+test("empty NYC weekend stays unpublished without occupied chrome", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  const noOne = empty.indexOf("No #1");
+  const unpublished = empty.indexOf("This weekend is unpublished");
+  const stamp = empty.indexOf('data-empty-unpublished=""');
+  const form = empty.indexOf("data-bid-form");
+  const checkout = empty.indexOf('action="/api/checkout"');
+  const outbid = empty.indexOf(">Outbid<");
+  assert.ok(noOne >= 0 && unpublished > noOne);
+  assert.ok(stamp >= 0 && stamp < form);
+  assert.ok(form > unpublished && checkout >= 0 && outbid > form);
+  assert.match(empty, /data-empty-board="true"/);
+  assert.match(empty, /data-occupied="false"/);
+  assert.match(empty, /class="empty-answer"/);
+  assert.match(empty, /Nothing is invented here/);
+  assert.match(empty, /Print this weekend/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /data-city="nyc"/);
+  assert.doesNotMatch(empty, /data-prize-before-price|data-prize=/);
+  assert.doesNotMatch(empty, /data-book-number-one|data-book-one-first|class="book-one"/);
+  assert.doesNotMatch(empty, /data-unpaid-off-board/);
+  assert.doesNotMatch(empty, /Unpaid checkout never ranks/);
+  assert.doesNotMatch(empty, /data-listing-card|data-list-venue|data-later-book/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(empty, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(empty, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  assert.match(occupied, /data-occupied="true"/);
+  assert.doesNotMatch(occupied, /data-empty-unpublished|data-empty-board/);
+  assert.match(occupied, /data-prize-before-price=""/);
+  assert.match(occupied, /data-book-number-one=""/);
+  assert.match(occupied, /data-unpaid-off-board=""/);
+  assert.match(occupied, /Sunday Roast/);
+  assert.match(occupied, /Claim #1 for/);
+  assert.match(occupied, /action="\/api\/checkout"/);
+  assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
 test("claim form makes unpaid checkout never ranks certain on empty and occupied NYC", () => {
   const empty = renderToStaticMarkup(
     createElement(CityBoard, { city: nyc, listings: [] }),
   );
   const emptyForm = empty.indexOf("data-bid-form");
-  const emptyRule = empty.indexOf("data-unpaid-off-board");
-  const emptyCopy = empty.indexOf("Unpaid checkout never ranks");
   const emptyOutbid = empty.indexOf(">Outbid<");
   const emptyCheckout = empty.indexOf('action="/api/checkout"');
-  assert.ok(emptyForm >= 0 && emptyRule > emptyForm);
-  assert.ok(emptyCopy > emptyRule && emptyOutbid > emptyCopy);
+  assert.ok(emptyForm >= 0 && emptyOutbid > emptyForm);
   assert.ok(emptyCheckout >= 0 && emptyCheckout < emptyOutbid);
-  assert.match(empty, /data-unpaid-off-board=""/);
-  assert.match(empty, /Unpaid checkout never ranks/);
-  assert.match(empty, /stays off the board/);
-  assert.match(empty, /Outbid opens Polar checkout/);
+  assert.doesNotMatch(empty, /data-unpaid-off-board/);
+  assert.doesNotMatch(empty, /Unpaid checkout never ranks/);
   assert.match(empty, /No #1/);
   assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /data-empty-unpublished=""/);
   assert.match(empty, /Print this weekend/);
   assert.match(empty, /Claim #1 for/);
   assert.match(empty, /action="\/api\/checkout"/);

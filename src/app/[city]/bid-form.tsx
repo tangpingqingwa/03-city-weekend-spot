@@ -75,10 +75,12 @@ export function BidForm({
             </button>
           </span>
         </h2>
-        <p className="claim-note" data-unpaid-off-board="">
-          Unpaid checkout never ranks. Outbid opens Polar checkout. Until that
-          payment clears, this venue stays off the board.
-        </p>
+        {occupied ? (
+          <p className="claim-note" data-unpaid-off-board="">
+            Unpaid checkout never ranks. Outbid opens Polar checkout. Until that
+            payment clears, this venue stays off the board.
+          </p>
+        ) : null}
         <div className="bid-row">
           <input
             id="venue"
