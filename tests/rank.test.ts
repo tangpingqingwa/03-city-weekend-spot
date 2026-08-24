@@ -4,6 +4,7 @@ import { getCity, resolveCity, type City } from "../src/core/cities";
 import {
   ListingError,
   createListing,
+  isPaidListing,
   venueKey,
   type Listing,
 } from "../src/core/listing";
@@ -16,6 +17,7 @@ import { currentWindow } from "../src/core/window";
 import {
   SCHEMA_SQL,
   insertListing,
+  listingFromRow,
   listingsForCityWindow,
   openDatabase,
   upsertWindow,
@@ -217,6 +219,43 @@ test("rankListings does not mutate the input", () => {
 test("live board loader invents no venues", () => {
   assert.deepEqual(getBoardListings("nyc"), []);
   assert.deepEqual(getBoardListings("london"), []);
+});
+
+test("unpaid Polar checkout stays off the live board until paid", () => {
+  const db = openDatabase(":memory:");
+  const now = new Date("2026-08-20T16:00:00.000Z");
+  const window = currentWindow(nyc, now);
+  upsertWindow(db, window);
+  insertListing(
+    db,
+    listing({
+      id: "lst_unpaid",
+      venueName: "Ghost Bar",
+      bidUsd: 99,
+      firstPaidAt: "1970-01-01T00:00:00.000Z",
+    }),
+  );
+  const unpaidRow = db.listings.get("lst_unpaid");
+  assert.ok(unpaidRow);
+  assert.equal(isPaidListing(listingFromRow(unpaidRow)), false);
+  assert.equal(getBoardListings("nyc", now, db).length, 0);
+
+  insertListing(
+    db,
+    listing({
+      id: "lst_paid",
+      venueName: "Sunday Roast",
+      bidUsd: 5,
+      firstPaidAt: "2026-08-20T16:00:00.000Z",
+    }),
+  );
+  const live = getBoardListings("nyc", now, db);
+  assert.equal(live.length, 1);
+  assert.equal(live[0]?.id, "lst_paid");
+  assert.equal(live[0]?.rank, 1);
+  assert.equal(live[0]?.venueName, "Sunday Roast");
+  assert.equal(live[0]?.firstPaidAt, "2026-08-20T16:00:00.000Z");
+  assert.doesNotMatch(live.map((row) => row.id).join(","), /lst_unpaid/);
 });
 
 test("listing row requires venue + city + booking URL", () => {

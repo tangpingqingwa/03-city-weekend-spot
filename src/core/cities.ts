@@ -29,6 +29,8 @@ export type BoardListing = {
   bidUsd: number;
   clicks: number;
   rank: number;
+  /** Polar paid instant. Occupied #1 chrome only when this is set. */
+  firstPaidAt?: string;
 };
 
 /** Catalog. Ranking is keyed by city slug; NYC is a row, not a special case. */

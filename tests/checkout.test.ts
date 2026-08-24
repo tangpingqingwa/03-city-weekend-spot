@@ -22,7 +22,7 @@ import {
 } from "../src/billing/port";
 import { MIN_BID_USD, getCity, type City } from "../src/core/cities";
 import { ListingError, quoteBid } from "../src/core/listing";
-import { rankListings } from "../src/core/rank";
+import { getBoardListings, rankListings } from "../src/core/rank";
 import { currentWindow } from "../src/core/window";
 import { getDb, listingsForCityWindow } from "../src/db";
 
@@ -172,6 +172,27 @@ test("abandoned checkout does not list", async () => {
   await assert.rejects(port.completeCheckout(started.sessionId), /payment_incomplete/);
   assert.equal(rankedNyc().length, 0);
   assert.equal(port.getCheckout(started.sessionId)?.status, "abandoned");
+});
+
+test("open Polar session stays off the poster until Polar reports paid", async () => {
+  setCheckoutNow(OPEN_NYC);
+  const started = await postForm({
+    city: "nyc",
+    venue: "Ghost Bar https://book.example.com/ghost",
+    amountUsd: "99",
+  });
+  assert.equal(started.status, 303);
+  const location = started.headers.get("location") ?? "";
+  assert.match(location, /\/nyc\/return\?sessionId=/);
+  assert.equal(rankedNyc().length, 0);
+
+  const pending = await resolveReturn({
+    sessionId: new URL(location).searchParams.get("sessionId") ?? undefined,
+    status: "abandoned",
+  });
+  assert.equal(pending.status, "pending");
+  assert.equal(rankedNyc().length, 0);
+  assert.equal(getBoardListings("nyc", OPEN_NYC).length, 0);
 });
 
 test("open fixture session lists only after paid event", async () => {

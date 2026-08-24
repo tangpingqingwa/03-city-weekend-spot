@@ -49,6 +49,15 @@ export type Listing = {
   clicks: number;
 };
 
+/** Polar paid instant. Placeholder / unpaid firstPaidAt never ranks. */
+export function isPaidListing(listing: Pick<Listing, "firstPaidAt">): boolean {
+  const paidAt = listing.firstPaidAt.trim();
+  if (!paidAt) return false;
+  const ms = Date.parse(paidAt);
+  if (!Number.isFinite(ms)) return false;
+  return ms > 0;
+}
+
 export type ListingDraft = {
   city: CitySlug;
   windowId: string;

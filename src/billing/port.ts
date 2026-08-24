@@ -2,6 +2,7 @@ import { MIN_BID_USD, getCity, resolveCity, type CitySlug } from "../core/cities
 import {
   ListingError,
   createListing,
+  isPaidListing,
   parsePitch,
   parsePosterVenue,
   parseTargetBidUsd,
@@ -292,7 +293,9 @@ export function findPaidByVenueKey(
   db: AppDb = getDb(),
 ): Listing | undefined {
   const key = venueKey(draft);
-  return findDbListingByVenueKey(db, key);
+  const existing = findDbListingByVenueKey(db, key);
+  if (!existing) return undefined;
+  return isPaidListing(existing) ? existing : undefined;
 }
 
 export function quoteCheckout(

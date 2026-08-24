@@ -288,6 +288,16 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must keep later Book off unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-facts' not in css:
     raise SystemExit("empty CSS must keep later-facts off unpublished")
+if re.search(r"(?m)^\.weekend-answer\s*\{", css):
+    raise SystemExit("unscoped .weekend-answer can leak unpaid chrome onto empty /nyc")
+if re.search(r"(?m)^\.number-one\s*\{", css):
+    raise SystemExit("unscoped .number-one can leak unpaid chrome onto empty /nyc")
+if '.poster[data-occupied="true"] .number-one[data-paid-at] .weekend-answer' not in css:
+    raise SystemExit("occupied #1 prize chrome must stay paid-only")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .weekend-answer' not in css:
+    raise SystemExit("empty CSS must keep weekend-answer off unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .number-one' not in css:
+    raise SystemExit("empty CSS must keep occupied #1 chrome off unpublished")
 PY
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
 grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
@@ -296,6 +306,20 @@ grep -q 'className="pitch"' src/app/\[city\]/board.tsx || fail "place card must 
 grep -q 'Book' src/app/\[city\]/board.tsx || fail "place card must keep the Book CTA"
 grep -q 'data-weekend-answer' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must be the weekend answer"
+grep -q 'data-paid-at' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must stamp Polar paid-at before prize chrome"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'data-paid-at'; then
+  fail "empty board must not stamp Polar paid-at"
+fi
+grep -q 'isPaidListing' src/core/listing.ts \
+  || fail "listing.ts must tell Polar-paid rows from unpaid placeholders"
+grep -q 'isPaidListing' src/core/rank.ts \
+  || fail "live board must filter unpaid Polar checkout before ranking"
+grep -q 'filter(isPaidListing)' src/core/rank.ts \
+  || fail "getBoardListings must drop unpaid rows before rank"
+if grep -n 'function getBoardListings' -A 20 src/core/rank.ts | grep -q 'listingsForCityWindow(db, city, window.id),'; then
+  fail "live board must not rank unpaid Polar checkout"
+fi
 grep -q 'data-prize-before-price' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must put the venue prize before \$bid"
 grep -q 'data-prize=' src/app/\[city\]/board.tsx \
@@ -1043,7 +1067,7 @@ if re.search(
 ):
     raise SystemExit("stamp-only later-fact mute on the same $bid node")
 later_facts = re.search(
-    r"\[data-occupied=\"true\"\] \.number-one \.later-facts\[data-later-fact\]\s*\{([^}]*)\}",
+    r"\[data-occupied=\"true\"\] \.number-one\[data-paid-at\] \.later-facts\[data-later-fact\]\s*\{([^}]*)\}",
     css,
     re.S,
 )
@@ -1364,6 +1388,14 @@ if [[ -f package.json ]]; then
     || fail "occupied later-fact \$bid group test did not run"
   grep -q 'unpaid checkout never ranks certain' "$test_log" \
     || fail "claim-form unpaid-off-board test did not run"
+  grep -q 'abandoned unpaid checkout stays off occupied /nyc' "$test_log" \
+    || fail "unpaid stays off the poster leftover test did not run"
+  grep -q 'No #1 until Polar reports paid' "$test_log" \
+    || fail "unpaid No #1 until Polar paid leftover test did not run"
+  grep -q 'unpaid Polar checkout stays off the live board until paid' "$test_log" \
+    || fail "live-board unpaid Polar filter test did not run"
+  grep -q 'open Polar session stays off the poster until Polar reports paid' "$test_log" \
+    || fail "open Polar session unpaid-off-poster test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
