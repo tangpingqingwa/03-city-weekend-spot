@@ -607,6 +607,27 @@ a:hover {
   line-height: 0.94;
 }
 
+.number-one[data-prize-before-price] .weekend-answer {
+  margin: 0;
+  font-size: clamp(2.85rem, 9vw, 4.4rem);
+}
+
+.number-one[data-prize-before-price] .rank {
+  margin-top: 0.55rem;
+}
+
+.number-one[data-prize-before-price] .bid {
+  margin-top: 0.7rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.number-one[data-prize-before-price] .clicks {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
 .number-one .kind,
 .number-one .pitch {
   margin-top: 0.45rem;

@@ -92,11 +92,12 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
       data-listing-id={listing.id}
       data-book-one-first=""
       data-weekend-answer=""
+      data-prize-before-price=""
     >
-      <span className="rank">#{listing.rank}</span>
-      <h2 className="weekend-answer" data-venue="">
+      <h2 className="weekend-answer" data-venue="" data-prize="">
         {listing.venueName}
       </h2>
+      <span className="rank">#{listing.rank}</span>
       {kind ? (
         <p className="kind" data-kind="">
           {kind}
