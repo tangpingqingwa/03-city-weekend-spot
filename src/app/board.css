@@ -151,6 +151,61 @@ a:hover {
   font-size: 0.95rem;
 }
 
+.poster[data-occupied="true"] .list-venue-line,
+.poster[data-occupied="true"] .book-after-list-line,
+.poster[data-occupied="true"] .list-after-book-hop-line,
+.poster[data-occupied="true"] .book-after-list-hop-line {
+  font-size: 0.72rem;
+}
+
+.poster[data-occupied="true"] .list-venue[data-list-venue],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-one],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-two],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-three],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-four],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-five],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-six],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-seven],
+.poster[data-occupied="true"] .list-venue[data-list-after-book-eight],
+.poster[data-occupied="true"] .book-after-list[data-book-after-list],
+.poster[data-occupied="true"] .list-after-book-hop[data-list-after-book-hop],
+.poster[data-occupied="true"] .book-after-list-hop[data-book-after-list-hop] {
+  display: inline-block;
+  width: auto;
+  min-width: 6.25rem;
+  min-height: 0;
+  height: 1.85rem;
+  padding: 0 0.7rem;
+  line-height: 1.7rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  border-width: 1px;
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--muted);
+}
+
+.poster[data-occupied="true"] .list-venue[data-list-venue]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-one]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-two]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-three]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-four]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-five]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-six]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-seven]:hover,
+.poster[data-occupied="true"] .list-venue[data-list-after-book-eight]:hover,
+.poster[data-occupied="true"] .book-after-list[data-book-after-list]:hover,
+.poster[data-occupied="true"] .list-after-book-hop[data-list-after-book-hop]:hover,
+.poster[data-occupied="true"] .book-after-list-hop[data-book-after-list-hop]:hover {
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  box-shadow: none;
+}
+
 .list-venue-line {
   margin: 0.85rem 0 0;
 }
@@ -593,6 +648,7 @@ a:hover {
 .poster[data-occupied="false"] [data-prize-before-price],
 .poster[data-occupied="false"] [data-book-number-one],
 .poster[data-occupied="false"] [data-book-one-first],
+.poster[data-occupied="false"] [data-guest-first],
 .poster[data-occupied="false"] .book-one,
 .poster[data-occupied="false"] [data-unpaid-off-board],
 .poster[data-occupied="false"] [data-later-quiet],
@@ -600,6 +656,7 @@ a:hover {
 .empty-board[data-empty-unpublished] [data-prize-before-price],
 .empty-board[data-empty-unpublished] [data-book-number-one],
 .empty-board[data-empty-unpublished] [data-book-one-first],
+.empty-board[data-empty-unpublished] [data-guest-first],
 .empty-board[data-empty-unpublished] .book-one,
 .empty-board[data-empty-unpublished] [data-unpaid-off-board],
 .empty-board[data-empty-unpublished] [data-later-quiet] {
@@ -693,6 +750,32 @@ a:hover {
   padding: 0 1.65rem;
   line-height: 2.9rem;
   letter-spacing: 0.16em;
+}
+
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-one][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-two][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-three][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-four][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-five][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-six][data-guest-first],
+.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-seven][data-guest-first] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 4.35rem;
+  height: auto;
+  margin-top: 1.05rem;
+  padding: 1.15rem 1.6rem;
+  line-height: 1;
+  font-size: 1.05rem;
+  letter-spacing: 0.22em;
+  border-width: 3px;
+  outline: 2px solid var(--rule);
+  outline-offset: 5px;
 }
 
 .book-one[data-book-after-list-one] {
@@ -925,6 +1008,17 @@ a:hover {
   letter-spacing: 0.1em;
   font-weight: 600;
   background: transparent;
+}
+
+.poster[data-occupied="true"] .place[data-later-book][data-later-quiet] .book-later {
+  min-width: 5.5rem;
+  height: 1.7rem;
+  padding: 0 0.7rem;
+  line-height: 1.55rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .clicks {
