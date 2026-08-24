@@ -1,6 +1,6 @@
 import { resolveCity, type BoardListing, type CitySlug } from "./cities";
 import { getDb, listingsForCityWindow, type AppDb } from "../db";
-import type { Listing } from "./listing";
+import { isPaidListing, type Listing } from "./listing";
 import { currentWindow } from "./window";
 
 export type RankableListing = Pick<
@@ -69,12 +69,13 @@ export function toBoardListing(listing: RankedListing): BoardListing {
     bidUsd: listing.bidUsd,
     clicks: listing.clicks,
     rank: listing.rank,
+    firstPaidAt: listing.firstPaidAt,
   };
 }
 
 /**
  * Live board for `city` + its current weekend window.
- * Empty until a paid event lands. Never invents venues.
+ * Empty until Polar reports paid. Unpaid / abandoned never invent a #1.
  */
 export function getBoardListings(
   city: CitySlug,
@@ -86,7 +87,8 @@ export function getBoardListings(
     return [];
   }
   const window = currentWindow(resolved.city, now);
-  return rankListings(listingsForCityWindow(db, city, window.id), {
+  const paid = listingsForCityWindow(db, city, window.id).filter(isPaidListing);
+  return rankListings(paid, {
     city,
     windowId: window.id,
   }).map(toBoardListing);

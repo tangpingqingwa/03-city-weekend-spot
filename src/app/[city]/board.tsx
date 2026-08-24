@@ -4,6 +4,7 @@ import {
   type BoardListing,
   type City,
 } from "../../core/cities";
+import { isPaidListing } from "../../core/listing";
 import { listingClickPath } from "../api/click/[id]/route";
 import { BidForm } from "./bid-form";
 
@@ -85,8 +86,16 @@ function BookingHop({
   );
 }
 
+function paidAtMs(listing: BoardListing): number | undefined {
+  if (listing.firstPaidAt === undefined) return 1;
+  return isPaidListing({ firstPaidAt: listing.firstPaidAt })
+    ? Date.parse(listing.firstPaidAt)
+    : undefined;
+}
+
 function NumberOnePlace({ listing }: { listing: BoardListing }) {
   const kind = kindLabel(listing.kind);
+  const paidAt = paidAtMs(listing);
   return (
     <article
       className="number-one"
@@ -97,6 +106,9 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
       data-guest-first=""
       data-weekend-answer=""
       data-prize-before-price=""
+      {...(paidAt !== undefined
+        ? { "data-paid-at": listing.firstPaidAt ?? "paid" }
+        : {})}
     >
       <h2 className="weekend-answer" data-venue="" data-prize="">
         {listing.venueName}
@@ -196,12 +208,13 @@ export function Leaderboard({
   city: City;
   listings: readonly BoardListing[];
 }) {
-  if (listings.length === 0) {
+  const paid = listings.filter((listing) => paidAtMs(listing) !== undefined);
+  if (paid.length === 0) {
     return null;
   }
 
-  const numberOne = listings.find((listing) => listing.rank === 1);
-  const later = listings.filter((listing) => listing.rank > 1);
+  const numberOne = paid.find((listing) => listing.rank === 1);
+  const later = paid.filter((listing) => listing.rank > 1);
 
   return (
     <section className="fold" aria-label={`${city.name} weekend listings`}>
@@ -271,11 +284,14 @@ export function CityBoard({
   weekendLabel = "This Friday / Saturday",
   checkoutError,
 }: CityBoardProps) {
-  const topBid = listings[0]?.bidUsd ?? 0;
+  const paid = listings.filter(
+    (listing) => paidAtMs(listing) !== undefined,
+  );
+  const topBid = paid[0]?.bidUsd ?? 0;
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
   const errorCopy = checkoutErrorCopy(checkoutError);
-  const occupied = listings.length > 0;
-  const numberOne = listings.find((listing) => listing.rank === 1);
+  const occupied = paid.length > 0;
+  const numberOne = paid.find((listing) => listing.rank === 1);
 
   return (
     <main
@@ -340,7 +356,7 @@ export function CityBoard({
         ) : null}
       </header>
       {occupied ? (
-        <Leaderboard city={city} listings={listings} />
+        <Leaderboard city={city} listings={paid} />
       ) : (
         <UnpublishedWeekend city={city} />
       )}

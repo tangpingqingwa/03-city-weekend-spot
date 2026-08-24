@@ -21,6 +21,7 @@ function fixtureListing(
     bookingUrl: `https://book.example.com/${overrides.id}`,
     pitch: null,
     clicks: 0,
+    firstPaidAt: "2026-08-20T16:00:00.000Z",
     ...overrides,
   };
 }
@@ -446,7 +447,7 @@ test("occupied later Book stays quieter than Book #1 after $bid is a later fact"
   const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
   const prizeSize = css.match(/clamp\(([\d.]+)rem, 9vw, 4\.4rem\)/);
   const laterFacts = css.match(
-    /\[data-occupied="true"\] \.number-one \.later-facts\[data-later-fact\]\s*\{([^}]*)\}/,
+    /\[data-occupied="true"\] \.number-one\[data-paid-at\] \.later-facts\[data-later-fact\]\s*\{([^}]*)\}/,
   );
   const laterBook = css.match(
     /\[data-occupied="true"\] \.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}/,
@@ -3470,7 +3471,7 @@ test("occupied NYC #1 $bid sits in a later-fact group after Book, not a muted tw
   const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
   const prizeSize = css.match(/clamp\(([\d.]+)rem, 9vw, 4\.4rem\)/);
   const laterFacts = css.match(
-    /\[data-occupied="true"\] \.number-one \.later-facts\[data-later-fact\]\s*\{([^}]*)\}/,
+    /\[data-occupied="true"\] \.number-one\[data-paid-at\] \.later-facts\[data-later-fact\]\s*\{([^}]*)\}/,
   );
   assert.ok(prizeSize);
   assert.ok(laterFacts);
@@ -3960,6 +3961,75 @@ test("occupied later venues stay quieter than occupied #1 — prize stays first"
   assert.doesNotMatch(html, /data-list-after-book-nine|data-book-after-list-eight/);
   assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
   assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
+test("abandoned unpaid checkout stays off occupied /nyc — No #1 until Polar reports paid", () => {
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /\[data-occupied="true"\] \.number-one\[data-paid-at\] \.weekend-answer/,
+  );
+  assert.match(
+    css,
+    /\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.weekend-answer/,
+  );
+  assert.match(
+    css,
+    /\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.number-one/,
+  );
+  assert.doesNotMatch(css, /^[\s]*\.weekend-answer\s*\{/m);
+  assert.doesNotMatch(css, /^[\s]*\.number-one\s*\{/m);
+  assert.doesNotMatch(css, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const unpaid = fixtureListing({
+    id: "lst_ghost",
+    venueName: "Ghost Bar",
+    bidUsd: 99,
+    rank: 1,
+    firstPaidAt: "1970-01-01T00:00:00.000Z",
+  });
+  const html = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [unpaid] }),
+  );
+  const noOne = html.indexOf("No #1");
+  const unpublished = html.indexOf("This weekend is unpublished");
+  const claim = html.indexOf("Claim #1 for");
+  const outbid = html.indexOf(">Outbid<");
+  assert.ok(noOne >= 0 && unpublished > noOne && claim > unpublished && outbid > claim);
+  assert.match(html, /data-occupied="false"/);
+  assert.match(html, /data-empty-unpublished=""/);
+  assert.match(html, /class="unpublished-weekend"/);
+  assert.match(html, /class="empty-answer"/);
+  assert.match(html, /Nothing is invented here/);
+  assert.match(html, /Print this weekend/);
+  assert.match(html, /data-empty-claim-first=""/);
+  assert.match(html, /action="\/api\/checkout"/);
+  assert.doesNotMatch(html, /Ghost Bar/);
+  assert.doesNotMatch(html, /data-listing-card|data-weekend-answer|data-prize=/);
+  assert.doesNotMatch(html, /data-book-number-one|class="book-one"|data-guest-first/);
+  assert.doesNotMatch(html, /class="fold"|data-later-stack|class="rest-name"/);
+  assert.doesNotMatch(html, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [rankedCards[0], unpaid, rankedCards[1]],
+    }),
+  );
+  assert.match(occupied, /data-occupied="true"/);
+  assert.match(occupied, /data-paid-at="2026-08-20T16:00:00.000Z"/);
+  assert.match(occupied, /Sunday Roast/);
+  assert.match(occupied, /class="weekend-answer"/);
+  assert.match(occupied, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(occupied, /Late Bar/);
+  assert.match(occupied, /data-later-stack=""/);
+  assert.doesNotMatch(occupied, /Ghost Bar/);
+  assert.doesNotMatch(occupied, /data-empty-board|unpublished-weekend/);
+  assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
 });
 
 test("failed checkout returns an honest error on the poster, not a stub", () => {

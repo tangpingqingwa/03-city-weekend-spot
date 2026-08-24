@@ -16,6 +16,7 @@ import {
   ListingError,
   canonicalBookingUrl,
   createListing,
+  isPaidListing,
   parsePitch,
   parsePosterVenue,
 } from "../src/core/listing";
@@ -125,6 +126,12 @@ test("listing requires venue + city + booking URL", () => {
   assert.equal(listing.venueName, "Sunday Roast");
   assert.equal(listing.city, "nyc");
   assert.equal(listing.bookingUrl, "https://book.example.com/roast");
+  assert.equal(isPaidListing(listing), true);
+  assert.equal(
+    isPaidListing({ firstPaidAt: "1970-01-01T00:00:00.000Z" }),
+    false,
+  );
+  assert.equal(isPaidListing({ firstPaidAt: "" }), false);
 });
 
 test("pitch with 4.9 stars is reviews_forbidden", () => {

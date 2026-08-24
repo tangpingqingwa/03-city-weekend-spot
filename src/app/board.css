@@ -716,11 +716,15 @@ a:hover {
 .poster[data-occupied="false"] .book-later,
 .poster[data-occupied="false"] .later-facts,
 .poster[data-occupied="false"] .place-foot,
+.poster[data-occupied="false"] .weekend-answer,
+.poster[data-occupied="false"] .number-one,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .fold,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-one,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-later,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-facts,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .place-foot,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .weekend-answer,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .number-one,
 .poster[data-occupied="false"] .later-stack,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-stack,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .rest-name {
@@ -731,7 +735,7 @@ a:hover {
   border-bottom: 1px solid var(--rule);
 }
 
-.number-one {
+.poster[data-occupied="true"] .number-one[data-paid-at] {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -739,11 +743,11 @@ a:hover {
   padding: 1.35rem 0.35rem 1.45rem;
 }
 
-.number-one .rank {
+.poster[data-occupied="true"] .number-one[data-paid-at] .rank {
   color: var(--accent);
 }
 
-.weekend-answer {
+.poster[data-occupied="true"] .number-one[data-paid-at] .weekend-answer {
   margin: 0.3rem 0 0;
   font-size: clamp(2.2rem, 7vw, 3.4rem);
   font-weight: 700;
@@ -751,29 +755,29 @@ a:hover {
   line-height: 0.94;
 }
 
-.number-one[data-prize-before-price] .weekend-answer {
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .weekend-answer {
   margin: 0;
   font-size: clamp(2.85rem, 9vw, 4.4rem);
 }
 
-.number-one[data-prize-before-price] .rank {
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .rank {
   margin-top: 0.55rem;
 }
 
-.number-one[data-prize-before-price] .bid {
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .bid {
   margin-top: 0.7rem;
   font-size: 0.92rem;
   font-weight: 600;
 }
 
-.number-one[data-prize-before-price] .clicks {
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .clicks {
   margin-top: 0.35rem;
   font-size: 0.72rem;
   font-weight: 500;
 }
 
 /* Occupied #1 only: $bid + clicks are one later-fact line after Book. */
-.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] {
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -786,8 +790,8 @@ a:hover {
   font-weight: 500;
 }
 
-.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] .bid,
-.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] .clicks {
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid,
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
   margin: 0;
   color: inherit;
   font-size: inherit;
@@ -795,23 +799,23 @@ a:hover {
   text-align: inherit;
 }
 
-.poster[data-occupied="true"] .number-one[data-prize-before-price] .later-facts[data-later-fact] .bid,
-.poster[data-occupied="true"] .number-one[data-prize-before-price] .later-facts[data-later-fact] .clicks {
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .later-facts[data-later-fact] .bid,
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .later-facts[data-later-fact] .clicks {
   margin-top: 0;
   font-size: inherit;
   font-weight: inherit;
 }
 
-.number-one .kind,
-.number-one .pitch {
+.poster[data-occupied="true"] .number-one[data-paid-at] .kind,
+.poster[data-occupied="true"] .number-one[data-paid-at] .pitch {
   margin-top: 0.45rem;
 }
 
-.number-one .pitch {
+.poster[data-occupied="true"] .number-one[data-paid-at] .pitch {
   max-width: 28rem;
 }
 
-.number-one .bid {
+.poster[data-occupied="true"] .number-one[data-paid-at] .bid {
   margin: 0.55rem 0 0;
   text-align: center;
   font-size: 1.05rem;
@@ -963,14 +967,14 @@ a:hover {
   margin-top: 0;
 }
 
-.number-one .clicks {
+.poster[data-occupied="true"] .number-one[data-paid-at] .clicks {
   margin: 0.55rem 0 0;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--muted);
 }
 
-.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] .clicks {
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
   margin: 0;
 }
 
