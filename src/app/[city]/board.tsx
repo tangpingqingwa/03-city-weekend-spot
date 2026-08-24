@@ -159,11 +159,11 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
         </p>
       ) : null}
       {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
-      <BookingHop listing={listing} className="book-later" later />
       <p className="bid" data-bid="">
         {formatUsd(listing.bidUsd)}
       </p>
       <footer className="place-foot">
+        <BookingHop listing={listing} className="book-later" later />
         <span className="clicks" data-clicks="">
           {formatClicks(listing.clicks)}
         </span>
