@@ -141,8 +141,8 @@ grep -q 'data-occupied' src/app/\[city\]/board.tsx \
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
   fail "empty board must not keep unpublished as the large kicker"
 fi
-if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|book-one-first|data-book-number-one|guest-first|unpaid-off-board'; then
-  fail "empty board must not stamp prize venue, Book #1, or unpaid note"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|later-fact|book-one-first|data-book-number-one|guest-first|unpaid-off-board'; then
+  fail "empty board must not stamp prize venue, later-fact \$bid, Book #1, or unpaid note"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
   fail "empty unpublished must not stamp *-after-*-N"
@@ -170,6 +170,19 @@ if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'prize-b
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
   fail "prize before price must not add another numbered hop stamp"
+fi
+grep -q 'data-later-fact' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must stamp \$bid as a later fact"
+grep -q 'later-fact' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 \$bid must use the later-fact class"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'data-later-fact|bid later-fact|clicks later-fact'; then
+  fail "empty board must not stamp later-fact \$bid"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -qE 'data-later-fact|bid later-fact|clicks later-fact'; then
+  fail "later ranks must not stamp later-fact \$bid"
+fi
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
+  fail "later-fact \$bid must not add another numbered hop stamp"
 fi
 grep -q 'data-book-number-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must expose a primary Book hop"
@@ -699,6 +712,12 @@ grep -Fq 'clamp(2.85rem, 9vw, 4.4rem)' src/app/board.css \
 if ! grep -n 'data-prize-before-price' -A 6 src/app/board.css | grep -q '0.92rem'; then
   fail "poster CSS must keep occupied \$bid quieter than the venue"
 fi
+grep -q 'data-later-fact' src/app/board.css \
+  || fail "poster CSS must keep occupied #1 \$bid a later fact"
+grep -q 'later-fact' src/app/board.css \
+  || fail "poster CSS must mute occupied #1 later-fact \$bid"
+grep -qF '.number-one[data-prize-before-price] .bid.later-fact[data-later-fact]' src/app/board.css \
+  || fail "poster CSS must mute occupied #1 \$bid so it cannot shout beside the venue"
 grep -q '\.book-one' src/app/board.css \
   || fail "poster CSS must style the primary Book hop"
 grep -q 'data-book-one-first' src/app/board.css \
@@ -760,6 +779,22 @@ if float(later_book) >= float(book_one):
 later_book_block = re.search(r"\[data-later-quiet\] \.book-later\s*\{[^}]*\}", css, re.S)
 if not later_book_block or "var(--accent)" in later_book_block.group(0):
     raise SystemExit("do not recolor later Book")
+later_fact = re.search(
+    r"\.number-one\[data-prize-before-price\] \.bid\.later-fact\[data-later-fact\]\s*\{[^}]*\}",
+    css,
+    re.S,
+)
+if not later_fact:
+    raise SystemExit("occupied #1 later-fact $bid CSS missing")
+if "color: var(--muted)" not in later_fact.group(0):
+    raise SystemExit("occupied #1 $bid must recede as a later fact")
+if "color: var(--accent)" in later_fact.group(0):
+    raise SystemExit("occupied #1 later-fact $bid must not shout accent")
+bid_size = first(
+    r"\.number-one\[data-prize-before-price\] \.bid\.later-fact\[data-later-fact\]\s*\{[^}]*font-size:\s*([\d.]+)rem"
+)
+if float(bid_size) >= float(prize):
+    raise SystemExit("occupied #1 later-fact $bid shouts like the venue")
 PY
 grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
 grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
@@ -1054,6 +1089,8 @@ if [[ -f package.json ]]; then
     || fail "occupied Book #1 after List a venue is re-concentrated again without a second Book hop test did not run"
   grep -q 'prize before price' "$test_log" \
     || fail "occupied prize-before-price test did not run"
+  grep -q 'occupied NYC #1 \$bid stays a later fact' "$test_log" \
+    || fail "occupied later-fact \$bid test did not run"
   grep -q 'unpaid checkout never ranks certain' "$test_log" \
     || fail "claim-form unpaid-off-board test did not run"
   grep -q 'poster form POST' "$test_log" \
