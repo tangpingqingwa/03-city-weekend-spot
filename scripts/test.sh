@@ -189,6 +189,17 @@ grep -q 'data-book-later' src/app/\[city\]/board.tsx \
   || fail "later ranks must expose a Book hop"
 grep -q 'book-later' src/app/\[city\]/board.tsx \
   || fail "later-rank Book must use the later booking class"
+grep -q 'data-later-quiet' src/app/\[city\]/board.tsx \
+  || fail "later ranks must stay quieter than occupied #1 venue"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'later-quiet'; then
+  fail "empty board must not stamp later-rank quiet"
+fi
+if grep -n 'data-prize-before-price' -A 30 src/app/\[city\]/board.tsx | grep -q 'later-quiet'; then
+  fail "occupied #1 prize must not stamp later-rank quiet"
+fi
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/board.css; then
+  fail "later-rank quiet must not stamp *-after-*-N"
+fi
 grep -q 'data-list-venue' src/app/\[city\]/board.tsx \
   || fail "occupied board must mark List a venue"
 grep -q 'href="#claim"' src/app/\[city\]/board.tsx \
@@ -690,6 +701,38 @@ grep -q 'book-later' src/app/board.css \
   || fail "poster CSS must style later-rank Book"
 grep -q 'data-later-book' src/app/board.css \
   || fail "poster CSS must style later-rank places"
+grep -q 'data-later-quiet' src/app/board.css \
+  || fail "poster CSS must keep later ranks quieter than occupied #1 venue"
+if ! grep -n 'data-later-quiet' -A 8 src/app/board.css | grep -q '1.02rem'; then
+  fail "poster CSS must keep later-rank venue quieter than occupied #1"
+fi
+if ! grep -n 'data-later-quiet' -A 16 src/app/board.css | grep -q '6.75rem'; then
+  fail "poster CSS must keep later-rank Book quieter than occupied Book #1"
+fi
+python3 - src/app/board.css <<'PY' || fail "later-rank venue and Book must stay quieter than occupied #1"
+import re
+import sys
+
+css = open(sys.argv[1], encoding="utf-8").read()
+
+def first(pattern):
+    match = re.search(pattern, css, re.S)
+    if not match:
+        raise SystemExit(1)
+    return match.group(1)
+
+prize = first(r"clamp\(([\d.]+)rem, 9vw, 4\.4rem\)")
+later_title = first(r"\[data-later-quiet\] \.title\s*\{[^}]*font-size:\s*([\d.]+)rem")
+later_book = first(r"\[data-later-quiet\] \.book-later\s*\{[^}]*min-width:\s*([\d.]+)rem")
+book_one = first(r"\.book-one\[data-book-after-list-seven\]\s*\{[^}]*min-height:\s*([\d.]+)rem")
+if float(later_title) >= float(prize):
+    raise SystemExit("later venue shouts like occupied #1")
+if float(later_book) >= float(book_one):
+    raise SystemExit("later Book fill shouts like occupied #1")
+later_book_block = re.search(r"\[data-later-quiet\] \.book-later\s*\{[^}]*\}", css, re.S)
+if not later_book_block or "var(--accent)" in later_book_block.group(0):
+    raise SystemExit("do not recolor later Book")
+PY
 grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
 grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
 grep -q 'listingClickPath' src/app/\[city\]/board.tsx || fail "Book CTA must hop through the public click route"
@@ -937,6 +980,8 @@ if [[ -f package.json ]]; then
     || fail "occupied List a venue hop test did not run"
   grep -q 'later ranks stamp Book as the certain hop' "$test_log" \
     || fail "occupied later-rank Book test did not run"
+  grep -q 'later ranks stay quieter than occupied #1 venue' "$test_log" \
+    || fail "occupied later-rank quiet test did not run"
   grep -q 'lists after later-rank Book' "$test_log" \
     || fail "occupied list-after-book test did not run"
   grep -q 'books after the list hop' "$test_log" \

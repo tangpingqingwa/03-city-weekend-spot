@@ -595,12 +595,14 @@ a:hover {
 .poster[data-occupied="false"] [data-book-one-first],
 .poster[data-occupied="false"] .book-one,
 .poster[data-occupied="false"] [data-unpaid-off-board],
+.poster[data-occupied="false"] [data-later-quiet],
 .empty-board[data-empty-unpublished] [data-prize],
 .empty-board[data-empty-unpublished] [data-prize-before-price],
 .empty-board[data-empty-unpublished] [data-book-number-one],
 .empty-board[data-empty-unpublished] [data-book-one-first],
 .empty-board[data-empty-unpublished] .book-one,
-.empty-board[data-empty-unpublished] [data-unpaid-off-board] {
+.empty-board[data-empty-unpublished] [data-unpaid-off-board],
+.empty-board[data-empty-unpublished] [data-later-quiet] {
   display: none;
 }
 
@@ -904,6 +906,25 @@ a:hover {
 .book-later:hover {
   background: var(--ink);
   color: var(--paper);
+}
+
+.place[data-later-book][data-later-quiet] .title {
+  margin-top: 0.1rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.place[data-later-book][data-later-quiet] .book-later {
+  min-width: 6.75rem;
+  height: 1.95rem;
+  padding: 0 0.9rem;
+  line-height: 1.8rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  background: transparent;
 }
 
 .clicks {

@@ -139,6 +139,7 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
       data-rank={listing.rank}
       data-listing-id={listing.id}
       data-later-book=""
+      data-later-quiet=""
     >
       <span className="rank">#{listing.rank}</span>
       <h3 className="title" data-venue="">
