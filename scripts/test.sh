@@ -268,6 +268,34 @@ fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/board.css; then
   fail "later-rank quiet must not stamp *-after-*-N"
 fi
+python3 - src/app/\[city\]/board.tsx <<'PY' || fail "later Book must recede into the place-foot, not stay a sibling CTA"
+import re
+import sys
+
+src = open(sys.argv[1], encoding="utf-8").read()
+match = re.search(
+    r"export function ListingCard\([\s\S]*?\nexport function ",
+    src,
+)
+if not match:
+    raise SystemExit("ListingCard missing")
+body = match.group(0)
+later = body.split("rank === 1", 1)[-1]
+if "className=\"book-later\"" not in later:
+    raise SystemExit("later Book hop missing")
+if "className=\"place-foot\"" not in later:
+    raise SystemExit("later place-foot missing")
+if "BookingHop" not in later.split("place-foot", 1)[-1]:
+    raise SystemExit("later Book must sit in the place-foot")
+if later.split("place-foot", 1)[0].count("BookingHop"):
+    raise SystemExit("later Book is still a sibling CTA before the foot")
+if 'className="bid later-fact"' in later or "later-facts" in later:
+    raise SystemExit("later ranks must not reuse occupied later-facts grouping")
+if "data-guest-first" in later or "guestFirst" in later:
+    raise SystemExit("later Book must not steal guest-first")
+if "data-prize" in later or "prize-before-price" in later:
+    raise SystemExit("later ranks must not stamp the venue prize")
+PY
 grep -q 'data-list-venue' src/app/\[city\]/board.tsx \
   || fail "occupied board must mark List a venue"
 grep -q 'href="#claim"' src/app/\[city\]/board.tsx \
@@ -789,8 +817,8 @@ grep -q 'data-later-quiet' src/app/board.css \
 if ! grep -n 'data-later-quiet' -A 8 src/app/board.css | grep -q '1.02rem'; then
   fail "poster CSS must keep later-rank venue quieter than occupied #1"
 fi
-if ! grep -n 'data-later-quiet' -A 16 src/app/board.css | grep -q '6.75rem'; then
-  fail "poster CSS must keep later-rank Book quieter than occupied Book #1"
+if ! grep -n 'place-foot .book-later' -A 24 src/app/board.css | grep -q 'display: inline'; then
+  fail "poster CSS must keep later Book an inline foot hop"
 fi
 python3 - src/app/board.css <<'PY' || fail "later-rank venue and Book must stay quieter than occupied #1"
 import re
@@ -806,15 +834,32 @@ def first(pattern):
 
 prize = first(r"clamp\(([\d.]+)rem, 9vw, 4\.4rem\)")
 later_title = first(r"\[data-later-quiet\] \.title\s*\{[^}]*font-size:\s*([\d.]+)rem")
-later_book = first(r"\[data-later-quiet\] \.book-later\s*\{[^}]*min-width:\s*([\d.]+)rem")
+later_book_block = re.search(
+    r"\.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}",
+    css,
+    re.S,
+)
+if not later_book_block:
+    raise SystemExit("later Book foot hop CSS missing")
+later_book_css = later_book_block.group(1)
+later_book_size = re.search(r"font-size:\s*([\d.]+)rem", later_book_css)
 book_one = first(r"\.book-one\[data-book-after-list-seven\]\s*\{[^}]*min-height:\s*([\d.]+)rem")
 if float(later_title) >= float(prize):
     raise SystemExit("later venue shouts like occupied #1")
-if float(later_book) >= float(book_one):
+if not later_book_size:
+    raise SystemExit("later Book must recede in size")
+if float(later_book_size.group(1)) >= float(book_one):
     raise SystemExit("later Book fill shouts like occupied #1")
-later_book_block = re.search(r"\[data-later-quiet\] \.book-later\s*\{[^}]*\}", css, re.S)
-if not later_book_block or "var(--accent)" in later_book_block.group(0):
+if "display: inline" not in later_book_css:
+    raise SystemExit("later Book must be an inline hop, not a button row")
+if "min-width: 0" not in later_book_css:
+    raise SystemExit("later Book must drop the filled min-width")
+if "border: 0" not in later_book_css:
+    raise SystemExit("later Book must drop the filled border")
+if "var(--accent)" in later_book_css:
     raise SystemExit("do not recolor later Book")
+if "background: transparent" not in later_book_css:
+    raise SystemExit("later Book must stay unfilled")
 if re.search(
     r"\.number-one\[data-prize-before-price\] \.bid\.later-fact\[data-later-fact\]\s*\{",
     css,
@@ -1084,6 +1129,8 @@ if [[ -f package.json ]]; then
     || fail "occupied later-rank Book test did not run"
   grep -q 'later ranks stay quieter than occupied #1 venue' "$test_log" \
     || fail "occupied later-rank quiet test did not run"
+  grep -q 'later Book stays quieter than Book #1 after \$bid is a later fact' "$test_log" \
+    || fail "occupied later-Book quieter-than-Book-#1 test did not run"
   grep -q 'occupied Book #1 stays the first guest click' "$test_log" \
     || fail "occupied Book #1 first guest click test did not run"
   grep -q 'lists after later-rank Book' "$test_log" \

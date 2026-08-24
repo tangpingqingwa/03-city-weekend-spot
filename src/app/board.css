@@ -654,6 +654,8 @@ a:hover {
 .poster[data-occupied="false"] .book-one,
 .poster[data-occupied="false"] [data-unpaid-off-board],
 .poster[data-occupied="false"] [data-later-quiet],
+.poster[data-occupied="false"] .book-later,
+.poster[data-occupied="false"] [data-book-later],
 .empty-board[data-empty-unpublished] [data-prize],
 .empty-board[data-empty-unpublished] [data-prize-before-price],
 .empty-board[data-empty-unpublished] [data-later-fact],
@@ -663,7 +665,9 @@ a:hover {
 .empty-board[data-empty-unpublished] [data-guest-first],
 .empty-board[data-empty-unpublished] .book-one,
 .empty-board[data-empty-unpublished] [data-unpaid-off-board],
-.empty-board[data-empty-unpublished] [data-later-quiet] {
+.empty-board[data-empty-unpublished] [data-later-quiet],
+.empty-board[data-empty-unpublished] .book-later,
+.empty-board[data-empty-unpublished] [data-book-later] {
   display: none;
 }
 
@@ -937,13 +941,6 @@ a:hover {
 }
 
 .place[data-later-book] {
-  grid-template-areas:
-    "rank rank"
-    "title title"
-    "kind kind"
-    "pitch pitch"
-    "book book"
-    "bid foot";
   align-items: baseline;
 }
 
@@ -1002,35 +999,44 @@ a:hover {
 }
 
 .place[data-later-book] .bid {
-  margin: 0.7rem 0 0;
+  margin: 0.15rem 0 0;
   font-size: 0.95rem;
-  text-align: left;
 }
 
 .place[data-later-book] .place-foot {
-  justify-content: flex-end;
+  align-items: baseline;
 }
 
-.book-later {
-  grid-area: book;
-  display: inline-block;
-  justify-self: start;
-  margin-top: 0.7rem;
-  min-width: 8.5rem;
-  height: 2.35rem;
-  padding: 0 1.15rem;
-  line-height: 2.2rem;
-  border: 1px solid var(--rule);
+/* Later Book is a foot hop, not a second Book #1 button. */
+.book-later,
+.place[data-later-book] .place-foot .book-later {
+  display: inline;
+  grid-area: auto;
+  justify-self: auto;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  line-height: inherit;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-bottom: 1px dashed var(--rule);
+}
+
+.book-later:hover,
+.place[data-later-book] .place-foot .book-later:hover {
   background: transparent;
   color: var(--ink);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.book-later:hover {
-  background: var(--ink);
-  color: var(--paper);
+  outline: none;
+  box-shadow: none;
 }
 
 .place[data-later-book][data-later-quiet] .title {
@@ -1042,25 +1048,10 @@ a:hover {
 }
 
 .place[data-later-book][data-later-quiet] .book-later {
-  min-width: 6.75rem;
-  height: 1.95rem;
-  padding: 0 0.9rem;
-  line-height: 1.8rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
   font-weight: 600;
   background: transparent;
-}
-
-.poster[data-occupied="true"] .place[data-later-book][data-later-quiet] .book-later {
-  min-width: 5.5rem;
-  height: 1.7rem;
-  padding: 0 0.7rem;
-  line-height: 1.55rem;
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-  color: var(--muted);
 }
 
 .clicks {
@@ -1158,17 +1149,6 @@ a:hover {
       "title"
       "kind"
       "pitch"
-      "bid"
-      "foot";
-  }
-
-  .place[data-later-book] {
-    grid-template-areas:
-      "rank"
-      "title"
-      "kind"
-      "pitch"
-      "book"
       "bid"
       "foot";
   }
