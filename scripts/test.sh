@@ -318,6 +318,44 @@ fi
 if grep -n 'data-book-after-list-five' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-six'; then
   fail "Book after the louder List a venue is re-concentrated again must not stamp List after Book #1 is re-concentrated again without another List"
 fi
+grep -q 'data-list-after-book-seven' src/app/\[city\]/board.tsx \
+  || fail "occupied List a venue must stamp after Book #1 is re-concentrated again"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "empty board must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "later ranks must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "list-after-later-Books must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-list-after-book-hop=""' -B 6 -A 4 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "list-after-book-hop must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list=""' -B 6 -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "book-after-list leftover must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-hop=""' -B 6 -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "book-after-list-hop leftover must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-one' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "Book after List a venue must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-two' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "Book after List a venue is re-concentrated must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-three' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "Book after List a venue is re-concentrated again must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-four' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "Book after the louder List a venue must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-five' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "Book after the louder List a venue is re-concentrated again must not stamp List after Book #1 is re-concentrated again"
+fi
+if grep -n 'data-book-after-list-six' -A 8 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+  fail "Book after List a venue is re-concentrated again without another Book hop must not stamp List after Book #1 is re-concentrated again"
+fi
 grep -q 'data-book-after-list-one' src/app/\[city\]/board.tsx \
   || fail "occupied Book #1 must stamp after List a venue"
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-one'; then
@@ -495,6 +533,8 @@ grep -q 'data-list-after-book-five' src/app/board.css \
   || fail "poster CSS must concentrate List after the louder Book #1 is re-concentrated again"
 grep -q 'data-list-after-book-six' src/app/board.css \
   || fail "poster CSS must concentrate List after Book #1 is re-concentrated again without another List"
+grep -q 'data-list-after-book-seven' src/app/board.css \
+  || fail "poster CSS must concentrate List after Book #1 is re-concentrated again"
 grep -q 'list-after-book' src/app/board.css \
   || fail "poster CSS must style the list-after-book hop"
 grep -q 'book-after-list' src/app/board.css \
@@ -798,6 +838,8 @@ if [[ -f package.json ]]; then
     || fail "occupied List after the louder Book #1 re-concentrate-again test did not run"
   grep -q 'lists after Book #1 is re-concentrated again without another List' "$test_log" \
     || fail "occupied List after Book #1 is re-concentrated again without another List test did not run"
+  grep -q 'lists after Book #1 is re-concentrated again without another List hop' "$test_log" \
+    || fail "occupied List after Book #1 is re-concentrated again without another List hop test did not run"
   grep -q 'books #1 after the louder List a venue without another Book' "$test_log" \
     || fail "occupied Book #1 after the louder List a venue test did not run"
   grep -q 'books #1 after the louder List a venue is re-concentrated again without another Book' "$test_log" \
