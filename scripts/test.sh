@@ -134,9 +134,23 @@ grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have a
 grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
 grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must print No #1 as the weekend answer"
 grep -q 'empty-note' src/app/\[city\]/board.tsx || fail "unpublished must sit under No #1, not above it"
+grep -q 'data-empty-unpublished' src/app/\[city\]/board.tsx \
+  || fail "empty board must stamp unpublished so occupied chrome stays off"
+grep -q 'data-occupied' src/app/\[city\]/board.tsx \
+  || fail "board must mark occupied vs empty so occupied chrome cannot leak"
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
   fail "empty board must not keep unpublished as the large kicker"
 fi
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|book-one-first|data-book-number-one|unpaid-off-board'; then
+  fail "empty board must not stamp prize venue, Book #1, or unpaid note"
+fi
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
+  fail "empty unpublished must not stamp *-after-*-N"
+fi
+grep -q 'data-empty-unpublished' src/app/board.css \
+  || fail "poster CSS must keep occupied chrome off the unpublished weekend"
+grep -q 'data-occupied="false"' src/app/board.css \
+  || fail "poster CSS must keep occupied chrome off empty /nyc"
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
 grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
 grep -q 'data-kind' src/app/\[city\]/board.tsx || fail "place card must show kind"
@@ -913,6 +927,8 @@ if [[ -f package.json ]]; then
     || fail "SPEC acceptance 9 click test did not run"
   grep -q 'unpublished weekend poster' "$test_log" \
     || fail "weekend poster empty-state test did not run"
+  grep -q 'empty NYC weekend stays unpublished without occupied chrome' "$test_log" \
+    || fail "empty unpublished occupied-chrome test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
   grep -q 'books the paid #1 as the weekend answer' "$test_log" \
