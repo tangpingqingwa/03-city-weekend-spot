@@ -585,6 +585,15 @@ a:hover {
   letter-spacing: 0.22em;
 }
 
+.book-one[data-book-after-list-four] {
+  margin-top: 1rem;
+  min-width: 21.5rem;
+  height: 4.85rem;
+  padding: 0 2.85rem;
+  line-height: 4.7rem;
+  letter-spacing: 0.26em;
+}
+
 .number-one[data-book-one-first] .bid {
   margin-top: 0.85rem;
 }
