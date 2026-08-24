@@ -128,8 +128,101 @@ grep -q 'stays off the board' src/app/\[city\]/bid-form.tsx \
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/bid-form.tsx; then
   fail "unpaid-off-board must not add another numbered hop stamp"
 fi
+grep -q 'data-empty-claim-first' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc claim must stamp Claim #1 as the first click"
+grep -q 'empty-claim-first' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc claim must use the empty-claim-first class"
+grep -q 'data-first-click' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc Claim #1 must win the first click"
+grep -q 'undefined : "claim"' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc must stamp first-click claim only when unoccupied"
+grep -q 'data-later-write' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc must stamp the venue URL as a later write"
+grep -q 'data-venue-identity' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc must wrap the venue URL as venue identity"
+grep -q 'Then the venue URL' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc must name the venue URL as a later write"
+python3 - src/app/\[city\]/bid-form.tsx <<'PY' || fail "empty Claim #1 must precede the later venue URL write"
+import re
+import sys
+
+src = open(sys.argv[1], encoding="utf-8").read()
+occupied_class = re.search(
+    r'className=\{occupied \? "claim" : "claim empty-claim-first"\}',
+    src,
+)
+if not occupied_class:
+    raise SystemExit("empty claim must use empty-claim-first only when unoccupied")
+if re.search(
+    r'className=\{occupied \? "[^"]*empty-claim-first',
+    src,
+):
+    raise SystemExit("occupied claim must not use empty-claim-first")
+empty = re.search(
+    r"\{occupied \? \(\s*<div className=\"bid-row\">[\s\S]*?\) : \(\s*<>[\s\S]*?</>\s*\)\}",
+    src,
+)
+if not empty:
+    raise SystemExit("empty vs occupied claim form missing")
+body = empty.group(0)
+occupied, leftover = body.split(") : (", 1)
+if 'className="bid-row"' not in occupied:
+    raise SystemExit("occupied claim must keep venue + Outbid on the bid-row")
+if "venueField" not in occupied or "outbidButton" not in occupied:
+    raise SystemExit("occupied bid-row must still hold venue and Outbid")
+if occupied.find("venueField") > occupied.find("outbidButton"):
+    raise SystemExit("occupied venue field must stay before Outbid")
+if 'className="bid-row"' in leftover:
+    raise SystemExit("empty /nyc must not keep venue URL in the same claim rail as Outbid")
+outbid_at = leftover.find("outbidButton")
+later_at = leftover.find("data-later-write")
+venue_at = leftover.find("venueField")
+if outbid_at < 0 or later_at < 0 or venue_at < 0:
+    raise SystemExit("empty form must keep Outbid, then later-write venue identity")
+if not (outbid_at < later_at < venue_at):
+    raise SystemExit("empty Outbid must precede the later venue URL write")
+if "Then the venue URL" not in leftover:
+    raise SystemExit("empty later write must name the venue URL")
+if "data-list-after-book-nine" in src or "data-book-after-list-eight" in leftover:
+    raise SystemExit("empty later write must not stamp *-after-*-N")
+PY
 grep -q 'data-unpaid-off-board' src/app/board.css \
   || fail "poster CSS must make unpaid-off-board certain on the claim form"
+grep -q 'data-empty-claim-first' src/app/board.css \
+  || fail "poster CSS must compose empty Claim #1 as the first click"
+grep -q 'venue-identity\[data-later-write\]' src/app/board.css \
+  || fail "poster CSS must compose the later venue URL write"
+grep -q 'Then the venue URL' src/app/\[city\]/bid-form.tsx \
+  || fail "empty /nyc must keep Then the venue URL copy"
+if grep -qE 'data-empty-claim-after|data-claim-after-empty' src/app/\[city\]/bid-form.tsx src/app/board.css; then
+  fail "empty Claim #1 must not stamp another named hop"
+fi
+python3 - src/app/board.css <<'PY' || fail "empty Claim #1 CSS must recede the venue URL, not recolor"
+import re
+import sys
+
+css = open(sys.argv[1], encoding="utf-8").read()
+marker = "Empty /nyc: Claim #1 is the only first click. Venue URL is a later write after Outbid."
+if marker not in css:
+    raise SystemExit("empty CSS must name Claim #1 then later venue URL")
+block = css.split(marker, 1)[1].split(".stub-note,", 1)[0]
+if ".venue-identity[data-later-write]" not in block:
+    raise SystemExit("later-write CSS must compose venue identity off the claim rail")
+if "[data-bid-form]" not in block:
+    raise SystemExit("empty CSS must compose the claim form off the occupied bid-row")
+if 'data-first-click="claim"' not in block:
+    raise SystemExit("empty CSS must concentrate Claim #1")
+if "background: var(--accent)" in block:
+    raise SystemExit("do not recolor empty Claim #1")
+if "data-list-after-book-nine" in block or "data-book-after-list-eight" in block:
+    raise SystemExit("do not stamp *-after-*-N on the later write")
+if re.search(r"(?m)^\.venue-identity\s*\{", css):
+    raise SystemExit("unscoped .venue-identity can leak onto occupied /nyc")
+if re.search(r"(?m)^\.later-write-label\s*\{", css):
+    raise SystemExit("unscoped .later-write-label can leak onto occupied /nyc")
+if '.poster[data-occupied="false"] .claim.empty-claim-first[data-empty-claim-first]' not in css:
+    raise SystemExit("empty Claim #1 CSS must stay empty-only")
+PY
 grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have an honest empty state"
 grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
 grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must print No #1 as the weekend answer"
@@ -1164,6 +1257,10 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished occupied-chrome test did not run"
   grep -q 'empty NYC weekend keeps Book #1 and later Book off unpublished' "$test_log" \
     || fail "empty unpublished Book leak test did not run"
+  grep -q 'empty NYC Claim #1 is the first click' "$test_log" \
+    || fail "empty Claim #1 first-click leftover test did not run"
+  grep -q 'venue URL is a later write' "$test_log" \
+    || fail "empty venue-URL later-write leftover test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
   grep -q 'books the paid #1 as the weekend answer' "$test_log" \

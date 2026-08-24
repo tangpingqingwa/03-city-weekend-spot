@@ -28,8 +28,31 @@ export function BidForm({
     setAmount((current) => clampAmount(current + delta));
   }
 
+  const venueField = (
+    <input
+      id="venue"
+      name="venue"
+      value={venue}
+      onChange={(event) => setVenue(event.target.value)}
+      placeholder="Venue name and https booking URL"
+      autoComplete="off"
+      spellCheck={false}
+      required
+    />
+  );
+  const outbidButton = (
+    <button type="submit" className="outbid">
+      Outbid
+    </button>
+  );
+
   return (
-    <section className="claim" id="claim">
+    <section
+      className={occupied ? "claim" : "claim empty-claim-first"}
+      id="claim"
+      aria-label={occupied ? undefined : "Claim #1"}
+      data-empty-claim-first={occupied ? undefined : ""}
+    >
       <p className="claim-kicker">
         {occupied ? "List a venue this weekend" : "Print this weekend"}
       </p>
@@ -40,7 +63,10 @@ export function BidForm({
         data-city={city.slug}
       >
         <input type="hidden" name="city" value={city.slug} />
-        <h2>
+        <h2
+          data-empty-claim={occupied ? undefined : ""}
+          data-first-click={occupied ? undefined : "claim"}
+        >
           <span>Claim #1 for</span>
           <span className="amount-stepper">
             <button
@@ -81,21 +107,24 @@ export function BidForm({
             payment clears, this venue stays off the board.
           </p>
         ) : null}
-        <div className="bid-row">
-          <input
-            id="venue"
-            name="venue"
-            value={venue}
-            onChange={(event) => setVenue(event.target.value)}
-            placeholder="Venue name and https booking URL"
-            autoComplete="off"
-            spellCheck={false}
-            required
-          />
-          <button type="submit" className="outbid">
-            Outbid
-          </button>
-        </div>
+        {occupied ? (
+          <div className="bid-row">
+            {venueField}
+            {outbidButton}
+          </div>
+        ) : (
+          <>
+            {outbidButton}
+            <div
+              className="venue-identity"
+              data-venue-identity=""
+              data-later-write=""
+            >
+              <p className="later-write-label">Then the venue URL</p>
+              {venueField}
+            </div>
+          </>
+        )}
         <p className="raise-hint">
           New spots start at ${MIN_BID_USD}. Paying less than #1 still lists at
           the rank that bid can take. Already on this board? Enter the same
