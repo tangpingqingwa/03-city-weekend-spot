@@ -296,6 +296,27 @@ a:hover {
   outline-color: var(--ink);
 }
 
+.list-venue-line:has([data-list-after-book-eight]) {
+  margin: 1.75rem 0 0.55rem;
+}
+
+.list-venue[data-list-after-book-eight] {
+  min-height: 10.35rem;
+  padding: 3.15rem 3.6rem;
+  font-size: 1.36rem;
+  letter-spacing: 0.44em;
+  border-width: 6px;
+  outline-width: 3px;
+  outline-offset: 8px;
+}
+
+.list-venue[data-list-after-book-eight]:hover {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: none;
+  outline-color: var(--ink);
+}
+
 .book-after-list-line {
   margin: 0.75rem 0 0;
   color: var(--muted);

@@ -268,6 +268,7 @@ export function CityBoard({
                 data-list-after-book-five=""
                 data-list-after-book-six=""
                 data-list-after-book-seven=""
+                data-list-after-book-eight=""
               >
                 List a venue
               </a>
