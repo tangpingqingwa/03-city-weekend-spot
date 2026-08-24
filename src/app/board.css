@@ -646,6 +646,8 @@ a:hover {
 /* Empty weekend stays unpublished. Occupied chrome stays off this /nyc. */
 .poster[data-occupied="false"] [data-prize],
 .poster[data-occupied="false"] [data-prize-before-price],
+.poster[data-occupied="false"] [data-later-fact],
+.poster[data-occupied="false"] .later-facts,
 .poster[data-occupied="false"] [data-book-number-one],
 .poster[data-occupied="false"] [data-book-one-first],
 .poster[data-occupied="false"] [data-guest-first],
@@ -654,6 +656,8 @@ a:hover {
 .poster[data-occupied="false"] [data-later-quiet],
 .empty-board[data-empty-unpublished] [data-prize],
 .empty-board[data-empty-unpublished] [data-prize-before-price],
+.empty-board[data-empty-unpublished] [data-later-fact],
+.empty-board[data-empty-unpublished] .later-facts,
 .empty-board[data-empty-unpublished] [data-book-number-one],
 .empty-board[data-empty-unpublished] [data-book-one-first],
 .empty-board[data-empty-unpublished] [data-guest-first],
@@ -706,6 +710,36 @@ a:hover {
   margin-top: 0.35rem;
   font-size: 0.72rem;
   font-weight: 500;
+}
+
+/* Occupied #1 only: $bid + clicks are one later-fact line after Book. */
+.number-one .later-facts[data-later-fact] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
+  margin: 0.85rem 0 0;
+  max-width: 22rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.number-one .later-facts[data-later-fact] .bid,
+.number-one .later-facts[data-later-fact] .clicks {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+}
+
+.number-one[data-prize-before-price] .later-facts[data-later-fact] .bid,
+.number-one[data-prize-before-price] .later-facts[data-later-fact] .clicks {
+  margin-top: 0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .number-one .kind,
@@ -865,11 +899,19 @@ a:hover {
   margin-top: 0.85rem;
 }
 
+.number-one[data-book-one-first] .later-facts[data-later-fact] .bid {
+  margin-top: 0;
+}
+
 .number-one .clicks {
   margin: 0.55rem 0 0;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--muted);
+}
+
+.number-one .later-facts[data-later-fact] .clicks {
+  margin: 0;
 }
 
 .leaderboard li.is-rest .place {

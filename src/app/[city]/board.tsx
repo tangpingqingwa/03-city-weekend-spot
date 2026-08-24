@@ -121,12 +121,15 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
         afterListSix
         afterListSeven
       />
-      <p className="bid" data-bid="">
-        {formatUsd(listing.bidUsd)}
-      </p>
-      <p className="clicks" data-clicks="">
-        {formatClicks(listing.clicks)}
-      </p>
+      <footer className="later-facts" data-later-fact="">
+        <span className="bid" data-bid="">
+          {formatUsd(listing.bidUsd)}
+        </span>
+        <span aria-hidden="true"> · </span>
+        <span className="clicks" data-clicks="">
+          {formatClicks(listing.clicks)}
+        </span>
+      </footer>
     </article>
   );
 }

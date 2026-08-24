@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -3311,6 +3313,122 @@ test("occupied NYC #1 reads the venue prize before price, larger than $bid", () 
   assert.doesNotMatch(html.slice(laterHop), /data-prize-before-price|data-prize=/);
 });
 
+test("occupied NYC #1 $bid sits in a later-fact group after Book, not a muted twin paragraph", () => {
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  const prizeSize = css.match(/clamp\(([\d.]+)rem, 9vw, 4\.4rem\)/);
+  const laterFacts = css.match(
+    /\.number-one \.later-facts\[data-later-fact\]\s*\{([^}]*)\}/,
+  );
+  assert.ok(prizeSize);
+  assert.ok(laterFacts);
+  const groupSize = laterFacts[1].match(/font-size:\s*([\d.]+)rem/);
+  assert.ok(groupSize);
+  assert.ok(Number(prizeSize[1]) > Number(groupSize[1]));
+  assert.match(laterFacts[1], /color:\s*var\(--muted\)/);
+  assert.doesNotMatch(laterFacts[1], /color:\s*var\(--accent\)/);
+  assert.doesNotMatch(
+    css,
+    /\.number-one\[data-prize-before-price\] \.bid\.later-fact\[data-later-fact\]/,
+  );
+
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  assert.doesNotMatch(empty, /data-later-fact/);
+  assert.doesNotMatch(empty, /later-facts|later-fact/);
+  assert.doesNotMatch(empty, /data-prize-before-price|data-prize=/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /data-empty-unpublished=""/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /action="\/api\/checkout"/);
+  assert.doesNotMatch(empty, /data-book-number-one|data-book-one-first|class="book-one"|data-guest-first/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const onlyCard = renderToStaticMarkup(
+    createElement(ListingCard, { listing: rankedCards[0] }),
+  );
+  const prize = onlyCard.indexOf('data-prize=""');
+  const venue = onlyCard.indexOf("Sunday Roast");
+  const book = onlyCard.indexOf("data-book-number-one");
+  const facts = onlyCard.indexOf('class="later-facts"');
+  const laterFactStamp = onlyCard.indexOf('data-later-fact=""');
+  const bid = onlyCard.indexOf('data-bid=""');
+  const clicks = onlyCard.indexOf("data-clicks");
+  const factsEnd = onlyCard.indexOf("</footer>", facts);
+  assert.ok(prize >= 0 && venue > prize);
+  assert.ok(book > venue && facts > book && laterFactStamp >= facts);
+  assert.ok(bid > facts && clicks > bid && clicks < factsEnd);
+  assert.ok(factsEnd > clicks);
+  assert.match(onlyCard, /data-prize-before-price=""/);
+  assert.match(onlyCard, /class="weekend-answer"/);
+  assert.match(onlyCard, /class="later-facts"/);
+  assert.match(onlyCard, /data-later-fact=""/);
+  assert.match(onlyCard, /class="bid"/);
+  assert.match(onlyCard, /\$12/);
+  assert.match(onlyCard, /4 clicks/);
+  assert.match(onlyCard, /class="book-one"/);
+  assert.match(onlyCard, /data-guest-first=""/);
+  assert.equal((onlyCard.match(/data-later-fact=""/g) ?? []).length, 1);
+  assert.equal((onlyCard.match(/class="later-facts"/g) ?? []).length, 1);
+  assert.doesNotMatch(onlyCard, /<p class="bid"/);
+  assert.doesNotMatch(onlyCard, /class="bid later-fact"/);
+  assert.doesNotMatch(onlyCard, /class="clicks later-fact"/);
+  assert.doesNotMatch(onlyCard, /data-later-book|data-book-later|book-later/);
+  assert.doesNotMatch(onlyCard, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const laterCard = renderToStaticMarkup(
+    createElement(ListingCard, { listing: rankedCards[1] }),
+  );
+  assert.doesNotMatch(laterCard, /data-later-fact/);
+  assert.doesNotMatch(laterCard, /later-facts|later-fact/);
+  assert.doesNotMatch(laterCard, /data-prize-before-price|data-prize=/);
+  assert.match(laterCard, /data-later-book=""/);
+  assert.match(laterCard, /data-later-quiet=""/);
+  assert.match(laterCard, /data-book-later=""/);
+  assert.match(laterCard, /class="book-later"/);
+  assert.match(laterCard, /<p class="bid"/);
+  assert.match(laterCard, /Late Bar/);
+  assert.match(laterCard, /\$8/);
+
+  const html = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const occupiedPrize = html.indexOf('data-prize=""');
+  const occupiedName = html.indexOf(">Sunday Roast<", occupiedPrize);
+  const occupiedBook = html.indexOf("data-book-number-one");
+  const occupiedFacts = html.indexOf('class="later-facts"');
+  const occupiedLaterFact = html.indexOf('data-later-fact=""');
+  const occupiedBid = html.indexOf('data-bid=""', occupiedPrize);
+  const occupiedClicks = html.indexOf("data-clicks", occupiedPrize);
+  const occupiedFactsEnd = html.indexOf("</footer>", occupiedFacts);
+  const laterHop = html.indexOf("data-book-later");
+  const form = html.indexOf("data-bid-form");
+  assert.ok(occupiedPrize >= 0 && occupiedName > occupiedPrize);
+  assert.ok(occupiedBook > occupiedName && occupiedFacts > occupiedBook);
+  assert.ok(occupiedLaterFact >= occupiedFacts);
+  assert.ok(occupiedBid > occupiedFacts && occupiedClicks > occupiedBid);
+  assert.ok(occupiedClicks < occupiedFactsEnd);
+  assert.ok(laterHop > occupiedFactsEnd && form > laterHop);
+  assert.equal((html.match(/data-later-fact=""/g) ?? []).length, 1);
+  assert.equal((html.match(/class="later-facts"/g) ?? []).length, 1);
+  assert.equal((html.match(/data-prize=""/g) ?? []).length, 1);
+  assert.equal((html.match(/data-book-number-one/g) ?? []).length, 1);
+  assert.equal((html.match(/data-later-quiet=""/g) ?? []).length, 2);
+  assert.match(html, /data-occupied="true"/);
+  assert.match(html, /data-prize-before-price=""/);
+  assert.match(html, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(html, /Claim #1 for/);
+  assert.match(html, /action="\/api\/checkout"/);
+  assert.doesNotMatch(html, /class="bid later-fact"/);
+  assert.doesNotMatch(html.slice(0, occupiedPrize), /data-later-fact|later-facts/);
+  assert.doesNotMatch(html.slice(laterHop), /data-later-fact|class="later-facts"|data-prize=/);
+  assert.doesNotMatch(html, /data-empty-board/);
+  assert.doesNotMatch(html, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(html, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(html, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
 test("empty NYC weekend stays unpublished without occupied chrome", () => {
   const empty = renderToStaticMarkup(
     createElement(CityBoard, { city: nyc, listings: [] }),
@@ -3332,6 +3450,7 @@ test("empty NYC weekend stays unpublished without occupied chrome", () => {
   assert.match(empty, /Claim #1 for/);
   assert.match(empty, /data-city="nyc"/);
   assert.doesNotMatch(empty, /data-prize-before-price|data-prize=/);
+  assert.doesNotMatch(empty, /data-later-fact|later-facts|later-fact/);
   assert.doesNotMatch(empty, /data-book-number-one|data-book-one-first|class="book-one"/);
   assert.doesNotMatch(empty, /data-unpaid-off-board/);
   assert.doesNotMatch(empty, /Unpaid checkout never ranks/);
@@ -3346,6 +3465,8 @@ test("empty NYC weekend stays unpublished without occupied chrome", () => {
   assert.match(occupied, /data-occupied="true"/);
   assert.doesNotMatch(occupied, /data-empty-unpublished|data-empty-board/);
   assert.match(occupied, /data-prize-before-price=""/);
+  assert.match(occupied, /data-later-fact=""/);
+  assert.match(occupied, /class="later-facts"/);
   assert.match(occupied, /data-book-number-one=""/);
   assert.match(occupied, /data-unpaid-off-board=""/);
   assert.match(occupied, /Sunday Roast/);
