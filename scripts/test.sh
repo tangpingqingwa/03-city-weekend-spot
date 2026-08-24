@@ -136,6 +136,17 @@ grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must prin
 grep -q 'empty-note' src/app/\[city\]/board.tsx || fail "unpublished must sit under No #1, not above it"
 grep -q 'data-empty-unpublished' src/app/\[city\]/board.tsx \
   || fail "empty board must stamp unpublished so occupied chrome stays off"
+grep -q 'unpublished-weekend' src/app/\[city\]/board.tsx \
+  || fail "empty /nyc must use unpublished-weekend, not the occupied listings fold"
+if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -q 'className="fold"'; then
+  fail "unpublished weekend must not reuse the occupied listings fold"
+fi
+if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
+  fail "unpublished weekend must not keep the occupied fold-rule"
+fi
+if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop'; then
+  fail "unpublished weekend must not compose Book #1, later Book, or later-facts"
+fi
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
@@ -151,6 +162,36 @@ grep -q 'data-empty-unpublished' src/app/board.css \
   || fail "poster CSS must keep occupied chrome off the unpublished weekend"
 grep -q 'data-occupied="false"' src/app/board.css \
   || fail "poster CSS must keep occupied chrome off empty /nyc"
+grep -q 'unpublished-weekend' src/app/board.css \
+  || fail "poster CSS must style unpublished /nyc off the occupied fold"
+python3 - src/app/board.css <<'PY' || fail "occupied Book chrome must not paint on unpublished /nyc"
+import re
+import sys
+
+css = open(sys.argv[1], encoding="utf-8").read()
+if ".unpublished-weekend[data-empty-unpublished]" not in css:
+    raise SystemExit("unpublished weekend CSS missing")
+if re.search(r"(?m)^\.book-one\s*\{", css):
+    raise SystemExit("unscoped .book-one can leak onto empty /nyc")
+if re.search(r"(?m)^\.book-later\s*,", css) or re.search(r"(?m)^\.book-later\s*\{", css):
+    raise SystemExit("unscoped .book-later can leak onto empty /nyc")
+if re.search(r"(?m)^\.place-foot\s*\{", css):
+    raise SystemExit("unscoped .place-foot can leak onto empty /nyc")
+if re.search(r"(?m)^\.number-one \.later-facts\[data-later-fact\]\s*\{", css):
+    raise SystemExit("unscoped later-facts can leak onto empty /nyc")
+if ".poster[data-occupied=\"true\"] .book-one" not in css:
+    raise SystemExit("Book #1 must stay occupied-only")
+if ".poster[data-occupied=\"true\"] .book-later" not in css:
+    raise SystemExit("later Book must stay occupied-only")
+if ".poster[data-occupied=\"true\"] .place-foot" not in css:
+    raise SystemExit("later Book foot must stay occupied-only")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-one' not in css:
+    raise SystemExit("empty CSS must keep Book #1 off unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-later' not in css:
+    raise SystemExit("empty CSS must keep later Book off unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-facts' not in css:
+    raise SystemExit("empty CSS must keep later-facts off unpublished")
+PY
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
 grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
 grep -q 'data-kind' src/app/\[city\]/board.tsx || fail "place card must show kind"
@@ -835,7 +876,7 @@ def first(pattern):
 prize = first(r"clamp\(([\d.]+)rem, 9vw, 4\.4rem\)")
 later_title = first(r"\[data-later-quiet\] \.title\s*\{[^}]*font-size:\s*([\d.]+)rem")
 later_book_block = re.search(
-    r"\.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}",
+    r"\[data-occupied=\"true\"\] \.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}",
     css,
     re.S,
 )
@@ -843,7 +884,9 @@ if not later_book_block:
     raise SystemExit("later Book foot hop CSS missing")
 later_book_css = later_book_block.group(1)
 later_book_size = re.search(r"font-size:\s*([\d.]+)rem", later_book_css)
-book_one = first(r"\.book-one\[data-book-after-list-seven\]\s*\{[^}]*min-height:\s*([\d.]+)rem")
+book_one = first(
+    r"\[data-occupied=\"true\"\] \.book-one\[data-book-after-list-seven\]\s*\{[^}]*min-height:\s*([\d.]+)rem"
+)
 if float(later_title) >= float(prize):
     raise SystemExit("later venue shouts like occupied #1")
 if not later_book_size:
@@ -866,7 +909,7 @@ if re.search(
 ):
     raise SystemExit("stamp-only later-fact mute on the same $bid node")
 later_facts = re.search(
-    r"\.number-one \.later-facts\[data-later-fact\]\s*\{([^}]*)\}",
+    r"\[data-occupied=\"true\"\] \.number-one \.later-facts\[data-later-fact\]\s*\{([^}]*)\}",
     css,
     re.S,
 )
@@ -1119,6 +1162,8 @@ if [[ -f package.json ]]; then
     || fail "weekend poster empty-state test did not run"
   grep -q 'empty NYC weekend stays unpublished without occupied chrome' "$test_log" \
     || fail "empty unpublished occupied-chrome test did not run"
+  grep -q 'empty NYC weekend keeps Book #1 and later Book off unpublished' "$test_log" \
+    || fail "empty unpublished Book leak test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
   grep -q 'books the paid #1 as the weekend answer' "$test_log" \
