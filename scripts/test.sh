@@ -289,8 +289,51 @@ fi
 if grep -n 'className="book-later"' -A 4 src/app/\[city\]/board.tsx | grep -q 'guestFirst\|guest-first'; then
   fail "later-rank Book must not steal the first guest click"
 fi
-if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
-  fail "guest-first Book #1 must not stamp *-after-*-N"
+grep -q 'data-after-venue' src/app/\[city\]/board.tsx \
+  || fail "occupied List/Book twins must stay after the venue"
+grep -q 'OccupiedMastheadHops' src/app/\[city\]/board.tsx \
+  || fail "occupied List/Book twins must stay a grouped leftover after #1"
+if grep -n 'function OccupiedMastheadHops' -A 55 src/app/\[city\]/board.tsx | grep -qE 'guestFirst|guest-first'; then
+  fail "masthead List/Book twins must not steal the first guest click"
+fi
+if grep -n 'className="masthead"' -A 20 src/app/\[city\]/board.tsx | grep -qE 'data-list-venue|data-book-after-list|OccupiedMastheadHops'; then
+  fail "occupied masthead must not keep List/Book twins above the venue"
+fi
+python3 - src/app/\[city\]/board.tsx <<'PY' || fail "occupied Book #1 must stay the first click; List/Book twins stay after the venue"
+import re
+import sys
+
+src = open(sys.argv[1], encoding="utf-8").read()
+city = re.search(r"export function CityBoard\([\s\S]*$", src)
+if not city:
+    raise SystemExit("CityBoard missing")
+board = city.group(0)
+header = re.search(r"<header className=\"masthead\">[\s\S]*?</header>", board)
+if not header:
+    raise SystemExit("occupied masthead missing")
+if "OccupiedMastheadHops" in header.group(0) or "data-list-venue" in header.group(0):
+    raise SystemExit("List/Book twins still hang in the occupied masthead")
+leader = re.search(
+    r"export function Leaderboard\([\s\S]*?\nconst CHECKOUT_ERROR_COPY",
+    src,
+)
+if not leader:
+    raise SystemExit("Leaderboard missing")
+body = leader.group(0)
+if "OccupiedMastheadHops" not in body:
+    raise SystemExit("List/Book twins must stay after occupied #1")
+before_hops, _, _after_hops = body.partition("OccupiedMastheadHops")
+if before_hops.count("ListingCard") < 1:
+    raise SystemExit("List/Book twins must follow the occupied venue card")
+if "data-book-after-list-eight" in src or "data-list-after-book-nine" in src:
+    raise SystemExit("do not stamp book-after-list-N / list-after-book-nine")
+PY
+grep -q 'masthead-hops' src/app/board.css \
+  || fail "poster CSS must group List/Book twins after the occupied venue"
+grep -q 'data-after-venue' src/app/board.css \
+  || fail "poster CSS must keep List/Book twins after the occupied venue"
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/board.css; then
+  fail "occupied Book #1 first click must not stamp *-after-*-N"
 fi
 grep -q 'data-later-book' src/app/\[city\]/board.tsx \
   || fail "later ranks must stamp Book as a later hop"
@@ -1178,6 +1221,8 @@ if [[ -f package.json ]]; then
     || fail "occupied later-Book quieter-than-Book-#1 test did not run"
   grep -q 'occupied Book #1 stays the first guest click' "$test_log" \
     || fail "occupied Book #1 first guest click test did not run"
+  grep -q 'keeps Book #1 the first click; List/Book twins stay after the venue' "$test_log" \
+    || fail "occupied Book #1 first click after-venue twins test did not run"
   grep -q 'lists after later-rank Book' "$test_log" \
     || fail "occupied list-after-book test did not run"
   grep -q 'books after the list hop' "$test_log" \
