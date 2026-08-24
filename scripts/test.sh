@@ -141,7 +141,7 @@ grep -q 'data-occupied' src/app/\[city\]/board.tsx \
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
   fail "empty board must not keep unpublished as the large kicker"
 fi
-if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|book-one-first|data-book-number-one|unpaid-off-board'; then
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|book-one-first|data-book-number-one|guest-first|unpaid-off-board'; then
   fail "empty board must not stamp prize venue, Book #1, or unpaid note"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
@@ -182,6 +182,26 @@ if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-o
 fi
 if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-one-first'; then
   fail "later ranks must not stamp Book #1 as the first hop"
+fi
+grep -q 'data-guest-first' src/app/\[city\]/board.tsx \
+  || fail "occupied Book #1 must stay the first guest click"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
+  fail "empty board must not stamp guest-first Book #1"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
+  fail "later ranks must not stamp guest-first Book #1"
+fi
+if grep -n 'data-list-venue' -A 20 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
+  fail "List a venue must not steal the first guest click"
+fi
+if grep -n 'className="book-after-list"' -A 8 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
+  fail "masthead Book after list must not steal the first guest click"
+fi
+if grep -n 'className="book-later"' -A 4 src/app/\[city\]/board.tsx | grep -q 'guestFirst\|guest-first'; then
+  fail "later-rank Book must not steal the first guest click"
+fi
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
+  fail "guest-first Book #1 must not stamp *-after-*-N"
 fi
 grep -q 'data-later-book' src/app/\[city\]/board.tsx \
   || fail "later ranks must stamp Book as a later hop"
@@ -683,6 +703,14 @@ grep -q '\.book-one' src/app/board.css \
   || fail "poster CSS must style the primary Book hop"
 grep -q 'data-book-one-first' src/app/board.css \
   || fail "poster CSS must concentrate Book #1"
+grep -q 'data-guest-first' src/app/board.css \
+  || fail "poster CSS must keep occupied Book #1 the first guest click"
+if ! grep -n 'book-one\[data-book-after-list-seven\]\[data-guest-first\]' -A 16 src/app/board.css | grep -q '4.35rem'; then
+  fail "poster CSS must keep guest-first Book #1 larger than leftover hops"
+fi
+if ! grep -n 'list-venue\[data-list-after-book-eight\]' -A 18 src/app/board.css | grep -q '6.25rem'; then
+  fail "poster CSS must keep leftover List/Book hops quieter than Book #1"
+fi
 grep -q 'data-book-after-list-one' src/app/board.css \
   || fail "poster CSS must concentrate Book #1 after List a venue"
 grep -q 'data-book-after-list-two' src/app/board.css \
@@ -982,6 +1010,8 @@ if [[ -f package.json ]]; then
     || fail "occupied later-rank Book test did not run"
   grep -q 'later ranks stay quieter than occupied #1 venue' "$test_log" \
     || fail "occupied later-rank quiet test did not run"
+  grep -q 'occupied Book #1 stays the first guest click' "$test_log" \
+    || fail "occupied Book #1 first guest click test did not run"
   grep -q 'lists after later-rank Book' "$test_log" \
     || fail "occupied list-after-book test did not run"
   grep -q 'books after the list hop' "$test_log" \
