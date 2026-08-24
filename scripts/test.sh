@@ -237,16 +237,16 @@ fi
 if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
   fail "unpublished weekend must not keep the occupied fold-rule"
 fi
-if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop'; then
-  fail "unpublished weekend must not compose Book #1, later Book, or later-facts"
+if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|rest-name'; then
+  fail "unpublished weekend must not compose Book #1, later Book, later-facts, or later-stack"
 fi
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
   fail "empty board must not keep unpublished as the large kicker"
 fi
-if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|later-fact|later-facts|book-one-first|data-book-number-one|guest-first|unpaid-off-board'; then
-  fail "empty board must not stamp prize venue, later-fact \$bid, Book #1, or unpaid note"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|later-fact|later-facts|book-one-first|data-book-number-one|guest-first|unpaid-off-board|later-stack|rest-name'; then
+  fail "empty board must not stamp prize venue, later-fact \$bid, Book #1, unpaid note, or later-stack"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
   fail "empty unpublished must not stamp *-after-*-N"
@@ -270,6 +270,10 @@ if re.search(r"(?m)^\.book-later\s*,", css) or re.search(r"(?m)^\.book-later\s*\
     raise SystemExit("unscoped .book-later can leak onto empty /nyc")
 if re.search(r"(?m)^\.place-foot\s*\{", css):
     raise SystemExit("unscoped .place-foot can leak onto empty /nyc")
+if re.search(r"(?m)^\.later-stack\s*\{", css):
+    raise SystemExit("unscoped .later-stack can leak onto empty /nyc")
+if re.search(r"(?m)^\.rest-name\s*\{", css):
+    raise SystemExit("unscoped .rest-name can leak onto empty /nyc")
 if re.search(r"(?m)^\.number-one \.later-facts\[data-later-fact\]\s*\{", css):
     raise SystemExit("unscoped later-facts can leak onto empty /nyc")
 if ".poster[data-occupied=\"true\"] .book-one" not in css:
@@ -391,16 +395,28 @@ grep -q 'data-book-later' src/app/\[city\]/board.tsx \
   || fail "later ranks must expose a Book hop"
 grep -q 'book-later' src/app/\[city\]/board.tsx \
   || fail "later-rank Book must use the later booking class"
-grep -q 'data-later-quiet' src/app/\[city\]/board.tsx \
-  || fail "later ranks must stay quieter than occupied #1 venue"
-if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'later-quiet'; then
-  fail "empty board must not stamp later-rank quiet"
+grep -q 'data-later-rank' src/app/\[city\]/board.tsx \
+  || fail "later ranks must stamp later-rank cards, not prize titles"
+grep -q 'data-later-stack' src/app/\[city\]/board.tsx \
+  || fail "later ranks must group under the occupied #1 venue"
+grep -q 'rest-name' src/app/\[city\]/board.tsx \
+  || fail "later-rank venue names must use rest-name anatomy, not .title"
+grep -q 'Also this weekend' src/app/\[city\]/board.tsx \
+  || fail "later ranks must name the quieter stack"
+if grep -q 'data-later-quiet' src/app/\[city\]/board.tsx src/app/board.css; then
+  fail "later ranks must not stamp data-later-quiet on the same venue node"
 fi
-if grep -n 'data-prize-before-price' -A 30 src/app/\[city\]/board.tsx | grep -q 'later-quiet'; then
-  fail "occupied #1 prize must not stamp later-rank quiet"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'later-stack|later-rank|rest-name'; then
+  fail "empty board must not stamp later-rank stack"
+fi
+if grep -n 'data-prize-before-price' -A 30 src/app/\[city\]/board.tsx | grep -qE 'later-stack|data-later-rank|rest-name'; then
+  fail "occupied #1 prize must not stamp later-rank stack"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/board.css; then
   fail "later-rank quiet must not stamp *-after-*-N"
+fi
+if grep -n 'className="title"' src/app/\[city\]/board.tsx | grep -q 'rest-name\|later-rank'; then
+  fail "later ranks must not reuse occupied #1 title chrome"
 fi
 python3 - src/app/\[city\]/board.tsx <<'PY' || fail "later Book must recede into the place-foot, not stay a sibling CTA"
 import re
@@ -429,6 +445,14 @@ if "data-guest-first" in later or "guestFirst" in later:
     raise SystemExit("later Book must not steal guest-first")
 if "data-prize" in later or "prize-before-price" in later:
     raise SystemExit("later ranks must not stamp the venue prize")
+if 'className="title"' in later:
+    raise SystemExit("later ranks must not reuse occupied .title prize chrome")
+if 'className="rest-name"' not in later:
+    raise SystemExit("later venue names must use rest-name anatomy")
+if "data-later-rank" not in later:
+    raise SystemExit("later cards must stamp data-later-rank")
+if "data-later-quiet" in later:
+    raise SystemExit("do not stamp-mute later venues with data-later-quiet")
 PY
 grep -q 'data-list-venue' src/app/\[city\]/board.tsx \
   || fail "occupied board must mark List a venue"
@@ -946,10 +970,15 @@ grep -q 'book-later' src/app/board.css \
   || fail "poster CSS must style later-rank Book"
 grep -q 'data-later-book' src/app/board.css \
   || fail "poster CSS must style later-rank places"
-grep -q 'data-later-quiet' src/app/board.css \
-  || fail "poster CSS must keep later ranks quieter than occupied #1 venue"
-if ! grep -n 'data-later-quiet' -A 8 src/app/board.css | grep -q '1.02rem'; then
-  fail "poster CSS must keep later-rank venue quieter than occupied #1"
+grep -q 'later-stack' src/app/board.css \
+  || fail "poster CSS must group later ranks under occupied #1"
+grep -q 'rest-name' src/app/board.css \
+  || fail "poster CSS must keep later-rank venue quieter than occupied #1"
+if grep -q 'data-later-quiet' src/app/board.css; then
+  fail "poster CSS must not mute later venues via data-later-quiet"
+fi
+if grep -n 'rest-name' -A 12 src/app/board.css | grep -qE '0\.78rem|var\(--muted\)'; then
+  fail "later rest-name must not be a 0.78rem --muted mute of the same venue node"
 fi
 if ! grep -n 'place-foot .book-later' -A 24 src/app/board.css | grep -q 'display: inline'; then
   fail "poster CSS must keep later Book an inline foot hop"
@@ -963,11 +992,13 @@ css = open(sys.argv[1], encoding="utf-8").read()
 def first(pattern):
     match = re.search(pattern, css, re.S)
     if not match:
-        raise SystemExit(1)
+        raise SystemExit(f"missing {pattern}")
     return match.group(1)
 
 prize = first(r"clamp\(([\d.]+)rem, 9vw, 4\.4rem\)")
-later_title = first(r"\[data-later-quiet\] \.title\s*\{[^}]*font-size:\s*([\d.]+)rem")
+later_name = first(
+    r"\[data-occupied=\"true\"\] \.later-stack\[data-later-stack\] \.place\[data-later-rank\] \.rest-name\s*\{[^}]*font-size:\s*([\d.]+)rem"
+)
 later_book_block = re.search(
     r"\[data-occupied=\"true\"\] \.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}",
     css,
@@ -980,8 +1011,16 @@ later_book_size = re.search(r"font-size:\s*([\d.]+)rem", later_book_css)
 book_one = first(
     r"\[data-occupied=\"true\"\] \.book-one\[data-book-after-list-seven\]\s*\{[^}]*min-height:\s*([\d.]+)rem"
 )
-if float(later_title) >= float(prize):
+if ".later-stack[data-later-stack]" not in css:
+    raise SystemExit("later-stack grouping CSS missing")
+if float(later_name) >= float(prize):
     raise SystemExit("later venue shouts like occupied #1")
+if not later_name or float(later_name) == 0.78:
+    raise SystemExit("later rest-name must recede by anatomy, not 0.78rem mute")
+if "var(--accent)" in first(
+    r"\[data-occupied=\"true\"\] \.later-stack\[data-later-stack\] \.place\[data-later-rank\] \.rest-name\s*\{([^}]*)\}"
+):
+    raise SystemExit("do not recolor later venue names")
 if not later_book_size:
     raise SystemExit("later Book must recede in size")
 if float(later_book_size.group(1)) >= float(book_one):
@@ -996,6 +1035,8 @@ if "var(--accent)" in later_book_css:
     raise SystemExit("do not recolor later Book")
 if "background: transparent" not in later_book_css:
     raise SystemExit("later Book must stay unfilled")
+if "data-later-quiet" in css:
+    raise SystemExit("stamp-only later-quiet mute on the same venue node")
 if re.search(
     r"\.number-one\[data-prize-before-price\] \.bid\.later-fact\[data-later-fact\]\s*\{",
     css,
@@ -1271,6 +1312,8 @@ if [[ -f package.json ]]; then
     || fail "occupied later-rank Book test did not run"
   grep -q 'later ranks stay quieter than occupied #1 venue' "$test_log" \
     || fail "occupied later-rank quiet test did not run"
+  grep -q 'later venues stay quieter than occupied #1 — prize stays first' "$test_log" \
+    || fail "occupied later-venue quieter-than-prize leftover test did not run"
   grep -q 'later Book stays quieter than Book #1 after \$bid is a later fact' "$test_log" \
     || fail "occupied later-Book quieter-than-Book-#1 test did not run"
   grep -q 'occupied Book #1 stays the first guest click' "$test_log" \

@@ -147,12 +147,12 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
       data-rank={listing.rank}
       data-listing-id={listing.id}
       data-later-book=""
-      data-later-quiet=""
+      data-later-rank=""
     >
       <span className="rank">#{listing.rank}</span>
-      <h3 className="title" data-venue="">
+      <p className="rest-name" data-venue="">
         {listing.venueName}
-      </h3>
+      </p>
       {kind ? (
         <p className="kind" data-kind="">
           {kind}
@@ -200,7 +200,8 @@ export function Leaderboard({
     return null;
   }
 
-  const hasLater = listings.some((listing) => listing.rank > 1);
+  const numberOne = listings.find((listing) => listing.rank === 1);
+  const later = listings.filter((listing) => listing.rank > 1);
 
   return (
     <section className="fold" aria-label={`${city.name} weekend listings`}>
@@ -208,22 +209,39 @@ export function Leaderboard({
         this friday / saturday
       </p>
       <ol className="leaderboard" data-leaderboard="">
-        {listings.map((listing) => (
-          <li
-            key={listing.id}
-            className={listing.rank === 1 ? "is-number-one" : "is-rest"}
-          >
-            <ListingCard listing={listing} />
+        {numberOne ? (
+          <li className="is-number-one">
+            <ListingCard listing={numberOne} />
           </li>
-        ))}
+        ) : null}
       </ol>
-      {hasLater ? (
-        <p className="list-after-book-line">
-          <a className="list-after-book" href="#claim" data-list-after-book="">
-            List a venue
-          </a>{" "}
-          after later Books. Paying less than #1 still lists.
-        </p>
+      {later.length > 0 ? (
+        <>
+          <section
+            className="later-stack"
+            data-later-stack=""
+            aria-label={`Also this weekend in ${city.name}`}
+          >
+            <p className="later-stack-kicker">Also this weekend</p>
+            <p className="later-stack-dek">
+              Paying less than #1 still lists. These venues are not this
+              weekend&apos;s #1.
+            </p>
+            <ol className="later-board">
+              {later.map((listing) => (
+                <li key={listing.id} className="is-rest">
+                  <ListingCard listing={listing} />
+                </li>
+              ))}
+            </ol>
+          </section>
+          <p className="list-after-book-line">
+            <a className="list-after-book" href="#claim" data-list-after-book="">
+              List a venue
+            </a>{" "}
+            after later Books. Paying less than #1 still lists.
+          </p>
+        </>
       ) : null}
     </section>
   );
