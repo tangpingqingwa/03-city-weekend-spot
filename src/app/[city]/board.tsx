@@ -178,7 +178,11 @@ export function Leaderboard({
 }) {
   if (listings.length === 0) {
     return (
-      <section className="fold" aria-label={`${city.name} weekend listings`}>
+      <section
+        className="fold"
+        aria-label={`${city.name} weekend listings`}
+        data-empty-fold=""
+      >
         <p className="fold-rule" aria-hidden="true">
           unpublished
         </p>
@@ -186,6 +190,7 @@ export function Leaderboard({
           className="empty-board"
           data-empty-board="true"
           data-empty-unpublished=""
+          data-empty-no-book=""
         >
           <p className="empty-answer">No #1</p>
           <p className="empty-note">

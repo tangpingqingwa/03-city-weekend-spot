@@ -136,6 +136,10 @@ grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must prin
 grep -q 'empty-note' src/app/\[city\]/board.tsx || fail "unpublished must sit under No #1, not above it"
 grep -q 'data-empty-unpublished' src/app/\[city\]/board.tsx \
   || fail "empty board must stamp unpublished so occupied chrome stays off"
+grep -q 'data-empty-no-book' src/app/\[city\]/board.tsx \
+  || fail "empty board must stamp No Book so occupied Book #1 stays off"
+grep -q 'data-empty-fold' src/app/\[city\]/board.tsx \
+  || fail "empty fold must mark unpublished so occupied chrome cannot leak"
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
@@ -144,11 +148,18 @@ fi
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'prize-before-price|data-prize|book-one-first|data-book-number-one|guest-first|unpaid-off-board'; then
   fail "empty board must not stamp prize venue, Book #1, or unpaid note"
 fi
+if grep -n 'data-empty-fold' -A 24 src/app/\[city\]/board.tsx | grep -qE 'book-one|guest-first|book-after-list|list-venue|later-quiet'; then
+  fail "empty unpublished fold must not stamp occupied Book chrome"
+fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
   fail "empty unpublished must not stamp *-after-*-N"
 fi
 grep -q 'data-empty-unpublished' src/app/board.css \
   || fail "poster CSS must keep occupied chrome off the unpublished weekend"
+grep -q 'data-empty-no-book' src/app/board.css \
+  || fail "poster CSS must keep Book #1 off the unpublished weekend"
+grep -q 'data-empty-fold' src/app/board.css \
+  || fail "poster CSS must keep occupied Book chrome off the empty fold"
 grep -q 'data-occupied="false"' src/app/board.css \
   || fail "poster CSS must keep occupied chrome off empty /nyc"
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
@@ -1000,6 +1011,8 @@ if [[ -f package.json ]]; then
     || fail "weekend poster empty-state test did not run"
   grep -q 'empty NYC weekend stays unpublished without occupied chrome' "$test_log" \
     || fail "empty unpublished occupied-chrome test did not run"
+  grep -q 'empty NYC weekend keeps Book #1 off unpublished' "$test_log" \
+    || fail "empty unpublished Book #1 stay-off test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
   grep -q 'books the paid #1 as the weekend answer' "$test_log" \
