@@ -133,6 +133,19 @@ grep -q 'className="pitch"' src/app/\[city\]/board.tsx || fail "place card must 
 grep -q 'Book' src/app/\[city\]/board.tsx || fail "place card must keep the Book CTA"
 grep -q 'data-weekend-answer' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must be the weekend answer"
+grep -q 'data-prize-before-price' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must put the venue prize before \$bid"
+grep -q 'data-prize=' src/app/\[city\]/board.tsx \
+  || fail "occupied #1 must mark the venue as the prize"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'prize-before-price'; then
+  fail "empty board must not stamp prize before price"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'prize-before-price'; then
+  fail "later ranks must not stamp prize before price"
+fi
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
+  fail "prize before price must not add another numbered hop stamp"
+fi
 grep -q 'data-book-number-one' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must expose a primary Book hop"
 grep -q 'book-one' src/app/\[city\]/board.tsx \
@@ -623,6 +636,13 @@ grep -q 'book-after-list-hop' src/app/board.css \
   || fail "poster CSS must style the book-after-list-hop"
 grep -q 'weekend-answer' src/app/board.css \
   || fail "poster CSS must style the occupied weekend answer"
+grep -q 'data-prize-before-price' src/app/board.css \
+  || fail "poster CSS must enlarge occupied #1 venue over \$bid"
+grep -Fq 'clamp(2.85rem, 9vw, 4.4rem)' src/app/board.css \
+  || fail "poster CSS must make the occupied venue larger than \$bid"
+if ! grep -n 'data-prize-before-price' -A 6 src/app/board.css | grep -q '0.92rem'; then
+  fail "poster CSS must keep occupied \$bid quieter than the venue"
+fi
 grep -q '\.book-one' src/app/board.css \
   || fail "poster CSS must style the primary Book hop"
 grep -q 'data-book-one-first' src/app/board.css \
@@ -930,6 +950,8 @@ if [[ -f package.json ]]; then
     || fail "occupied Book #1 after List a venue is re-concentrated again without another Book hop test did not run"
   grep -q 'books #1 after List a venue is re-concentrated again without a second Book hop' "$test_log" \
     || fail "occupied Book #1 after List a venue is re-concentrated again without a second Book hop test did not run"
+  grep -q 'prize before price' "$test_log" \
+    || fail "occupied prize-before-price test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
