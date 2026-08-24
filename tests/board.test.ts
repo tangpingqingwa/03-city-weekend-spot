@@ -3724,6 +3724,109 @@ test("claim form makes unpaid checkout never ranks certain on empty and occupied
   assert.doesNotMatch(occupied.slice(0, occupiedForm), /data-unpaid-off-board/);
 });
 
+test("empty NYC Claim #1 is the first click — venue URL is a later write", () => {
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /Empty \/nyc: Claim #1 is the only first click\. Venue URL is a later write after Outbid\./,
+  );
+  assert.match(
+    css,
+    /\[data-occupied="false"\] \.claim\.empty-claim-first\[data-empty-claim-first\]/,
+  );
+  assert.match(
+    css,
+    /\[data-occupied="false"\][\s\S]*\.venue-identity\[data-later-write\]/,
+  );
+  assert.match(css, /h2\[data-first-click="claim"\]/);
+  assert.match(css, /\.later-write-label/);
+  const later = (
+    css.split(
+      "Empty /nyc: Claim #1 is the only first click. Venue URL is a later write after Outbid.",
+      2,
+    )[1] ?? ""
+  ).split(".stub-note,")[0];
+  assert.match(later, /border-top:\s*1px dashed var\(--rule-soft\)/);
+  assert.match(later, /color:\s*var\(--muted\)/);
+  assert.doesNotMatch(later, /background:\s*var\(--accent\)/);
+  assert.doesNotMatch(later, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  const unpublished = empty.indexOf("data-empty-unpublished");
+  const claim = empty.indexOf('id="claim"');
+  const emptyClaim = empty.indexOf('data-empty-claim-first=""');
+  const firstClick = empty.indexOf('data-first-click="claim"');
+  const claimCopy = empty.indexOf("Claim #1 for");
+  const outbid = empty.indexOf(">Outbid<");
+  const laterWrite = empty.indexOf('data-later-write=""');
+  const laterLabel = empty.indexOf("Then the venue URL");
+  const venue = empty.indexOf('name="venue"');
+  const checkout = empty.indexOf('action="/api/checkout"');
+  assert.ok(unpublished >= 0 && claim > unpublished);
+  assert.ok(emptyClaim > claim && firstClick > emptyClaim);
+  assert.ok(claimCopy > emptyClaim && outbid > claimCopy);
+  assert.ok(outbid > firstClick && laterWrite > outbid);
+  assert.ok(laterLabel > laterWrite && venue > laterLabel);
+  assert.ok(checkout >= 0 && checkout < outbid);
+  assert.match(empty, /class="claim empty-claim-first"/);
+  assert.match(empty, /data-empty-claim-first=""/);
+  assert.match(empty, /data-first-click="claim"/);
+  assert.match(empty, /aria-label="Claim #1"/);
+  assert.match(empty, /class="venue-identity"/);
+  assert.match(empty, /data-venue-identity=""/);
+  assert.match(empty, /data-later-write=""/);
+  assert.match(empty, /Then the venue URL/);
+  assert.match(empty, /Venue name and https booking URL/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /data-empty-unpublished=""/);
+  assert.match(empty, /Print this weekend/);
+  assert.match(empty, /data-occupied="false"/);
+  assert.match(empty, /data-city="nyc"/);
+  assert.equal((empty.match(/data-first-click="claim"/g) ?? []).length, 1);
+  assert.equal((empty.match(/data-empty-claim-first=""/g) ?? []).length, 1);
+  assert.equal((empty.match(/data-later-write=""/g) ?? []).length, 1);
+  assert.doesNotMatch(empty, /class="bid-row"/);
+  assert.doesNotMatch(empty, /data-list-venue|List a venue/);
+  assert.doesNotMatch(empty, /data-book-number-one|data-book-one-first|class="book-one"|data-guest-first/);
+  assert.doesNotMatch(empty, /data-later-book|data-book-later|class="book-later"|place-foot/);
+  assert.doesNotMatch(empty, /data-later-fact|later-facts|data-prize-before-price|data-prize=/);
+  assert.doesNotMatch(empty, /data-unpaid-off-board/);
+  assert.doesNotMatch(empty, /class="fold"|fold-rule/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(empty, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(empty, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const occupiedVenue = occupied.indexOf('name="venue"');
+  const occupiedOutbid = occupied.indexOf(">Outbid<");
+  const occupiedBook = occupied.indexOf("data-book-number-one");
+  const occupiedForm = occupied.indexOf("data-bid-form");
+  assert.ok(occupiedBook >= 0 && occupiedForm > occupiedBook);
+  assert.ok(occupiedVenue >= 0 && occupiedOutbid > occupiedVenue);
+  assert.match(occupied, /class="bid-row"/);
+  assert.match(occupied, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(occupied, /List a venue this weekend/);
+  assert.match(occupied, /Claim #1 for/);
+  assert.match(occupied, /action="\/api\/checkout"/);
+  assert.match(occupied, /data-occupied="true"/);
+  assert.match(occupied, /Sunday Roast/);
+  assert.doesNotMatch(occupied, /data-empty-claim-first/);
+  assert.doesNotMatch(occupied, /empty-claim-first/);
+  assert.doesNotMatch(occupied, /data-first-click="claim"/);
+  assert.doesNotMatch(occupied, /data-later-write/);
+  assert.doesNotMatch(occupied, /data-venue-identity/);
+  assert.doesNotMatch(occupied, /Then the venue URL/);
+  assert.doesNotMatch(occupied, /data-empty-board|unpublished-weekend/);
+  assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+});
+
 test("failed checkout returns an honest error on the poster, not a stub", () => {
   const html = renderToStaticMarkup(
     createElement(CityBoard, {
