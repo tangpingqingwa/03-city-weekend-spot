@@ -698,6 +698,21 @@ a:hover {
   outline-color: var(--accent);
 }
 
+.book-one[data-book-after-list-seven] {
+  min-height: 9.05rem;
+  margin-top: 1.4rem;
+  padding: 2.85rem 3.3rem;
+  font-size: 1.32rem;
+  letter-spacing: 0.42em;
+  border-width: 5px;
+  outline-width: 2px;
+  outline-offset: 6px;
+}
+
+.book-one[data-book-after-list-seven]:hover {
+  outline-color: var(--accent);
+}
+
 .number-one[data-book-one-first] .bid {
   margin-top: 0.85rem;
 }
