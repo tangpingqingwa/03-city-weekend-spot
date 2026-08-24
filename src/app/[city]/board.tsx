@@ -189,6 +189,56 @@ function UnpublishedWeekend({ city }: { city: City }) {
   );
 }
 
+function OccupiedListWrite({ listing }: { listing: BoardListing }) {
+  return (
+    <nav
+      className="list-write"
+      data-after-venue=""
+      aria-label="List a venue after the prize"
+    >
+      <p className="list-venue-line">
+        <a
+          className="list-venue"
+          href="#claim"
+          data-list-venue=""
+          data-list-after-book-one=""
+          data-list-after-book-two=""
+          data-list-after-book-three=""
+          data-list-after-book-four=""
+          data-list-after-book-five=""
+          data-list-after-book-six=""
+          data-list-after-book-seven=""
+          data-list-after-book-eight=""
+        >
+          List a venue
+        </a>
+      </p>
+      <p className="book-after-list-line">
+        <BookingHop listing={listing} className="book-after-list" afterList />{" "}
+        after the list hop.
+      </p>
+      <p className="list-after-book-hop-line">
+        <a
+          className="list-after-book-hop"
+          href="#claim"
+          data-list-after-book-hop=""
+        >
+          List a venue
+        </a>{" "}
+        after Book follows List.
+      </p>
+      <p className="book-after-list-hop-line">
+        <BookingHop
+          listing={listing}
+          className="book-after-list-hop"
+          afterListHop
+        />{" "}
+        after List follows Book.
+      </p>
+    </nav>
+  );
+}
+
 export function Leaderboard({
   city,
   listings,
@@ -216,32 +266,33 @@ export function Leaderboard({
         ) : null}
       </ol>
       {later.length > 0 ? (
-        <>
-          <section
-            className="later-stack"
-            data-later-stack=""
-            aria-label={`Also this weekend in ${city.name}`}
-          >
-            <p className="later-stack-kicker">Also this weekend</p>
-            <p className="later-stack-dek">
-              Paying less than #1 still lists. These venues are not this
-              weekend&apos;s #1.
-            </p>
-            <ol className="later-board">
-              {later.map((listing) => (
-                <li key={listing.id} className="is-rest">
-                  <ListingCard listing={listing} />
-                </li>
-              ))}
-            </ol>
-          </section>
-          <p className="list-after-book-line">
-            <a className="list-after-book" href="#claim" data-list-after-book="">
-              List a venue
-            </a>{" "}
-            after later Books. Paying less than #1 still lists.
+        <section
+          className="later-stack"
+          data-later-stack=""
+          aria-label={`Also this weekend in ${city.name}`}
+        >
+          <p className="later-stack-kicker">Also this weekend</p>
+          <p className="later-stack-dek">
+            Paying less than #1 still lists. These venues are not this
+            weekend&apos;s #1.
           </p>
-        </>
+          <ol className="later-board">
+            {later.map((listing) => (
+              <li key={listing.id} className="is-rest">
+                <ListingCard listing={listing} />
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+      {numberOne ? <OccupiedListWrite listing={numberOne} /> : null}
+      {later.length > 0 ? (
+        <p className="list-after-book-line">
+          <a className="list-after-book" href="#claim" data-list-after-book="">
+            List a venue
+          </a>{" "}
+          after later Books. Paying less than #1 still lists.
+        </p>
       ) : null}
     </section>
   );
@@ -275,7 +326,6 @@ export function CityBoard({
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
   const errorCopy = checkoutErrorCopy(checkoutError);
   const occupied = listings.length > 0;
-  const numberOne = listings.find((listing) => listing.rank === 1);
 
   return (
     <main
@@ -291,53 +341,6 @@ export function CityBoard({
         <p className="period-meta">
           This weekend, #1 is whoever paid the most. Rank is money, not stars.
         </p>
-        {occupied && numberOne ? (
-          <>
-            <p className="list-venue-line">
-              <a
-                className="list-venue"
-                href="#claim"
-                data-list-venue=""
-                data-list-after-book-one=""
-                data-list-after-book-two=""
-                data-list-after-book-three=""
-                data-list-after-book-four=""
-                data-list-after-book-five=""
-                data-list-after-book-six=""
-                data-list-after-book-seven=""
-                data-list-after-book-eight=""
-              >
-                List a venue
-              </a>
-            </p>
-            <p className="book-after-list-line">
-              <BookingHop
-                listing={numberOne}
-                className="book-after-list"
-                afterList
-              />{" "}
-              after the list hop.
-            </p>
-            <p className="list-after-book-hop-line">
-              <a
-                className="list-after-book-hop"
-                href="#claim"
-                data-list-after-book-hop=""
-              >
-                List a venue
-              </a>{" "}
-              after Book follows List.
-            </p>
-            <p className="book-after-list-hop-line">
-              <BookingHop
-                listing={numberOne}
-                className="book-after-list-hop"
-                afterListHop
-              />{" "}
-              after List follows Book.
-            </p>
-          </>
-        ) : null}
       </header>
       {occupied ? (
         <Leaderboard city={city} listings={listings} />

@@ -206,6 +206,23 @@ a:hover {
   box-shadow: none;
 }
 
+/* Occupied /nyc: Book #1 is the only first click. List a venue is a later write after the prize. */
+.poster[data-occupied="true"] .list-write[data-after-venue] {
+  margin: 0.85rem 0 0;
+  padding: 0.75rem 0 0;
+  border-top: 1px dashed var(--rule-soft);
+  text-align: center;
+}
+
+.poster[data-occupied="true"] .list-write[data-after-venue] .list-venue-line {
+  margin: 0;
+}
+
+.poster[data-occupied="false"] .list-write,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .list-write {
+  display: none;
+}
+
 .list-venue-line {
   margin: 0.85rem 0 0;
 }
@@ -716,11 +733,13 @@ a:hover {
 .poster[data-occupied="false"] .book-later,
 .poster[data-occupied="false"] .later-facts,
 .poster[data-occupied="false"] .place-foot,
+.poster[data-occupied="false"] .list-write,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .fold,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-one,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-later,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-facts,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .place-foot,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .list-write,
 .poster[data-occupied="false"] .later-stack,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-stack,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .rest-name {
