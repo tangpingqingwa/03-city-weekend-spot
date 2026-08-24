@@ -503,6 +503,41 @@ fi
 if grep -n 'data-list-after-book-six' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSix\|book-after-list-six'; then
   fail "List after Book #1 is re-concentrated again without another List must not stamp Book after List a venue is re-concentrated again"
 fi
+grep -q 'data-book-after-list-seven' src/app/\[city\]/board.tsx \
+  || fail "occupied Book #1 must stamp after List a venue is re-concentrated again without a second Book hop"
+if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-seven'; then
+  fail "empty board must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-seven'; then
+  fail "later ranks must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "book-after-list leftover must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'className="book-after-list-hop"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "book-after-list-hop leftover must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-one' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after Book #1 must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-two' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after Book #1 is re-concentrated must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-three' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after Book #1 is re-concentrated again must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-four' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after the louder Book #1 must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-five' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after the louder Book #1 is re-concentrated again must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-six' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after Book #1 is re-concentrated again without another List must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
+if grep -n 'data-list-after-book-seven' -A 8 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
+  fail "List after Book #1 is re-concentrated again without another List hop must not stamp Book after List a venue is re-concentrated again without a second Book hop"
+fi
 grep -q 'data-list-after-book' src/app/\[city\]/board.tsx \
   || fail "later ranks must offer a list-after-book hop"
 grep -q 'after later Books' src/app/\[city\]/board.tsx \
@@ -561,6 +596,8 @@ grep -q 'data-book-after-list-five' src/app/board.css \
   || fail "poster CSS must concentrate Book #1 after the louder List a venue is re-concentrated again"
 grep -q 'data-book-after-list-six' src/app/board.css \
   || fail "poster CSS must concentrate Book #1 after List a venue is re-concentrated again"
+grep -q 'data-book-after-list-seven' src/app/board.css \
+  || fail "poster CSS must concentrate Book #1 after List a venue is re-concentrated again without a second Book hop"
 grep -q 'book-later' src/app/board.css \
   || fail "poster CSS must style later-rank Book"
 grep -q 'data-later-book' src/app/board.css \
@@ -846,6 +883,8 @@ if [[ -f package.json ]]; then
     || fail "occupied Book #1 after the louder List a venue re-concentrate-again test did not run"
   grep -q 'books #1 after List a venue is re-concentrated again without another Book hop' "$test_log" \
     || fail "occupied Book #1 after List a venue is re-concentrated again without another Book hop test did not run"
+  grep -q 'books #1 after List a venue is re-concentrated again without a second Book hop' "$test_log" \
+    || fail "occupied Book #1 after List a venue is re-concentrated again without a second Book hop test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
