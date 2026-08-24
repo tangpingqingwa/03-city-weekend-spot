@@ -624,6 +624,23 @@ a:hover {
   letter-spacing: 0.26em;
 }
 
+.book-one[data-book-after-list-five] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 5.85rem;
+  height: auto;
+  margin-top: 1.05rem;
+  padding: 1.65rem 2.25rem;
+  line-height: 1;
+  font-size: 0.98rem;
+  letter-spacing: 0.3em;
+  border-width: 2px;
+}
+
 .number-one[data-book-one-first] .bid {
   margin-top: 0.85rem;
 }
