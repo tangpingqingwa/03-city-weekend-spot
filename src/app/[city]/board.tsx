@@ -172,6 +172,23 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
   );
 }
 
+function UnpublishedWeekend({ city }: { city: City }) {
+  return (
+    <section
+      className="unpublished-weekend"
+      aria-label={`${city.name} weekend listings`}
+      data-empty-board="true"
+      data-empty-unpublished=""
+    >
+      <p className="empty-answer">No #1</p>
+      <p className="empty-note">
+        This weekend is unpublished. No venue has paid to print on the{" "}
+        {city.name} poster. Nothing is invented here.
+      </p>
+    </section>
+  );
+}
+
 export function Leaderboard({
   city,
   listings,
@@ -180,24 +197,7 @@ export function Leaderboard({
   listings: readonly BoardListing[];
 }) {
   if (listings.length === 0) {
-    return (
-      <section className="fold" aria-label={`${city.name} weekend listings`}>
-        <p className="fold-rule" aria-hidden="true">
-          unpublished
-        </p>
-        <div
-          className="empty-board"
-          data-empty-board="true"
-          data-empty-unpublished=""
-        >
-          <p className="empty-answer">No #1</p>
-          <p className="empty-note">
-            This weekend is unpublished. No venue has paid to print on the{" "}
-            {city.name} poster. Nothing is invented here.
-          </p>
-        </div>
-      </section>
-    );
+    return null;
   }
 
   const hasLater = listings.some((listing) => listing.rank > 1);
@@ -321,7 +321,11 @@ export function CityBoard({
           </>
         ) : null}
       </header>
-      <Leaderboard city={city} listings={listings} />
+      {occupied ? (
+        <Leaderboard city={city} listings={listings} />
+      ) : (
+        <UnpublishedWeekend city={city} />
+      )}
       <BidForm
         city={city}
         defaultAmount={defaultAmount}

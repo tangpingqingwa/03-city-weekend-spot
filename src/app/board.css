@@ -622,13 +622,14 @@ a:hover {
   border-top: 1px dashed var(--rule-soft);
 }
 
-.empty-board {
-  margin: 0;
-  padding: 1.85rem 0.4rem 0.55rem;
+/* Empty /nyc is its own unpublished weekend, not the occupied listings fold. */
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] {
+  margin-top: 1.35rem;
+  padding: 2.15rem 0.35rem 0.9rem;
   text-align: center;
 }
 
-.empty-answer {
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-answer {
   margin: 0;
   color: var(--ink);
   letter-spacing: -0.04em;
@@ -637,37 +638,23 @@ a:hover {
   line-height: 0.92;
 }
 
-.empty-note {
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-note {
   margin: 0.7rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
 }
 
-/* Empty weekend stays unpublished. Occupied chrome stays off this /nyc. */
-.poster[data-occupied="false"] [data-prize],
-.poster[data-occupied="false"] [data-prize-before-price],
-.poster[data-occupied="false"] [data-later-fact],
-.poster[data-occupied="false"] .later-facts,
-.poster[data-occupied="false"] [data-book-number-one],
-.poster[data-occupied="false"] [data-book-one-first],
-.poster[data-occupied="false"] [data-guest-first],
+/* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
+.poster[data-occupied="false"] .fold,
 .poster[data-occupied="false"] .book-one,
-.poster[data-occupied="false"] [data-unpaid-off-board],
-.poster[data-occupied="false"] [data-later-quiet],
 .poster[data-occupied="false"] .book-later,
-.poster[data-occupied="false"] [data-book-later],
-.empty-board[data-empty-unpublished] [data-prize],
-.empty-board[data-empty-unpublished] [data-prize-before-price],
-.empty-board[data-empty-unpublished] [data-later-fact],
-.empty-board[data-empty-unpublished] .later-facts,
-.empty-board[data-empty-unpublished] [data-book-number-one],
-.empty-board[data-empty-unpublished] [data-book-one-first],
-.empty-board[data-empty-unpublished] [data-guest-first],
-.empty-board[data-empty-unpublished] .book-one,
-.empty-board[data-empty-unpublished] [data-unpaid-off-board],
-.empty-board[data-empty-unpublished] [data-later-quiet],
-.empty-board[data-empty-unpublished] .book-later,
-.empty-board[data-empty-unpublished] [data-book-later] {
+.poster[data-occupied="false"] .later-facts,
+.poster[data-occupied="false"] .place-foot,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .fold,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-one,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-later,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .later-facts,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .place-foot {
   display: none;
 }
 
@@ -717,7 +704,7 @@ a:hover {
 }
 
 /* Occupied #1 only: $bid + clicks are one later-fact line after Book. */
-.number-one .later-facts[data-later-fact] {
+.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -730,8 +717,8 @@ a:hover {
   font-weight: 500;
 }
 
-.number-one .later-facts[data-later-fact] .bid,
-.number-one .later-facts[data-later-fact] .clicks {
+.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] .bid,
+.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] .clicks {
   margin: 0;
   color: inherit;
   font-size: inherit;
@@ -739,8 +726,8 @@ a:hover {
   text-align: inherit;
 }
 
-.number-one[data-prize-before-price] .later-facts[data-later-fact] .bid,
-.number-one[data-prize-before-price] .later-facts[data-later-fact] .clicks {
+.poster[data-occupied="true"] .number-one[data-prize-before-price] .later-facts[data-later-fact] .bid,
+.poster[data-occupied="true"] .number-one[data-prize-before-price] .later-facts[data-later-fact] .clicks {
   margin-top: 0;
   font-size: inherit;
   font-weight: inherit;
@@ -761,7 +748,7 @@ a:hover {
   font-size: 1.05rem;
 }
 
-.book-one {
+.poster[data-occupied="true"] .book-one {
   display: inline-block;
   margin-top: 0.95rem;
   min-width: 10.5rem;
@@ -776,12 +763,12 @@ a:hover {
   text-transform: uppercase;
 }
 
-.book-one:hover {
+.poster[data-occupied="true"] .book-one:hover {
   background: var(--accent);
   color: var(--accent-ink);
 }
 
-.number-one[data-book-one-first] .book-one {
+.poster[data-occupied="true"] .number-one[data-book-one-first] .book-one {
   margin-top: 0.75rem;
   min-width: 12.5rem;
   height: 3.05rem;
@@ -790,14 +777,14 @@ a:hover {
   letter-spacing: 0.16em;
 }
 
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-one][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-two][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-three][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-four][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-five][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-six][data-guest-first],
-.number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-seven][data-guest-first] {
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-one][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-two][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-three][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-four][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-five][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-six][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-seven][data-guest-first] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -816,7 +803,7 @@ a:hover {
   outline-offset: 5px;
 }
 
-.book-one[data-book-after-list-one] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-one] {
   margin-top: 0.85rem;
   min-width: 14rem;
   height: 3.35rem;
@@ -825,7 +812,7 @@ a:hover {
   letter-spacing: 0.18em;
 }
 
-.book-one[data-book-after-list-two] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-two] {
   margin-top: 0.9rem;
   min-width: 15.5rem;
   height: 3.65rem;
@@ -834,7 +821,7 @@ a:hover {
   letter-spacing: 0.2em;
 }
 
-.book-one[data-book-after-list-three] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-three] {
   margin-top: 0.95rem;
   min-width: 18.5rem;
   height: 4.25rem;
@@ -843,7 +830,7 @@ a:hover {
   letter-spacing: 0.22em;
 }
 
-.book-one[data-book-after-list-four] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-four] {
   margin-top: 1rem;
   min-width: 21.5rem;
   height: 4.85rem;
@@ -852,7 +839,7 @@ a:hover {
   letter-spacing: 0.26em;
 }
 
-.book-one[data-book-after-list-five] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-five] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -869,7 +856,7 @@ a:hover {
   border-width: 2px;
 }
 
-.book-one[data-book-after-list-six] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-six] {
   min-height: 6.95rem;
   margin-top: 1.2rem;
   padding: 2.05rem 2.6rem;
@@ -880,11 +867,11 @@ a:hover {
   outline-offset: 4px;
 }
 
-.book-one[data-book-after-list-six]:hover {
+.poster[data-occupied="true"] .book-one[data-book-after-list-six]:hover {
   outline-color: var(--accent);
 }
 
-.book-one[data-book-after-list-seven] {
+.poster[data-occupied="true"] .book-one[data-book-after-list-seven] {
   min-height: 9.05rem;
   margin-top: 1.4rem;
   padding: 2.85rem 3.3rem;
@@ -895,15 +882,15 @@ a:hover {
   outline-offset: 6px;
 }
 
-.book-one[data-book-after-list-seven]:hover {
+.poster[data-occupied="true"] .book-one[data-book-after-list-seven]:hover {
   outline-color: var(--accent);
 }
 
-.number-one[data-book-one-first] .bid {
+.poster[data-occupied="true"] .number-one[data-book-one-first] .bid {
   margin-top: 0.85rem;
 }
 
-.number-one[data-book-one-first] .later-facts[data-later-fact] .bid {
+.poster[data-occupied="true"] .number-one[data-book-one-first] .later-facts[data-later-fact] .bid {
   margin-top: 0;
 }
 
@@ -914,7 +901,7 @@ a:hover {
   color: var(--muted);
 }
 
-.number-one .later-facts[data-later-fact] .clicks {
+.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] .clicks {
   margin: 0;
 }
 
@@ -986,7 +973,7 @@ a:hover {
   text-align: right;
 }
 
-.place-foot {
+.poster[data-occupied="true"] .place-foot {
   grid-area: foot;
   display: flex;
   flex-wrap: wrap;
@@ -1003,13 +990,13 @@ a:hover {
   font-size: 0.95rem;
 }
 
-.place[data-later-book] .place-foot {
+.poster[data-occupied="true"] .place[data-later-book] .place-foot {
   align-items: baseline;
 }
 
-/* Later Book is a foot hop, not a second Book #1 button. */
-.book-later,
-.place[data-later-book] .place-foot .book-later {
+/* Later Book is a foot hop, not a second Book #1 button. Occupied only. */
+.poster[data-occupied="true"] .book-later,
+.poster[data-occupied="true"] .place[data-later-book] .place-foot .book-later {
   display: inline;
   grid-area: auto;
   justify-self: auto;
@@ -1031,8 +1018,8 @@ a:hover {
   border-bottom: 1px dashed var(--rule);
 }
 
-.book-later:hover,
-.place[data-later-book] .place-foot .book-later:hover {
+.poster[data-occupied="true"] .book-later:hover,
+.poster[data-occupied="true"] .place[data-later-book] .place-foot .book-later:hover {
   background: transparent;
   color: var(--ink);
   outline: none;
@@ -1047,7 +1034,7 @@ a:hover {
   line-height: 1.15;
 }
 
-.place[data-later-book][data-later-quiet] .book-later {
+.poster[data-occupied="true"] .place[data-later-book][data-later-quiet] .book-later {
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   font-weight: 600;
