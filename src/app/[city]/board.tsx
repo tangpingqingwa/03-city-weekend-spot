@@ -34,7 +34,6 @@ function BookingHop({
   listing,
   className,
   primary,
-  later,
   afterList,
   afterListHop,
   afterListOne,
@@ -49,7 +48,6 @@ function BookingHop({
   listing: BoardListing;
   className: string;
   primary?: boolean;
-  later?: boolean;
   afterList?: boolean;
   afterListHop?: boolean;
   afterListOne?: boolean;
@@ -68,7 +66,6 @@ function BookingHop({
       rel="noreferrer"
       data-booking-url={listing.bookingUrl}
       {...(primary ? { "data-book-number-one": "" } : {})}
-      {...(later ? { "data-book-later": "" } : {})}
       {...(afterList ? { "data-book-after-list": "" } : {})}
       {...(afterListHop ? { "data-book-after-list-hop": "" } : {})}
       {...(afterListOne ? { "data-book-after-list-one": "" } : {})}
@@ -174,13 +171,29 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
       <p className="bid" data-bid="">
         {formatUsd(listing.bidUsd)}
       </p>
-      <footer className="place-foot">
-        <BookingHop listing={listing} className="book-later" later />
+      <footer className="place-foot" data-later-book-foot="">
+        <LaterBookFoot listing={listing} />
         <span className="clicks" data-clicks="">
           {formatClicks(listing.clicks)}
         </span>
       </footer>
     </article>
+  );
+}
+
+function LaterBookFoot({ listing }: { listing: BoardListing }) {
+  return (
+    <a
+      className="book-later"
+      href={listingClickPath(listing.id)}
+      rel="noreferrer"
+      data-booking-url={listing.bookingUrl}
+      data-book-later=""
+      data-later-book-foot=""
+      aria-label={`Book ${listing.venueName}`}
+    >
+      Book
+    </a>
   );
 }
 

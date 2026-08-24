@@ -278,8 +278,10 @@ if re.search(r"(?m)^\.number-one \.later-facts\[data-later-fact\]\s*\{", css):
     raise SystemExit("unscoped later-facts can leak onto empty /nyc")
 if ".poster[data-occupied=\"true\"] .book-one" not in css:
     raise SystemExit("Book #1 must stay occupied-only")
-if ".poster[data-occupied=\"true\"] .book-later" not in css:
+if ".book-later[data-later-book-foot]" not in css:
     raise SystemExit("later Book must stay occupied-only")
+if '.place-foot[data-later-book-foot]' not in css:
+    raise SystemExit("later Book foot hop must stay occupied-only")
 if ".poster[data-occupied=\"true\"] .place-foot" not in css:
     raise SystemExit("later Book foot must stay occupied-only")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .book-one' not in css:
@@ -327,7 +329,7 @@ grep -q 'data-prize=' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'prize-before-price'; then
   fail "empty board must not stamp prize before price"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'prize-before-price'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'prize-before-price'; then
   fail "later ranks must not stamp prize before price"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
@@ -343,7 +345,7 @@ fi
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -qE 'data-later-fact|later-facts|bid later-fact'; then
   fail "empty board must not stamp later-fact \$bid"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -qE 'data-later-fact|later-facts|bid later-fact'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -qE 'data-later-fact|later-facts|bid later-fact'; then
   fail "later ranks must not stamp later-fact \$bid"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
@@ -390,7 +392,7 @@ grep -q 'data-book-one-first' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-one-first'; then
   fail "empty board must not stamp Book #1"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-one-first'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-one-first'; then
   fail "later ranks must not stamp Book #1 as the first hop"
 fi
 grep -q 'data-guest-first' src/app/\[city\]/board.tsx \
@@ -398,7 +400,7 @@ grep -q 'data-guest-first' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
   fail "empty board must not stamp guest-first Book #1"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
   fail "later ranks must not stamp guest-first Book #1"
 fi
 if grep -n 'data-list-venue' -A 20 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
@@ -407,8 +409,14 @@ fi
 if grep -n 'className="book-after-list"' -A 8 src/app/\[city\]/board.tsx | grep -q 'guest-first'; then
   fail "masthead Book after list must not steal the first guest click"
 fi
-if grep -n 'className="book-later"' -A 4 src/app/\[city\]/board.tsx | grep -q 'guestFirst\|guest-first'; then
+if grep -n 'className="book-later"' -A 8 src/app/\[city\]/board.tsx | grep -q 'guestFirst\|guest-first'; then
   fail "later-rank Book must not steal the first guest click"
+fi
+if grep -n 'function LaterBookFoot' -A 16 src/app/\[city\]/board.tsx | grep -q 'guestFirst\|guest-first\|data-book-number-one\|className="book-one"'; then
+  fail "later Book foot hop must not reuse Book #1 fill"
+fi
+if grep -n 'function BookingHop' -A 50 src/app/\[city\]/board.tsx | grep -qE 'data-book-later|later\?:'; then
+  fail "filled BookingHop must not also be the later Book foot hop"
 fi
 if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/board.tsx; then
   fail "guest-first Book #1 must not stamp *-after-*-N"
@@ -419,6 +427,10 @@ grep -q 'data-book-later' src/app/\[city\]/board.tsx \
   || fail "later ranks must expose a Book hop"
 grep -q 'book-later' src/app/\[city\]/board.tsx \
   || fail "later-rank Book must use the later booking class"
+grep -q 'function LaterBookFoot' src/app/\[city\]/board.tsx \
+  || fail "later Book must be its own foot hop, not a muted BookingHop"
+grep -q 'data-later-book-foot' src/app/\[city\]/board.tsx \
+  || fail "later ranks must stamp the Book foot hop"
 grep -q 'data-later-rank' src/app/\[city\]/board.tsx \
   || fail "later ranks must stamp later-rank cards, not prize titles"
 grep -q 'data-later-stack' src/app/\[city\]/board.tsx \
@@ -447,27 +459,39 @@ import re
 import sys
 
 src = open(sys.argv[1], encoding="utf-8").read()
+if "function LaterBookFoot" not in src:
+    raise SystemExit("later Book must be its own foot hop, not BookingHop")
+hop = re.search(r"function BookingHop\([\s\S]*?\nfunction ", src)
+if not hop:
+    raise SystemExit("BookingHop missing")
+if "data-book-later" in hop.group(0) or "later?" in hop.group(0):
+    raise SystemExit("filled BookingHop still mutes into later Book")
 match = re.search(
-    r"export function ListingCard\([\s\S]*?\nexport function ",
+    r"export function ListingCard\([\s\S]*?\nfunction LaterBookFoot",
     src,
 )
 if not match:
     raise SystemExit("ListingCard missing")
 body = match.group(0)
 later = body.split("rank === 1", 1)[-1]
-if "className=\"book-later\"" not in later:
+if "LaterBookFoot" not in later:
     raise SystemExit("later Book hop missing")
-if "className=\"place-foot\"" not in later:
+if 'className="place-foot"' not in later and "className=\"place-foot\"" not in later:
     raise SystemExit("later place-foot missing")
-if "BookingHop" not in later.split("place-foot", 1)[-1]:
+if "data-later-book-foot" not in later:
+    raise SystemExit("later Book foot hop stamp missing")
+foot = later.split("place-foot", 1)[-1]
+if "LaterBookFoot" not in foot:
     raise SystemExit("later Book must sit in the place-foot")
-if later.split("place-foot", 1)[0].count("BookingHop"):
+if later.split("place-foot", 1)[0].count("LaterBookFoot"):
     raise SystemExit("later Book is still a sibling CTA before the foot")
+if "BookingHop" in later:
+    raise SystemExit("later Book still reuses the filled BookingHop")
 if 'className="bid later-fact"' in later or "later-facts" in later:
     raise SystemExit("later ranks must not reuse occupied later-facts grouping")
 if "data-guest-first" in later or "guestFirst" in later:
     raise SystemExit("later Book must not steal guest-first")
-if "data-prize" in later or "prize-before-price" in later:
+if "data-prize=" in later or "prize-before-price" in later:
     raise SystemExit("later ranks must not stamp the venue prize")
 if 'className="title"' in later:
     raise SystemExit("later ranks must not reuse occupied .title prize chrome")
@@ -477,6 +501,8 @@ if "data-later-rank" not in later:
     raise SystemExit("later cards must stamp data-later-rank")
 if "data-later-quiet" in later:
     raise SystemExit("do not stamp-mute later venues with data-later-quiet")
+if "data-list-after-book-nine" in later or "data-book-after-list-eight" in later:
+    raise SystemExit("later Book foot hop must not stamp *-after-*-N")
 PY
 grep -q 'data-list-venue' src/app/\[city\]/board.tsx \
   || fail "occupied board must mark List a venue"
@@ -491,7 +517,7 @@ grep -q 'data-list-after-book-one' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
   fail "empty board must not stamp List after Book #1"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
   fail "later ranks must not stamp List after Book #1"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-one'; then
@@ -505,7 +531,7 @@ grep -q 'data-list-after-book-two' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-two'; then
   fail "empty board must not stamp List after Book #1 is re-concentrated"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-two'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-two'; then
   fail "later ranks must not stamp List after Book #1 is re-concentrated"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-two'; then
@@ -528,7 +554,7 @@ grep -q 'data-list-after-book-three' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-three'; then
   fail "empty board must not stamp List after Book #1 is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-three'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-three'; then
   fail "later ranks must not stamp List after Book #1 is re-concentrated again"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-three'; then
@@ -554,7 +580,7 @@ grep -q 'data-list-after-book-four' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-four'; then
   fail "empty board must not stamp List after the louder Book #1"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-four'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-four'; then
   fail "later ranks must not stamp List after the louder Book #1"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-four'; then
@@ -583,7 +609,7 @@ grep -q 'data-list-after-book-five' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-five'; then
   fail "empty board must not stamp List after the louder Book #1 is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-five'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-five'; then
   fail "later ranks must not stamp List after the louder Book #1 is re-concentrated again"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-five'; then
@@ -615,7 +641,7 @@ grep -q 'data-list-after-book-six' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-six'; then
   fail "empty board must not stamp List after Book #1 is re-concentrated again without another List"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-six'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-six'; then
   fail "later ranks must not stamp List after Book #1 is re-concentrated again without another List"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-six'; then
@@ -650,7 +676,7 @@ grep -q 'data-list-after-book-seven' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
   fail "empty board must not stamp List after Book #1 is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
   fail "later ranks must not stamp List after Book #1 is re-concentrated again"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-seven'; then
@@ -688,7 +714,7 @@ grep -q 'data-list-after-book-eight' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'list-after-book-eight'; then
   fail "empty board must not stamp List after Book #1 is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-eight'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'list-after-book-eight'; then
   fail "later ranks must not stamp List after Book #1 is re-concentrated again"
 fi
 if grep -n 'data-list-after-book=""' -B 6 -A 2 src/app/\[city\]/board.tsx | grep -q 'list-after-book-eight'; then
@@ -729,7 +755,7 @@ grep -q 'data-book-after-list-one' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-one'; then
   fail "empty board must not stamp Book after List a venue"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-one'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-one'; then
   fail "later ranks must not stamp Book after List a venue"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListOne\|book-after-list-one'; then
@@ -746,7 +772,7 @@ grep -q 'data-book-after-list-two' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-two'; then
   fail "empty board must not stamp Book after List a venue is re-concentrated"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-two'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-two'; then
   fail "later ranks must not stamp Book after List a venue is re-concentrated"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListTwo\|book-after-list-two'; then
@@ -766,7 +792,7 @@ grep -q 'data-book-after-list-three' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-three'; then
   fail "empty board must not stamp Book after List a venue is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-three'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-three'; then
   fail "later ranks must not stamp Book after List a venue is re-concentrated again"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListThree\|book-after-list-three'; then
@@ -789,7 +815,7 @@ grep -q 'data-book-after-list-four' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-four'; then
   fail "empty board must not stamp Book after the louder List a venue"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-four'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-four'; then
   fail "later ranks must not stamp Book after the louder List a venue"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListFour\|book-after-list-four'; then
@@ -815,7 +841,7 @@ grep -q 'data-book-after-list-five' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-five'; then
   fail "empty board must not stamp Book after the louder List a venue is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-five'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-five'; then
   fail "later ranks must not stamp Book after the louder List a venue is re-concentrated again"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListFive\|book-after-list-five'; then
@@ -844,7 +870,7 @@ grep -q 'data-book-after-list-six' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-six'; then
   fail "empty board must not stamp Book after List a venue is re-concentrated again"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-six'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-six'; then
   fail "later ranks must not stamp Book after List a venue is re-concentrated again"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListSix\|book-after-list-six'; then
@@ -876,7 +902,7 @@ grep -q 'data-book-after-list-seven' src/app/\[city\]/board.tsx \
 if grep -n 'data-empty-board' -A 20 src/app/\[city\]/board.tsx | grep -q 'book-after-list-seven'; then
   fail "empty board must not stamp Book after List a venue is re-concentrated again without a second Book hop"
 fi
-if grep -n 'data-later-book' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-seven'; then
+if grep -n 'data-later-book=""' -A 30 src/app/\[city\]/board.tsx | grep -q 'book-after-list-seven'; then
   fail "later ranks must not stamp Book after List a venue is re-concentrated again without a second Book hop"
 fi
 if grep -n 'className="book-after-list"' -A 6 src/app/\[city\]/board.tsx | grep -q 'afterListSeven\|book-after-list-seven'; then
@@ -992,6 +1018,10 @@ grep -q 'data-book-after-list-seven' src/app/board.css \
   || fail "poster CSS must concentrate Book #1 after List a venue is re-concentrated again without a second Book hop"
 grep -q 'book-later' src/app/board.css \
   || fail "poster CSS must style later-rank Book"
+grep -q 'data-later-book-foot' src/app/board.css \
+  || fail "poster CSS must compose later Book as a foot hop"
+grep -q 'only filled hop' src/app/board.css \
+  || fail "poster CSS must keep Book #1 the only filled hop"
 grep -q 'data-later-book' src/app/board.css \
   || fail "poster CSS must style later-rank places"
 grep -q 'later-stack' src/app/board.css \
@@ -1004,8 +1034,11 @@ fi
 if grep -n 'rest-name' -A 12 src/app/board.css | grep -qE '0\.78rem|var\(--muted\)'; then
   fail "later rest-name must not be a 0.78rem --muted mute of the same venue node"
 fi
-if ! grep -n 'place-foot .book-later' -A 24 src/app/board.css | grep -q 'display: inline'; then
+if ! grep -n 'place-foot\[data-later-book-foot\]' -A 36 src/app/board.css | grep -q 'display: inline'; then
   fail "poster CSS must keep later Book an inline foot hop"
+fi
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/board.css src/app/\[city\]/board.tsx; then
+  fail "later Book foot hop must not stamp *-after-*-N"
 fi
 python3 - src/app/board.css <<'PY' || fail "later-rank venue and Book must stay quieter than occupied #1"
 import re
@@ -1024,7 +1057,7 @@ later_name = first(
     r"\[data-occupied=\"true\"\] \.later-stack\[data-later-stack\] \.place\[data-later-rank\] \.rest-name\s*\{[^}]*font-size:\s*([\d.]+)rem"
 )
 later_book_block = re.search(
-    r"\[data-occupied=\"true\"\] \.place\[data-later-book\] \.place-foot \.book-later\s*\{([^}]*)\}",
+    r"\[data-occupied=\"true\"\]\s*\.place\[data-later-book\]\s*\.place-foot\[data-later-book-foot\]\s*\.book-later\[data-later-book-foot\]\s*\{([^}]*)\}",
     css,
     re.S,
 )
@@ -1059,6 +1092,10 @@ if "var(--accent)" in later_book_css:
     raise SystemExit("do not recolor later Book")
 if "background: transparent" not in later_book_css:
     raise SystemExit("later Book must stay unfilled")
+if "background: var(--ink)" in later_book_css:
+    raise SystemExit("later Book must not reuse Book #1 fill")
+if "min-height: 4.35rem" in later_book_css or "min-width: 10.5rem" in later_book_css:
+    raise SystemExit("later Book still matches the filled Book #1 hop")
 if "data-later-quiet" in css:
     raise SystemExit("stamp-only later-quiet mute on the same venue node")
 if re.search(
@@ -1080,6 +1117,10 @@ if not group_size:
     raise SystemExit("occupied #1 later-facts group must recede in size")
 if float(group_size.group(1)) >= float(prize):
     raise SystemExit("occupied #1 later-fact money shouts like the venue")
+if re.search(r"(?m)^\.book-later\s*[,{]", css):
+    raise SystemExit("unscoped .book-later can leak Book #1 fill")
+if "Book #1 is the only filled hop" not in css:
+    raise SystemExit("later Book CSS must name Book #1 as the only filled hop")
 PY
 grep -q 'data-bid' src/app/\[city\]/board.tsx || fail "cards must show the bid amount"
 grep -q 'data-clicks' src/app/\[city\]/board.tsx || fail "cards must show public clicks"
@@ -1340,6 +1381,8 @@ if [[ -f package.json ]]; then
     || fail "occupied later-venue quieter-than-prize leftover test did not run"
   grep -q 'later Book stays quieter than Book #1 after \$bid is a later fact' "$test_log" \
     || fail "occupied later-Book quieter-than-Book-#1 test did not run"
+  grep -q 'later Book stays a foot hop — Book #1 is the only filled hop' "$test_log" \
+    || fail "occupied later-Book foot-hop leftover test did not run"
   grep -q 'occupied Book #1 stays the first guest click' "$test_log" \
     || fail "occupied Book #1 first guest click test did not run"
   grep -q 'lists after later-rank Book' "$test_log" \
