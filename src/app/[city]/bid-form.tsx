@@ -75,9 +75,9 @@ export function BidForm({
             </button>
           </span>
         </h2>
-        <p className="claim-note">
-          New spots start at ${MIN_BID_USD}. Paying less than #1 still lists at
-          the rank that bid can take.
+        <p className="claim-note" data-unpaid-off-board="">
+          Unpaid checkout never ranks. Outbid opens Polar checkout. Until that
+          payment clears, this venue stays off the board.
         </p>
         <div className="bid-row">
           <input
@@ -95,8 +95,9 @@ export function BidForm({
           </button>
         </div>
         <p className="raise-hint">
-          Already on this board? Enter the same venue or booking URL and raise.
-          Rank updates only after Polar checkout is paid.
+          New spots start at ${MIN_BID_USD}. Paying less than #1 still lists at
+          the rank that bid can take. Already on this board? Enter the same
+          venue or booking URL and raise.
         </p>
         {notice ? (
           <p className="stub-note" data-checkout-error="true">

@@ -3150,6 +3150,57 @@ test("occupied NYC #1 reads the venue prize before price, larger than $bid", () 
   assert.doesNotMatch(html.slice(laterHop), /data-prize-before-price|data-prize=/);
 });
 
+test("claim form makes unpaid checkout never ranks certain on empty and occupied NYC", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  const emptyForm = empty.indexOf("data-bid-form");
+  const emptyRule = empty.indexOf("data-unpaid-off-board");
+  const emptyCopy = empty.indexOf("Unpaid checkout never ranks");
+  const emptyOutbid = empty.indexOf(">Outbid<");
+  const emptyCheckout = empty.indexOf('action="/api/checkout"');
+  assert.ok(emptyForm >= 0 && emptyRule > emptyForm);
+  assert.ok(emptyCopy > emptyRule && emptyOutbid > emptyCopy);
+  assert.ok(emptyCheckout >= 0 && emptyCheckout < emptyOutbid);
+  assert.match(empty, /data-unpaid-off-board=""/);
+  assert.match(empty, /Unpaid checkout never ranks/);
+  assert.match(empty, /stays off the board/);
+  assert.match(empty, /Outbid opens Polar checkout/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /Print this weekend/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /action="\/api\/checkout"/);
+  assert.doesNotMatch(empty, /data-listing-card/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(empty, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(empty, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const occupiedForm = occupied.indexOf("data-bid-form");
+  const occupiedRule = occupied.indexOf("data-unpaid-off-board");
+  const occupiedCopy = occupied.indexOf("Unpaid checkout never ranks");
+  const occupiedOutbid = occupied.indexOf(">Outbid<");
+  const laterHop = occupied.indexOf("data-book-later");
+  assert.ok(laterHop >= 0 && occupiedForm > laterHop);
+  assert.ok(occupiedRule > occupiedForm && occupiedCopy > occupiedRule);
+  assert.ok(occupiedOutbid > occupiedCopy);
+  assert.equal((occupied.match(/data-unpaid-off-board=""/g) ?? []).length, 1);
+  assert.match(occupied, /Unpaid checkout never ranks/);
+  assert.match(occupied, /stays off the board/);
+  assert.match(occupied, /List a venue this weekend/);
+  assert.match(occupied, /Claim #1 for/);
+  assert.match(occupied, /action="\/api\/checkout"/);
+  assert.match(occupied, /Sunday Roast/);
+  assert.doesNotMatch(occupied, /data-empty-board/);
+  assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+  assert.doesNotMatch(occupied.slice(0, occupiedForm), /data-unpaid-off-board/);
+});
+
 test("failed checkout returns an honest error on the poster, not a stub", () => {
   const html = renderToStaticMarkup(
     createElement(CityBoard, {

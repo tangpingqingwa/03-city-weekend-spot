@@ -119,6 +119,17 @@ grep -q 'data-return="pending"' src/app/\[city\]/return/page.tsx \
 grep -q '−' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the minus stepper"
 grep -q '+' src/app/\[city\]/bid-form.tsx || fail "bid form must clone the plus stepper"
 grep -q 'amount-field' src/app/\[city\]/bid-form.tsx || fail "bid form must keep the dashed amount field"
+grep -q 'data-unpaid-off-board' src/app/\[city\]/bid-form.tsx \
+  || fail "claim form must stamp unpaid checkout never ranks"
+grep -q 'Unpaid checkout never ranks' src/app/\[city\]/bid-form.tsx \
+  || fail "claim form must say unpaid checkout never ranks"
+grep -q 'stays off the board' src/app/\[city\]/bid-form.tsx \
+  || fail "claim form must say unpaid stays off the board"
+if grep -qE 'data-list-after-book-nine|data-book-after-list-eight' src/app/\[city\]/bid-form.tsx; then
+  fail "unpaid-off-board must not add another numbered hop stamp"
+fi
+grep -q 'data-unpaid-off-board' src/app/board.css \
+  || fail "poster CSS must make unpaid-off-board certain on the claim form"
 grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have an honest empty state"
 grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
 grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must print No #1 as the weekend answer"
@@ -952,6 +963,8 @@ if [[ -f package.json ]]; then
     || fail "occupied Book #1 after List a venue is re-concentrated again without a second Book hop test did not run"
   grep -q 'prize before price' "$test_log" \
     || fail "occupied prize-before-price test did not run"
+  grep -q 'unpaid checkout never ranks certain' "$test_log" \
+    || fail "claim-form unpaid-off-board test did not run"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \
