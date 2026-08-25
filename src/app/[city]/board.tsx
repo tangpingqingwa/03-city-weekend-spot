@@ -323,8 +323,22 @@ const CHECKOUT_ERROR_COPY: Record<string, string> = {
   polar_unavailable: "Checkout is unavailable. No charge and no rank claimed.",
 };
 
-export function checkoutErrorCopy(code: string | undefined): string | null {
+/** Occupied closed leftover `?error=window_closed`. BidForm is hidden, so this path must name reopen. */
+const OCCUPIED_CLOSED_WINDOW_CLOSED_COPY =
+  "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.";
+
+export function checkoutErrorCopy(
+  code: string | undefined,
+  state?: { occupied: boolean; bidsOpen: boolean },
+): string | null {
   if (!code) return null;
+  if (
+    code === "window_closed" &&
+    state?.occupied === true &&
+    state.bidsOpen === false
+  ) {
+    return OCCUPIED_CLOSED_WINDOW_CLOSED_COPY;
+  }
   return CHECKOUT_ERROR_COPY[code] ?? "Checkout did not start. No rank claimed.";
 }
 
@@ -340,11 +354,15 @@ export function CityBoard({
   );
   const topBid = paid[0]?.bidUsd ?? 0;
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
-  const errorCopy = checkoutErrorCopy(checkoutError);
   const occupied = paid.length > 0;
   const numberOne = paid.find((listing) => listing.rank === 1);
   const now = nowProp ?? new Date();
   const bidsOpen = isWindowOpen(currentWindow(city, now), now);
+  const errorCopy = checkoutErrorCopy(checkoutError, { occupied, bidsOpen });
+  const occupiedClosedCheckoutError =
+    occupied && !bidsOpen && checkoutError === "window_closed"
+      ? errorCopy
+      : null;
 
   return (
     <main
@@ -435,6 +453,15 @@ export function CityBoard({
       ) : (
         <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
       )}
+      {occupiedClosedCheckoutError ? (
+        <p
+          className="stub-note occupied-closed-checkout-error"
+          data-checkout-error="true"
+          data-occupied-closed-checkout-error=""
+        >
+          {occupiedClosedCheckoutError}
+        </p>
+      ) : null}
       {bidsOpen ? (
         <BidForm
           city={city}
