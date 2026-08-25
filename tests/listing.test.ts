@@ -322,6 +322,8 @@ test("about and rules state min $5, older wins ties, raise pays difference, no f
   assert.match(rules, /min \$5/);
   assert.match(rules, /older wins ties/);
   assert.match(rules, /raise pays difference/);
+  assert.match(rules, /Rolling last 7 days. Not Monday 00:00 UTC/);
+  assert.match(about, /rolling last 7 days/);
   assert.match(rules, /no fake reviews/i);
   assert.match(rules, /reviews_forbidden/);
   assert.match(rules, /utm_\*/);

@@ -39,7 +39,7 @@ WHERE city = ? AND window_id = current_window(city)
 ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
 ```
 
-`current_window(city)` uses that city’s IANA timezone and the weekly weekend window in SPEC. Adding `london` must not touch this `ORDER BY`.
+`current_window(city)` uses that city’s IANA timezone for the ISO `{city}:{iso_week}` label and new-bid hours. Occupied live board filters Polar-paid `firstPaidAt` in the rolling last 7 days, not Monday 00:00 UTC. Adding `london` must not touch this `ORDER BY`.
 
 ---
 
@@ -67,7 +67,7 @@ ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
       healthz/route.ts
     core/
       rank.ts                  # ORDER BY contract
-      window.ts                # weekly weekend window
+      window.ts                # weekly weekend window; rolling last-7-days occupancy
       listing.ts               # venue + city + booking URL
       url.ts                   # strip tracking, reject chat/NSFW
       cities.ts                # catalog; nyc active
@@ -95,7 +95,7 @@ HTTP / pages call `core/*` only. They do not import `billing/polar.ts` directly.
 
 | Test | Assert |
 |---|---|
-| window | NYC Thursday 12:00 included; Sunday 23:59:59 included; Monday 00:00 new window |
+| window | NYC Thursday 12:00 included; Sunday 23:59:59 included; Monday 00:00 new ISO label; occupied rank is rolling last 7 days from paid createdAt |
 | rank | higher bid above; **older wins ties**; below-#1 still lists |
 | raise | $5 → $12 charges **$7**; other listing cannot steal by paying $7 |
 | listing | venue + city + booking URL required; “4.9 stars” → `reviews_forbidden` |

@@ -14,8 +14,9 @@ export default function AboutPage() {
       <p>
         City Weekend Spot is a weekly weekend window auction for the first
         place a local looks when deciding where to eat, drink, or see a show
-        this Friday or Saturday. One public board per city. Venues bid whole
-        USD for the #1 slot.
+        this Friday or Saturday. Occupied rank lives in the rolling last 7
+        days from paid createdAt, not Monday 00:00 UTC. One public board per
+        city. Venues bid whole USD for the #1 slot.
       </p>
       <p>
         <strong>Rank is money, not stars.</strong> Rank is the bid. Nothing

@@ -89,14 +89,18 @@ export default function RulesPage() {
             </td>
           </tr>
           <tr>
-            <th>Opens</th>
+            <th>Occupied window</th>
             <td>
-              Thursday 12:00 (noon) local.
+              Rolling last 7 days. Not Monday 00:00 UTC. A traveler
+              outside that civil midnight does not lose the poster on a
+              timezone tax. Not a 24h lock on #1.
             </td>
           </tr>
           <tr>
-            <th>Closes</th>
-            <td>Sunday 23:59:59.999 local.</td>
+            <th>New bids</th>
+            <td>
+              Thursday 12:00 (noon) local through Sunday 23:59:59.999 local.
+            </td>
           </tr>
           <tr>
             <th>Slot</th>
@@ -108,14 +112,16 @@ export default function RulesPage() {
             </th>
             <td>
               Deterministic <code>{"{city}:{iso_week}"}</code> in that city’s
-              timezone (ISO week, Thursday-anchored).
+              timezone (ISO week, Thursday-anchored). Polar/audit label. Live
+              occupancy is paid <code>createdAt</code> in the rolling last 7
+              days.
             </td>
           </tr>
           <tr>
             <th>What does not carry</th>
             <td>
-              Previous-week bids never reappear on the live board. Want next
-              weekend’s #1? Pay again.
+              Bids older than 7 days never reappear on the live board. Want
+              next weekend’s #1? Pay again.
             </td>
           </tr>
         </tbody>

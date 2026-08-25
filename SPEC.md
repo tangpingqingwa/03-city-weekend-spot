@@ -30,7 +30,7 @@ One-line pitch: **This weekend in this city, #1 is whoever paid the most.**
 - Equal bids: **older wins ties** (first paid at that amount stays above).
 - Same listing can raise; **raise pays difference** only.
 - Listing is **venue + city + booking URL**. Optional one-line pitch. Optional kind (`restaurant` | `bar` | `show`).
-- **Weekly weekend window.** Bids do not carry into next week.
+- **Weekly weekend window.** Occupied rank is the rolling last 7 days from paid `createdAt`. Not Monday 00:00 UTC. Bids older than 7 days do not carry.
 - **No fake reviews.** No star ratings, no invented quotes, no scraped scores.
 - Strip tracking and affiliate query strings. No chat / invite links. No NSFW.
 - Public click counts on the booking URL.
@@ -70,15 +70,16 @@ Each city has one open **weekly weekend window** at a time.
 
 ```
 city local timezone
-window starts: Thursday 12:00 (noon)
-window ends:   Sunday 23:59:59.999
+new bids open: Thursday 12:00 (noon)
+new bids close: Sunday 23:59:59.999
+occupied rank: rolling last 7 days from paid createdAt
 slot meaning:  “this Friday / Saturday”
 ```
 
-- Bids placed in that window compete only with other bids in the **same city + same window id**.
-- At window end, the #1 listing is the weekend winner. The next Thursday noon opens a new empty window.
-- Previous-week bids never reappear on the live board.
-- Window id is deterministic: `{city}:{iso_week}` in that city’s timezone (ISO week, Thursday-anchored). Document the helper; do not invent a second clock.
+- Occupied poster rank is Polar-paid rows whose `firstPaidAt` (`createdAt`) is still inside the **rolling last 7 days**. Not Monday 00:00 UTC. Not a 24h lock on #1.
+- New bids still open Thursday noon through Sunday 23:59:59.999 local. `{city}:{iso_week}` is a Polar/audit label, Thursday-anchored. Do not invent a second clock.
+- A traveler outside civil Monday midnight does not lose the occupied poster on a timezone tax.
+- Bids older than 7 days never reappear on the live board. Want #1 again? Pay again.
 
 Empty board is valid: show the ranked list with zero cards and the bid form.
 
@@ -206,7 +207,7 @@ Board UI (clone outbid.lol, not a redesign):
 |---|---|---|
 | `city_unknown` | 404 | slug not in catalog |
 | `city_inactive` | 404 | slug exists but `active=0` |
-| `window_closed` | 400 | bid outside the weekly weekend window |
+| `window_closed` | 400 | new bid outside Thursday noon–Sunday local; occupied rank still rolls 7 days |
 | `bid_not_whole` | 400 | cents or non-integer |
 | `bid_below_min` | 400 | first bid &lt; $5 |
 | `bid_not_higher` | 400 | raise ≤ current |
@@ -234,7 +235,7 @@ Zero invented listings on any error.
 | 8 | Chat invite URL | `url_forbidden` |
 | 9 | Click booking CTA | 302 to stripped URL; public clicks +1 |
 | 10 | London slug before it is active | `city_unknown` or `city_inactive`; NYC rank untouched |
-| 11 | After window end | board is a new empty window; old bids gone |
+| 11 | After 7 days from paid createdAt | board drops that listing; Monday 00:00 UTC does not |
 | 12 | `POLAR_LIVE` unset | fixture / fail-closed; no Polar network |
 
 ---

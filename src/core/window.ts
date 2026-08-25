@@ -9,6 +9,10 @@ export const WINDOW_END_MINUTE = 59;
 export const WINDOW_END_SECOND = 59;
 export const WINDOW_END_MS = 999;
 
+const DAY_MS = 86_400_000;
+/** Inclusive length of the occupied poster window. Not Monday midnight UTC. */
+export const ROLLING_WEEK_MS = 7 * DAY_MS;
+
 export type WeekendWindow = {
   id: string;
   city: CitySlug;
@@ -253,10 +257,33 @@ function windowFromThursday(
  * Id is `{city}:{iso_week}` in that city’s timezone (ISO week, Thursday-anchored).
  * Bidding is open Thursday 12:00 through Sunday 23:59:59.999 inclusive.
  * Monday 00:00 is already the next ISO week’s (still closed) window.
+ * Occupied poster rank uses rolling last 7 days from paid createdAt, not this
+ * civil Monday midnight cut.
  */
 export function currentWindow(city: City, now: Date = new Date()): WeekendWindow {
   const parts = zonedParts(now, city.timezone);
   return windowFromThursday(city, thursdayOfIsoWeek(parts));
+}
+
+/** Inclusive start of the rolling last-7-days occupancy window. Not civil midnight. */
+export function rollingWeekStart(now: Date = new Date()): Date {
+  return new Date(now.getTime() - ROLLING_WEEK_MS);
+}
+
+/**
+ * Polar-paid placement still occupies the poster if `paidAt` is in `[now − 7d, now]`.
+ * Monday 00:00 UTC is not the drop. Not a 24h lock on #1.
+ */
+export function bidInRollingWeek(
+  paidAt: string,
+  now: Date = new Date(),
+): boolean {
+  const paid = Date.parse(paidAt);
+  if (!Number.isFinite(paid) || paid <= 0) {
+    return false;
+  }
+  const t = now.getTime();
+  return paid >= t - ROLLING_WEEK_MS && paid <= t;
 }
 
 export function windowContains(window: WeekendWindow, instant: Date): boolean {

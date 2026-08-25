@@ -322,6 +322,9 @@ grep -q 'filter(isPaidListing)' src/core/rank.ts \
 if grep -n 'function getBoardListings' -A 20 src/core/rank.ts | grep -q 'listingsForCityWindow(db, city, window.id),'; then
   fail "live board must not rank unpaid Polar checkout"
 fi
+if grep -n 'function getBoardListings' -A 20 src/core/rank.ts | grep -q 'currentWindow'; then
+  fail "live occupied board must not expire at civil Monday midnight via currentWindow"
+fi
 grep -q 'data-prize-before-price' src/app/\[city\]/board.tsx \
   || fail "occupied #1 must put the venue prize before \$bid"
 grep -q 'data-prize=' src/app/\[city\]/board.tsx \
@@ -1156,10 +1159,20 @@ do
   [[ -s "$f" ]] || fail "empty $f"
 done
 grep -q 'currentWindow' src/core/window.ts || fail "window.ts must export currentWindow"
+grep -q 'ROLLING_WEEK_MS' src/core/window.ts \
+  || fail "window.ts must export the rolling last-7-days window"
+grep -q 'export function rollingWeekStart' src/core/window.ts \
+  || fail "window.ts must export rollingWeekStart"
+grep -q 'export function bidInRollingWeek' src/core/window.ts \
+  || fail "window.ts must export bidInRollingWeek"
 grep -q 'America/New_York' src/core/cities.ts || fail "NYC timezone must stay catalog data"
 grep -q 'export function rankListings' src/core/rank.ts || fail "rank.ts must export rankListings"
 grep -q 'firstPaidAt' src/core/rank.ts || fail "rank.ts must tie-break on firstPaidAt"
 grep -q 'query.city' src/core/rank.ts || fail "rank.ts ranking must take city"
+grep -q 'listingsForCityRollingWeek' src/core/rank.ts \
+  || fail "live board must load Polar-paid listings in the rolling last 7 days"
+grep -q 'bidInRollingWeek(listing.firstPaidAt' src/core/rank.ts \
+  || fail "live paid rows must filter firstPaidAt, not Monday midnight delete"
 grep -q 'venueName' src/core/listing.ts || fail "listing.ts must require venueName"
 grep -q 'bookingUrl' src/core/listing.ts || fail "listing.ts must require bookingUrl"
 grep -q 'venueKey' src/core/listing.ts || fail "listing.ts must define venueKey"
@@ -1439,6 +1452,16 @@ if [[ -f package.json ]]; then
     || fail "live-board unpaid Polar filter test did not run"
   grep -q 'open Polar session stays off the poster until Polar reports paid' "$test_log" \
     || fail "open Polar session unpaid-off-poster test did not run"
+  grep -q 'occupied week window is rolling last-7-days' "$test_log" \
+    || fail "occupied rolling last-7-days leftover test did not run"
+  grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
+    || fail "window tests must cover rolling last-7-days window"
+  grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \
+    || fail "window tests must keep a Sunday pay across Monday midnight"
+  grep -q 'live board keeps a Sunday pay across Monday 00:00 UTC' "$test_log" \
+    || fail "rank tests must keep Sunday pay on the live board across Monday"
+  grep -q 'only the rolling last 7 days is ranked on the live board' "$test_log" \
+    || fail "rank tests must cover the rolling last-7-days live board"
   grep -q 'poster form POST' "$test_log" \
     || fail "poster Polar checkout form test did not run"
   grep -q 'never trusts query alone' "$test_log" \

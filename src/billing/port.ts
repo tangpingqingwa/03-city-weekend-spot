@@ -15,7 +15,7 @@ import {
   type Listing,
   type ListingDraft,
 } from "../core/listing";
-import { assertWindowOpen, currentWindow } from "../core/window";
+import { assertWindowOpen, bidInRollingWeek, currentWindow } from "../core/window";
 import {
   findListingByVenueKey as findDbListingByVenueKey,
   getDb,
@@ -291,11 +291,13 @@ export function listingForSession(
 export function findPaidByVenueKey(
   draft: ListingDraft,
   db: AppDb = getDb(),
+  now: Date = checkoutNow(),
 ): Listing | undefined {
   const key = venueKey(draft);
   const existing = findDbListingByVenueKey(db, key);
   if (!existing) return undefined;
-  return isPaidListing(existing) ? existing : undefined;
+  if (!isPaidListing(existing)) return undefined;
+  return bidInRollingWeek(existing.firstPaidAt, now) ? existing : undefined;
 }
 
 export function quoteCheckout(
