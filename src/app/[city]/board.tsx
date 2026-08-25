@@ -268,9 +268,18 @@ export function Leaderboard({
           <section
             className="later-stack"
             data-later-stack=""
-            aria-label={`Also this weekend in ${city.name}`}
+            aria-label={`Later venues in ${city.name}`}
           >
-            <p className="later-stack-kicker">Also this weekend</p>
+            {bidsOpen ? (
+              <p className="later-stack-kicker later-stack-also">
+                Also this weekend
+              </p>
+            ) : null}
+            {!bidsOpen ? (
+              <p className="later-stack-kicker later-stack-closed-kicker">
+                Already ranked
+              </p>
+            ) : null}
             <p className="later-stack-dek">
               {bidsOpen ? (
                 <span className="later-stack-lists">
