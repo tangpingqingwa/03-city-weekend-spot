@@ -290,8 +290,20 @@ grep -q 'occupied-window-closed' src/app/\[city\]/board.tsx \
   || fail "occupied closed must name window_closed on the occupied poster"
 grep -q 'occupied-window-closed' src/app/board.css \
   || fail "poster CSS must style occupied window_closed copy"
+if ! grep -n 'className="occupied-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids reopen Thursday noon'; then
+  fail "occupied closed must name when new bids reopen"
+fi
+if ! grep -n 'className="occupied-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
+  fail "occupied closed must name Sunday local reopen"
+fi
+if grep -n 'className="empty-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'reopen'; then
+  fail "do not restamp empty unpublished window_closed with occupied reopen copy"
+fi
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'occupied-window-closed'; then
   fail "do not restamp empty unpublished with occupied-window-closed"
+fi
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'reopen'; then
+  fail "do not restamp empty unpublished with occupied reopen copy"
 fi
 if grep -qE 'data-window-closed-after|data-claim-after-closed|data-list-after-closed|data-outbid-after-open' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
   fail "window_closed must not stamp another named hop"
@@ -360,6 +372,17 @@ if 'className="empty-bid-open"' not in body:
     raise SystemExit("unpublished must use empty-bid-open, not occupied chrome")
 if 'className="empty-window-closed"' not in body:
     raise SystemExit("unpublished must use empty-window-closed, not a checkout-only error")
+if "reopen" in body:
+    raise SystemExit("do not restamp empty unpublished with occupied reopen copy")
+empty_closed_match = re.search(
+    r'className="empty-window-closed">\s*([^<]+)',
+    body,
+)
+if not empty_closed_match:
+    raise SystemExit("empty-window-closed copy missing")
+empty_closed_copy = " ".join(empty_closed_match.group(1).split())
+if empty_closed_copy != "New bids are closed. Not a live claim on Monday.":
+    raise SystemExit("do not restamp empty unpublished window_closed")
 if "data-window-closed" not in body:
     raise SystemExit("unpublished must stamp window_closed when new bids are closed")
 window_at = body.find('className="empty-window"')
@@ -414,6 +437,19 @@ if 'className="occupied-window-closed"' not in city_board:
     raise SystemExit("occupied closed must name window_closed on the occupied poster")
 if "New bids are closed. Not a live claim on Monday." not in city_board:
     raise SystemExit("occupied closed must say new bids are closed")
+if "New bids reopen Thursday noon through Sunday 23:59:59.999 local." not in city_board:
+    raise SystemExit("occupied closed must name when new bids reopen")
+occ_closed_match = re.search(
+    r'className="occupied-window-closed">\s*([^<]+)',
+    city_board,
+)
+if not occ_closed_match:
+    raise SystemExit("occupied-window-closed copy missing")
+occ_closed_copy = " ".join(occ_closed_match.group(1).split())
+if "New bids reopen Thursday noon through Sunday 23:59:59.999 local." not in occ_closed_copy:
+    raise SystemExit("occupied closed window_closed copy must name when new bids reopen")
+if "Thursday noon" not in occ_closed_copy:
+    raise SystemExit("occupied closed must name Thursday noon reopen")
 if city_board.find("data-rolling-week") < 0:
     raise SystemExit("occupied must keep rolling last-7-days occupancy copy")
 if "(!bidsOpen ? { \"data-window-closed\": \"\" } : {})" not in city_board and "{...(!bidsOpen ? { \"data-window-closed\": \"\" } : {})}" not in city_board:
@@ -422,8 +458,11 @@ if "!occupied && !bidsOpen" in city_board:
     raise SystemExit("occupied closed must stamp window_closed, not empty-only")
 rolling_at = city_board.find("data-rolling-week")
 occupied_closed_at = city_board.find('className="occupied-window-closed"')
+reopen_at = city_board.find("New bids reopen Thursday noon")
 if not (rolling_at >= 0 and occupied_closed_at > rolling_at):
     raise SystemExit("occupied window_closed copy must follow occupancy rolling copy")
+if not (occupied_closed_at >= 0 and reopen_at > occupied_closed_at):
+    raise SystemExit("occupied reopen copy must live on occupied-window-closed")
 leaderboard = re.search(
     r"export function Leaderboard\([\s\S]*?\n\}\n",
     src,
@@ -1782,6 +1821,12 @@ if [[ -f package.json ]]; then
     || fail "occupied closed List a venue leftover test did not run"
   grep -q 'occupied closed leftover Book hops must not talk about a list hop when List is gone' "$test_log" \
     || fail "occupied closed leftover Book hop test did not run"
+  grep -q 'occupied closed later-stack must not talk about listing when List is gone' "$test_log" \
+    || fail "occupied closed later-stack leftover test did not run"
+  grep -q 'occupied closed later-stack kicker does not imply listing when List is gone' "$test_log" \
+    || fail "occupied closed later-stack kicker leftover test did not run"
+  grep -q 'occupied closed window_closed names when new bids reopen' "$test_log" \
+    || fail "occupied closed reopen copy leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \
