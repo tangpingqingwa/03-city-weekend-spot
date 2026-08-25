@@ -272,8 +272,12 @@ export function Leaderboard({
           >
             <p className="later-stack-kicker">Also this weekend</p>
             <p className="later-stack-dek">
-              Paying less than #1 still lists. These venues are not this
-              weekend&apos;s #1.
+              {bidsOpen ? (
+                <span className="later-stack-lists">
+                  Paying less than #1 still lists.{" "}
+                </span>
+              ) : null}
+              These venues are not this weekend&apos;s #1.
             </p>
             <ol className="later-board">
               {later.map((listing) => (
