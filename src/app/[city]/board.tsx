@@ -237,9 +237,11 @@ function UnpublishedWeekend({
 export function Leaderboard({
   city,
   listings,
+  bidsOpen,
 }: {
   city: City;
   listings: readonly BoardListing[];
+  bidsOpen: boolean;
 }) {
   const paid = listings.filter((listing) => paidAtMs(listing) !== undefined);
   if (paid.length === 0) {
@@ -281,12 +283,14 @@ export function Leaderboard({
               ))}
             </ol>
           </section>
-          <p className="list-after-book-line">
-            <a className="list-after-book" href="#claim" data-list-after-book="">
-              List a venue
-            </a>{" "}
-            after later Books. Paying less than #1 still lists.
-          </p>
+          {bidsOpen ? (
+            <p className="list-after-book-line">
+              <a className="list-after-book" href="#claim" data-list-after-book="">
+                List a venue
+              </a>{" "}
+              after later Books. Paying less than #1 still lists.
+            </p>
+          ) : null}
         </>
       ) : null}
     </section>
@@ -359,23 +363,25 @@ export function CityBoard({
         )}
         {occupied && numberOne ? (
           <>
-            <p className="list-venue-line">
-              <a
-                className="list-venue"
-                href="#claim"
-                data-list-venue=""
-                data-list-after-book-one=""
-                data-list-after-book-two=""
-                data-list-after-book-three=""
-                data-list-after-book-four=""
-                data-list-after-book-five=""
-                data-list-after-book-six=""
-                data-list-after-book-seven=""
-                data-list-after-book-eight=""
-              >
-                List a venue
-              </a>
-            </p>
+            {bidsOpen ? (
+              <p className="list-venue-line">
+                <a
+                  className="list-venue"
+                  href="#claim"
+                  data-list-venue=""
+                  data-list-after-book-one=""
+                  data-list-after-book-two=""
+                  data-list-after-book-three=""
+                  data-list-after-book-four=""
+                  data-list-after-book-five=""
+                  data-list-after-book-six=""
+                  data-list-after-book-seven=""
+                  data-list-after-book-eight=""
+                >
+                  List a venue
+                </a>
+              </p>
+            ) : null}
             <p className="book-after-list-line">
               <BookingHop
                 listing={numberOne}
@@ -384,16 +390,18 @@ export function CityBoard({
               />{" "}
               after the list hop.
             </p>
-            <p className="list-after-book-hop-line">
-              <a
-                className="list-after-book-hop"
-                href="#claim"
-                data-list-after-book-hop=""
-              >
-                List a venue
-              </a>{" "}
-              after Book follows List.
-            </p>
+            {bidsOpen ? (
+              <p className="list-after-book-hop-line">
+                <a
+                  className="list-after-book-hop"
+                  href="#claim"
+                  data-list-after-book-hop=""
+                >
+                  List a venue
+                </a>{" "}
+                after Book follows List.
+              </p>
+            ) : null}
             <p className="book-after-list-hop-line">
               <BookingHop
                 listing={numberOne}
@@ -406,7 +414,7 @@ export function CityBoard({
         ) : null}
       </header>
       {occupied ? (
-        <Leaderboard city={city} listings={paid} />
+        <Leaderboard city={city} listings={paid} bidsOpen={bidsOpen} />
       ) : (
         <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
       )}
