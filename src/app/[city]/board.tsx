@@ -365,7 +365,7 @@ export function CityBoard({
             </p>
             {!bidsOpen ? (
               <p className="occupied-window-closed">
-                New bids are closed. Not a live claim on Monday.
+                New bids are closed. Not a live claim on Monday. New bids reopen Thursday noon through Sunday 23:59:59.999 local.
               </p>
             ) : null}
           </>
