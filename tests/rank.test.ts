@@ -18,6 +18,7 @@ import {
   SCHEMA_SQL,
   insertListing,
   listingFromRow,
+  listingsForCityRollingWeek,
   listingsForCityWindow,
   openDatabase,
   upsertWindow,
@@ -193,6 +194,97 @@ test("previous-week bids never appear on the live (city, window) board", () => {
   assert.deepEqual(
     ranked.map((row) => row.id),
     ["this-week"],
+  );
+});
+
+test("only the rolling last 7 days is ranked on the live board", () => {
+  const now = new Date("2026-08-24T00:00:00.000Z");
+  const ranked = rankListings(
+    listingsForLane(
+      [
+        listing({
+          id: "aged-out",
+          windowId: "nyc:2026-W33",
+          bidUsd: 50,
+          firstPaidAt: "2026-08-16T23:59:59.000Z",
+        }),
+        listing({
+          id: "still-live",
+          windowId: "nyc:2026-W33",
+          bidUsd: 12,
+          firstPaidAt: "2026-08-17T00:00:00.000Z",
+        }),
+        listing({
+          id: "this-week",
+          windowId: NYC_WINDOW,
+          bidUsd: 5,
+          firstPaidAt: "2026-08-20T16:00:00.000Z",
+        }),
+      ],
+      { city: "nyc", now },
+    ),
+    { city: "nyc", now },
+  );
+  assert.deepEqual(
+    ranked.map((row) => row.id),
+    ["still-live", "this-week"],
+  );
+});
+
+test("live board keeps a Sunday pay across Monday 00:00 UTC and drops it after 7 days", () => {
+  const db = openDatabase(":memory:");
+  insertListing(
+    db,
+    listing({
+      id: "lst_sunday",
+      venueName: "Sunday Roast",
+      windowId: "nyc:2026-W33",
+      bidUsd: 12,
+      firstPaidAt: "2026-08-16T12:00:00.000Z",
+    }),
+  );
+  insertListing(
+    db,
+    listing({
+      id: "lst_stale",
+      venueName: "Stale Bar",
+      windowId: "nyc:2026-W32",
+      bidUsd: 50,
+      firstPaidAt: "2026-08-09T12:00:00.000Z",
+    }),
+  );
+
+  const monday = getBoardListings(
+    "nyc",
+    new Date("2026-08-17T00:00:00.000Z"),
+    db,
+  );
+  assert.equal(monday.length, 1);
+  assert.equal(monday[0]?.id, "lst_sunday");
+  assert.equal(monday[0]?.venueName, "Sunday Roast");
+  assert.equal(monday[0]?.rank, 1);
+
+  const stillLive = getBoardListings(
+    "nyc",
+    new Date("2026-08-23T12:00:00.000Z"),
+    db,
+  );
+  assert.equal(stillLive.length, 1);
+  assert.equal(stillLive[0]?.id, "lst_sunday");
+
+  const aged = getBoardListings(
+    "nyc",
+    new Date("2026-08-23T12:00:01.000Z"),
+    db,
+  );
+  assert.equal(aged.length, 0);
+  assert.equal(
+    listingsForCityRollingWeek(
+      db,
+      "nyc",
+      new Date("2026-08-17T00:00:00.000Z"),
+    ).map((row) => row.id).join(","),
+    "lst_sunday",
   );
 });
 

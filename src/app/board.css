@@ -151,6 +151,19 @@ a:hover {
   font-size: 0.95rem;
 }
 
+/* Occupied rolling last-7-days window. Not Monday 00:00 UTC. */
+.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week] {
+  font-size: 0.86rem;
+}
+
+/* Empty unpublished /nyc must not stamp rolling-week occupancy. */
+.poster[data-occupied="false"] [data-rolling-week],
+.poster[data-occupied="false"] .week-window,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] [data-rolling-week],
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .week-window {
+  display: none;
+}
+
 .poster[data-occupied="true"] .list-venue-line,
 .poster[data-occupied="true"] .book-after-list-line,
 .poster[data-occupied="true"] .list-after-book-hop-line,

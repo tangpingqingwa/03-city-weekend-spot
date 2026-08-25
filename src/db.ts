@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { CITIES, type City } from "./core/cities";
 import type { Listing } from "./core/listing";
-import type { WeekendWindow } from "./core/window";
+import { bidInRollingWeek, type WeekendWindow } from "./core/window";
 
 export type AppDb = {
   cities: Map<string, CityRow>;
@@ -204,6 +204,21 @@ export function listingsForCityWindow(
     if (row.city === city && row.window_id === windowId) {
       rows.push(listingFromRow(row));
     }
+  }
+  return rows;
+}
+
+/** Polar-paid rows still inside the rolling last-7-days occupancy window. */
+export function listingsForCityRollingWeek(
+  db: AppDb,
+  city: string,
+  now: Date = new Date(),
+): Listing[] {
+  const rows: Listing[] = [];
+  for (const row of db.listings.values()) {
+    if (row.city !== city) continue;
+    if (!bidInRollingWeek(row.first_paid_at, now)) continue;
+    rows.push(listingFromRow(row));
   }
   return rows;
 }

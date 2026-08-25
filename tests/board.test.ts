@@ -4034,6 +4034,76 @@ test("abandoned unpaid checkout stays off occupied /nyc — No #1 until Polar re
   assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
 });
 
+test("occupied week window is rolling last-7-days — not Monday 00:00 UTC", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  assert.match(empty, /data-empty-board="true"/);
+  assert.match(empty, /data-occupied="false"/);
+  assert.match(empty, /No #1/);
+  assert.match(empty, /This weekend is unpublished/);
+  assert.match(empty, /Rank is money, not stars/);
+  assert.match(empty, /data-first-click="claim"/);
+  assert.match(empty, /Then the venue URL/);
+  assert.doesNotMatch(empty, /data-rolling-week/);
+  assert.doesNotMatch(empty, /Rolling last 7 days/);
+  assert.doesNotMatch(empty, /data-prize=/);
+  assert.doesNotMatch(empty, /24h lock/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(empty, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(empty, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  const prizeAt = occupied.indexOf('data-prize=""');
+  const firstClickAt = occupied.indexOf('data-guest-first=""');
+  const windowAt = occupied.indexOf('data-rolling-week=""');
+  const laterAt = occupied.indexOf('data-later-stack=""');
+  const claimAt = occupied.indexOf('id="claim"');
+  assert.notEqual(prizeAt, -1);
+  assert.notEqual(firstClickAt, -1);
+  assert.notEqual(windowAt, -1);
+  assert.notEqual(laterAt, -1);
+  assert.notEqual(claimAt, -1);
+  assert.ok(prizeAt < laterAt);
+  assert.ok(firstClickAt < claimAt);
+  assert.ok(windowAt < claimAt);
+  assert.match(occupied, /data-occupied="true"/);
+  assert.match(occupied, /data-rolling-week=""/);
+  assert.match(occupied, /Rolling last 7 days\. Not Monday 00:00 UTC\./);
+  assert.match(occupied, /class="period-meta week-window"/);
+  assert.match(occupied, /Sunday Roast/);
+  assert.match(occupied, /class="weekend-answer"/);
+  assert.match(occupied, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(occupied, /Also this weekend/);
+  assert.match(occupied, /Claim #1 for/);
+  assert.match(occupied, />Outbid</);
+  assert.doesNotMatch(occupied, /data-empty-board/);
+  assert.doesNotMatch(occupied, /This weekend is unpublished/);
+  assert.doesNotMatch(occupied, /24h lock/);
+  assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+  assert.equal((occupied.match(/data-guest-first=""/g) ?? []).length, 2);
+  assert.equal((occupied.match(/data-prize=""/g) ?? []).length, 1);
+
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /\.poster\[data-occupied="true"\] \.period-meta\.week-window\[data-rolling-week\]/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \[data-rolling-week\]/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \[data-rolling-week\]/,
+  );
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}rolling-week/);
+});
+
 test("occupied later Book stays a foot hop — Book #1 is the only filled hop", () => {
   const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
   const laterFoot = css.match(

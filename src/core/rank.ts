@@ -1,7 +1,7 @@
 import { resolveCity, type BoardListing, type CitySlug } from "./cities";
-import { getDb, listingsForCityWindow, type AppDb } from "../db";
+import { getDb, listingsForCityRollingWeek, type AppDb } from "../db";
 import { isPaidListing, type Listing } from "./listing";
-import { currentWindow } from "./window";
+import { bidInRollingWeek } from "./window";
 
 export type RankableListing = Pick<
   Listing,
@@ -15,6 +15,7 @@ export type RankedListing<T extends RankableListing = Listing> = T & {
 export type RankQuery = {
   city: CitySlug;
   windowId?: string;
+  now?: Date;
 };
 
 /**
@@ -43,6 +44,9 @@ export function listingsForLane<T extends RankableListing>(
       return false;
     }
     if (query.windowId !== undefined && listing.windowId !== query.windowId) {
+      return false;
+    }
+    if (query.now !== undefined && !bidInRollingWeek(listing.firstPaidAt, query.now)) {
       return false;
     }
     return true;
@@ -74,8 +78,9 @@ export function toBoardListing(listing: RankedListing): BoardListing {
 }
 
 /**
- * Live board for `city` + its current weekend window.
- * Empty until Polar reports paid. Unpaid / abandoned never invent a #1.
+ * Live board for `city` + rolling last 7 days from paid createdAt.
+ * ISO `{city}:{iso_week}` stays a Polar/audit label. Monday 00:00 UTC is not
+ * occupancy expiry. Empty until Polar reports paid. Unpaid never invent a #1.
  */
 export function getBoardListings(
   city: CitySlug,
@@ -86,10 +91,9 @@ export function getBoardListings(
   if (!resolved.ok) {
     return [];
   }
-  const window = currentWindow(resolved.city, now);
-  const paid = listingsForCityWindow(db, city, window.id).filter(isPaidListing);
+  const paid = listingsForCityRollingWeek(db, city, now).filter(isPaidListing);
   return rankListings(paid, {
     city,
-    windowId: window.id,
+    now,
   }).map(toBoardListing);
 }

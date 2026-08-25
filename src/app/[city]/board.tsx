@@ -317,9 +317,15 @@ export function CityBoard({
         <p className="edition">One city · one weekend</p>
         <h1 className="city-name">{city.name}</h1>
         <p className="weekend-slot">{weekendLabel}</p>
-        <p className="period-meta">
-          This weekend, #1 is whoever paid the most. Rank is money, not stars.
-        </p>
+        {occupied ? (
+          <p className="period-meta week-window" data-rolling-week="">
+            Rolling last 7 days. Not Monday 00:00 UTC.
+          </p>
+        ) : (
+          <p className="period-meta">
+            This weekend, #1 is whoever paid the most. Rank is money, not stars.
+          </p>
+        )}
         {occupied && numberOne ? (
           <>
             <p className="list-venue-line">
