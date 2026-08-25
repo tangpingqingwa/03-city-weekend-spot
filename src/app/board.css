@@ -156,6 +156,20 @@ a:hover {
   font-size: 0.86rem;
 }
 
+/* Occupied /nyc: name when new bids close. Not Thursday noon on this poster. Keep Book #1. */
+.poster[data-occupied="true"] .occupied-bid-close {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+/* Empty unpublished / occupied closed must not stamp occupied-open bid-close. */
+.poster[data-occupied="false"] .occupied-bid-close,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-bid-close,
+.poster[data-occupied="true"][data-window-closed] .occupied-bid-close {
+  display: none;
+}
+
 /* Empty unpublished /nyc must not stamp rolling-week occupancy. */
 .poster[data-occupied="false"] [data-rolling-week],
 .poster[data-occupied="false"] .week-window,
