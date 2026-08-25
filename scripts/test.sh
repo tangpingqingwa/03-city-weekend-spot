@@ -296,6 +296,22 @@ fi
 if ! grep -n 'className="occupied-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
   fail "occupied closed must name Sunday local reopen"
 fi
+grep -q 'occupied-bid-close' src/app/\[city\]/board.tsx \
+  || fail "occupied open must name when new bids close"
+grep -q 'occupied-bid-close' src/app/board.css \
+  || fail "poster CSS must style occupied-open bid-close copy"
+if ! grep -n 'className="occupied-bid-close"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids close Sunday'; then
+  fail "occupied open must name when new bids close"
+fi
+if ! grep -n 'className="occupied-bid-close"' -A 4 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
+  fail "occupied open must name Sunday local bid close"
+fi
+if grep -n 'className="occupied-bid-close"' -A 4 src/app/\[city\]/board.tsx | grep -q 'Thursday noon'; then
+  fail "occupied open must not stamp Thursday noon–Sunday local close clock"
+fi
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'occupied-bid-close'; then
+  fail "do not restamp empty unpublished with occupied-bid-close"
+fi
 grep -q 'occupied-closed-checkout-error' src/app/\[city\]/board.tsx \
   || fail "occupied closed checkout window_closed must render outside BidForm"
 grep -q 'OCCUPIED_CLOSED_WINDOW_CLOSED_COPY' src/app/\[city\]/board.tsx \
@@ -371,6 +387,10 @@ if "Not a live claim on Monday" not in body:
     raise SystemExit("unpublished must reject a live claim on Monday")
 if "occupied-window-closed" in body:
     raise SystemExit("do not restamp empty unpublished with occupied-window-closed")
+if "occupied-bid-close" in body:
+    raise SystemExit("do not restamp empty unpublished with occupied-bid-close")
+if "New bids close Sunday" in body:
+    raise SystemExit("empty unpublished names when bids open, not occupied-open close")
 if "empty-unpublished-checkout-error" in body:
     raise SystemExit("do not restamp empty unpublished poster with checkout error")
 if "later-stack-also" in body or "later-stack-closed-kicker" in body:
@@ -478,6 +498,27 @@ if occ_closed_copy != "New bids are closed. Not a live claim on Monday. New bids
     raise SystemExit("do not restamp occupied closed poster window_closed reopen copy")
 if "Thursday noon" not in occ_closed_copy:
     raise SystemExit("occupied closed must name Thursday noon reopen")
+if 'className="occupied-bid-close"' not in city_board:
+    raise SystemExit("occupied open must name when new bids close")
+if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"occupied-bid-close\"[\s\S]*?New bids close Sunday 23:59:59.999 local[\s\S]*?\) : null\}", city_board) is None:
+    raise SystemExit("occupied-open bid-close must stay gated on bidsOpen")
+occ_close_match = re.search(
+    r'className="occupied-bid-close">\s*([^<]+)',
+    city_board,
+)
+if not occ_close_match:
+    raise SystemExit("occupied-bid-close copy missing")
+occ_close_copy = " ".join(occ_close_match.group(1).split())
+if occ_close_copy != "New bids close Sunday 23:59:59.999 local.":
+    raise SystemExit("occupied open must name when new bids close")
+if "Thursday noon" in occ_close_copy:
+    raise SystemExit("occupied open must not stamp Thursday noon–Sunday local close clock")
+if "reopen" in occ_close_copy:
+    raise SystemExit("do not restamp occupied-open with reopen copy")
+if "Not anytime in the rolling week" in occ_close_copy:
+    raise SystemExit("do not restamp occupied-open with empty unpublished bid-open copy")
+if 'className="occupied-bid-close"' in stripped_board:
+    raise SystemExit("occupied bid-close must not render when bids are closed")
 if "data-occupied-closed-checkout-error" not in city_board:
     raise SystemExit("occupied closed checkout window_closed must render outside BidForm")
 if "occupied-closed-checkout-error" not in city_board:
@@ -503,10 +544,15 @@ if "(!bidsOpen ? { \"data-window-closed\": \"\" } : {})" not in city_board and "
 if "!occupied && !bidsOpen" in city_board:
     raise SystemExit("occupied closed must stamp window_closed, not empty-only")
 rolling_at = city_board.find("data-rolling-week")
+occupied_close_at = city_board.find('className="occupied-bid-close"')
 occupied_closed_at = city_board.find('className="occupied-window-closed"')
 reopen_at = city_board.find("New bids reopen Thursday noon")
 checkout_err_at = city_board.find("data-occupied-closed-checkout-error")
 bid_form_at = city_board.find("<BidForm")
+if not (rolling_at >= 0 and occupied_close_at > rolling_at):
+    raise SystemExit("occupied bid-close must follow occupancy rolling copy")
+if not (occupied_closed_at > occupied_close_at > 0):
+    raise SystemExit("occupied closed reopen copy must not restamp occupied-open bid-close")
 if not (rolling_at >= 0 and occupied_closed_at > rolling_at):
     raise SystemExit("occupied window_closed copy must follow occupancy rolling copy")
 if not (occupied_closed_at >= 0 and reopen_at > occupied_closed_at):
@@ -736,6 +782,26 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must keep occupied rolling-week chrome off unpublished")
 if '.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week]' not in css:
     raise SystemExit("occupied rolling-week chrome must stay occupied-only")
+if '.poster[data-occupied="true"] .occupied-bid-close' not in css:
+    raise SystemExit("occupied CSS must name when new bids close")
+if '.poster[data-occupied="false"] .occupied-bid-close' not in css:
+    raise SystemExit("empty CSS must keep occupied-open bid-close off unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-bid-close' not in css:
+    raise SystemExit("empty unpublished CSS must keep occupied-open bid-close off unpublished")
+if '.poster[data-occupied="true"][data-window-closed] .occupied-bid-close' not in css:
+    raise SystemExit("occupied CSS must keep occupied-open bid-close off occupied when window_closed")
+occupied_bid_close = re.search(
+    r'\.poster\[data-occupied="true"\] \.occupied-bid-close\s*\{([^}]*)\}',
+    css,
+)
+if not occupied_bid_close:
+    raise SystemExit("occupied-bid-close CSS missing")
+if "background: var(--accent)" in occupied_bid_close.group(1):
+    raise SystemExit("do not recolor occupied-open bid-close copy")
+if "display: none" in occupied_bid_close.group(1):
+    raise SystemExit("do not hide occupied-open bid-close copy")
+if re.search(r"(?m)^\.occupied-bid-close\s*\{", css):
+    raise SystemExit("unscoped .occupied-bid-close can leak onto empty /nyc")
 if ".poster[data-occupied=\"true\"] .book-one" not in css:
     raise SystemExit("occupied Book #1 must stay occupied-only")
 PY
@@ -1916,6 +1982,8 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished checkout window_closed leftover test did not run"
   grep -q 'empty unpublished window_closed names when new bids reopen' "$test_log" \
     || fail "empty unpublished poster window_closed leftover test did not run"
+  grep -q 'occupied open names when new bids close' "$test_log" \
+    || fail "occupied open bid-close leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \

@@ -396,6 +396,11 @@ export function CityBoard({
             <p className="period-meta week-window" data-rolling-week="">
               Rolling last 7 days. Not Monday 00:00 UTC.
             </p>
+            {bidsOpen ? (
+              <p className="occupied-bid-close">
+                New bids close Sunday 23:59:59.999 local.
+              </p>
+            ) : null}
             {!bidsOpen ? (
               <p className="occupied-window-closed">
                 New bids are closed. Not a live claim on Monday. New bids reopen Thursday noon through Sunday 23:59:59.999 local.
