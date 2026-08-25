@@ -5461,10 +5461,6 @@ test("occupied closed checkout window_closed names when new bids reopen — Thur
     "This weekend window is closed. No charge and no rank claimed.",
   );
   assert.equal(
-    checkoutErrorCopy("window_closed", { occupied: false, bidsOpen: false }),
-    "This weekend window is closed. No charge and no rank claimed.",
-  );
-  assert.equal(
     checkoutErrorCopy("window_closed", { occupied: true, bidsOpen: true }),
     "This weekend window is closed. No charge and no rank claimed.",
   );
@@ -5601,9 +5597,7 @@ test("occupied closed checkout window_closed names when new bids reopen — Thur
   );
   assert.doesNotMatch(emptyClosed, /class="occupied-window-closed"/);
   assert.doesNotMatch(emptyClosed, /data-occupied-closed-checkout-error/);
-  assert.doesNotMatch(emptyClosed, /New bids reopen/);
-  assert.doesNotMatch(emptyClosed, /This weekend window is closed/);
-  assert.doesNotMatch(emptyClosed, /data-checkout-error/);
+  assert.doesNotMatch(emptyClosed, /class="occupied-closed-checkout-error"/);
   assert.doesNotMatch(emptyClosed, /data-bid-form/);
   assert.doesNotMatch(emptyClosed, /Already ranked/);
   assert.doesNotMatch(emptyClosed, /class="book-one"|data-guest-first/);
@@ -5648,6 +5642,220 @@ test("occupied closed checkout window_closed names when new bids reopen — Thur
   assert.doesNotMatch(emptyClosedCss, /occupied-window-closed/);
   assert.doesNotMatch(emptyClosedCss, /occupied-closed-checkout-error/);
   assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}occupied-closed-checkout-error/);
+  assert.doesNotMatch(css, /data-window-closed-after|data-claim-after-closed|data-list-after-closed|data-outbid-after-open|data-list-after-book-nine|data-book-after-list-eight/);
+});
+
+test("empty unpublished checkout window_closed names when new bids reopen — Thursday noon–Sunday local", () => {
+  assert.equal(
+    checkoutErrorCopy("window_closed", { occupied: false, bidsOpen: false }),
+    "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.",
+  );
+  assert.equal(
+    checkoutErrorCopy("window_closed", { occupied: true, bidsOpen: false }),
+    "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.",
+  );
+  assert.equal(
+    checkoutErrorCopy("window_closed"),
+    "This weekend window is closed. No charge and no rank claimed.",
+  );
+  assert.equal(
+    checkoutErrorCopy("window_closed", { occupied: false, bidsOpen: true }),
+    "This weekend window is closed. No charge and no rank claimed.",
+  );
+
+  const closed = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_CLOSED_MONDAY,
+      checkoutError: "window_closed",
+    }),
+  );
+  const weekend = closed.indexOf('class="unpublished-weekend"');
+  const noOne = closed.indexOf("No #1");
+  const unpublished = closed.indexOf("This weekend is unpublished");
+  const windowCopy = closed.indexOf(
+    "Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.",
+  );
+  const bidOpen = closed.indexOf(
+    "New bids open Thursday noon through Sunday 23:59:59.999 local. Not anytime in the rolling week.",
+  );
+  const posterClosed = closed.indexOf(
+    "New bids are closed. Not a live claim on Monday.",
+  );
+  const checkoutError = closed.indexOf('data-empty-unpublished-checkout-error=""');
+  const checkoutCopy = closed.indexOf(
+    "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.",
+  );
+  assert.ok(weekend >= 0 && noOne > weekend);
+  assert.ok(unpublished > noOne && windowCopy > unpublished);
+  assert.ok(bidOpen > windowCopy && posterClosed > bidOpen);
+  assert.ok(checkoutError > posterClosed);
+  assert.ok(checkoutCopy > checkoutError);
+  assert.match(closed, /data-occupied="false"/);
+  assert.match(closed, /data-window-closed=""/);
+  assert.match(closed, /data-empty-unpublished=""/);
+  assert.match(closed, /class="empty-window"/);
+  assert.match(closed, /class="empty-bid-open"/);
+  assert.match(closed, /class="empty-window-closed"/);
+  assert.match(
+    closed,
+    /class="empty-window-closed"[^>]*>\s*New bids are closed\. Not a live claim on Monday\.\s*</,
+  );
+  assert.match(closed, /data-checkout-error="true"/);
+  assert.match(closed, /data-empty-unpublished-checkout-error=""/);
+  assert.match(closed, /class="stub-note empty-unpublished-checkout-error"/);
+  assert.match(
+    closed,
+    /This weekend window is closed\. New bids reopen Thursday noon through Sunday 23:59:59\.999 local\. No charge and no rank claimed\./,
+  );
+  assert.doesNotMatch(closed, /class="occupied-window-closed"/);
+  assert.doesNotMatch(closed, /data-occupied-closed-checkout-error/);
+  assert.doesNotMatch(closed, /class="occupied-closed-checkout-error"/);
+  assert.doesNotMatch(closed, />Outbid</);
+  assert.doesNotMatch(closed, /Claim #1 for/);
+  assert.doesNotMatch(closed, /data-bid-form/);
+  assert.doesNotMatch(closed, />List a venue</);
+  assert.doesNotMatch(closed, /href="#claim"/);
+  assert.doesNotMatch(closed, /Already ranked/);
+  assert.doesNotMatch(closed, /class="book-one"|data-guest-first/);
+  assert.doesNotMatch(closed, /data-rolling-week/);
+  assert.doesNotMatch(closed, /24h lock/);
+  assert.doesNotMatch(closed, /data-window-closed-after|data-claim-after-closed|data-outbid-after-open/);
+  assert.doesNotMatch(closed, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(closed, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(closed, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const noQuery = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_CLOSED_MONDAY,
+    }),
+  );
+  assert.match(
+    noQuery,
+    /class="empty-window-closed"[^>]*>[\s\S]*?New bids are closed\. Not a live claim on Monday\./,
+  );
+  assert.doesNotMatch(noQuery, /data-checkout-error/);
+  assert.doesNotMatch(noQuery, /data-empty-unpublished-checkout-error/);
+  assert.doesNotMatch(noQuery, /This weekend window is closed/);
+  assert.doesNotMatch(noQuery, /New bids reopen/);
+  assert.doesNotMatch(noQuery, /data-bid-form/);
+  assert.doesNotMatch(noQuery, />Outbid</);
+
+  const thursdayMorning = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_CLOSED_THU_MORNING,
+      checkoutError: "window_closed",
+    }),
+  );
+  assert.match(thursdayMorning, /data-occupied="false"/);
+  assert.match(thursdayMorning, /data-window-closed=""/);
+  assert.match(thursdayMorning, /data-empty-unpublished-checkout-error=""/);
+  assert.match(
+    thursdayMorning,
+    /class="empty-window-closed"[^>]*>[\s\S]*?New bids are closed\. Not a live claim on Monday\./,
+  );
+  assert.match(
+    thursdayMorning,
+    /This weekend window is closed\. New bids reopen Thursday noon through Sunday 23:59:59\.999 local\. No charge and no rank claimed\./,
+  );
+  assert.doesNotMatch(thursdayMorning, />Outbid</);
+  assert.doesNotMatch(thursdayMorning, /data-bid-form/);
+  assert.doesNotMatch(thursdayMorning, /class="occupied-window-closed"/);
+  assert.doesNotMatch(thursdayMorning, /data-occupied-closed-checkout-error/);
+  assert.doesNotMatch(thursdayMorning, /class="book-one"|data-guest-first/);
+
+  const openSunday = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_OPEN_SUNDAY,
+      checkoutError: "window_closed",
+    }),
+  );
+  assert.match(openSunday, /data-occupied="false"/);
+  assert.match(openSunday, />Outbid</);
+  assert.match(openSunday, /Claim #1 for/);
+  assert.match(openSunday, /data-bid-form/);
+  assert.match(openSunday, /data-checkout-error="true"/);
+  assert.match(
+    openSunday,
+    /This weekend window is closed\. No charge and no rank claimed\./,
+  );
+  assert.doesNotMatch(openSunday, /data-window-closed/);
+  assert.doesNotMatch(openSunday, /data-empty-unpublished-checkout-error/);
+  assert.doesNotMatch(openSunday, /class="empty-window-closed"/);
+  assert.doesNotMatch(openSunday, /New bids reopen/);
+
+  const occupiedClosed = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: rankedCards,
+      now: NYC_BIDS_CLOSED_MONDAY,
+      checkoutError: "window_closed",
+    }),
+  );
+  assert.match(occupiedClosed, /data-occupied="true"/);
+  assert.match(occupiedClosed, /data-occupied-closed-checkout-error=""/);
+  assert.match(occupiedClosed, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(occupiedClosed, /Already ranked/);
+  assert.match(
+    occupiedClosed,
+    /class="occupied-window-closed"[^>]*>[\s\S]*?New bids are closed\. Not a live claim on Monday\. New bids reopen Thursday noon through Sunday 23:59:59\.999 local\./,
+  );
+  assert.doesNotMatch(occupiedClosed, /data-empty-unpublished-checkout-error/);
+  assert.doesNotMatch(occupiedClosed, /class="empty-unpublished-checkout-error"/);
+  assert.doesNotMatch(occupiedClosed, /class="empty-window-closed"/);
+  assert.doesNotMatch(occupiedClosed, /This weekend is unpublished/);
+  assert.doesNotMatch(occupiedClosed, /No #1/);
+  assert.doesNotMatch(occupiedClosed, /data-bid-form/);
+  assert.doesNotMatch(occupiedClosed, />Outbid</);
+
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\]\[data-window-closed\] \.empty-unpublished-checkout-error\[data-checkout-error\]/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window-closed/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="true"\] \.empty-unpublished-checkout-error/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="true"\]\[data-window-closed\] \.occupied-closed-checkout-error\[data-checkout-error\]/,
+  );
+  const emptyCheckoutCss = (
+    css.split(
+      "Empty unpublished checkout window_closed names when new bids reopen. BidForm is hidden.",
+      2,
+    )[1] ?? ""
+  ).split("/* Occupied /nyc: window_closed is on the poster, not only a checkout error. Keep Book #1. */")[0];
+  assert.match(emptyCheckoutCss, /empty-unpublished-checkout-error/);
+  assert.doesNotMatch(emptyCheckoutCss, /background:\s*var\(--accent\)/);
+  assert.doesNotMatch(emptyCheckoutCss, /\.book-one/);
+  assert.doesNotMatch(
+    emptyCheckoutCss,
+    /empty-unpublished-checkout-error[\s\S]{0,120}display:\s*none|display:\s*none[\s\S]{0,80}empty-unpublished-checkout-error/,
+  );
+  const emptyClosedCss = (
+    css.split(
+      "Empty unpublished: window_closed is on the poster, not only a checkout error.",
+      2,
+    )[1] ?? ""
+  ).split("/* Occupied /nyc: window_closed is on the poster, not only a checkout error. Keep Book #1. */")[0];
+  assert.match(emptyClosedCss, /empty-window-closed/);
+  assert.match(emptyClosedCss, /empty-unpublished-checkout-error/);
+  assert.doesNotMatch(emptyClosedCss, /occupied-window-closed/);
+  assert.doesNotMatch(emptyClosedCss, /occupied-closed-checkout-error/);
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}empty-unpublished-checkout-error/);
   assert.doesNotMatch(css, /data-window-closed-after|data-claim-after-closed|data-list-after-closed|data-outbid-after-open|data-list-after-book-nine|data-book-after-list-eight/);
 });
 
