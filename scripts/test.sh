@@ -227,19 +227,62 @@ grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have a
 grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
 grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must print No #1 as the weekend answer"
 grep -q 'empty-note' src/app/\[city\]/board.tsx || fail "unpublished must sit under No #1, not above it"
+grep -q 'empty-window' src/app/\[city\]/board.tsx \
+  || fail "unpublished must name the rolling last-7-days window"
 grep -q 'data-empty-unpublished' src/app/\[city\]/board.tsx \
   || fail "empty board must stamp unpublished so occupied chrome stays off"
 grep -q 'unpublished-weekend' src/app/\[city\]/board.tsx \
   || fail "empty /nyc must use unpublished-weekend, not the occupied listings fold"
-if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -q 'className="fold"'; then
+if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'className="fold"'; then
   fail "unpublished weekend must not reuse the occupied listings fold"
 fi
-if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
+if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
   fail "unpublished weekend must not keep the occupied fold-rule"
 fi
-if grep -n 'function UnpublishedWeekend' -A 20 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|rest-name'; then
+if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|rest-name'; then
   fail "unpublished weekend must not compose Book #1, later Book, later-facts, or later-stack"
 fi
+if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'data-rolling-week'; then
+  fail "unpublished must not stamp occupied data-rolling-week"
+fi
+if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'week-window'; then
+  fail "unpublished must not reuse occupied week-window chrome"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Rolling last 7 days from paid createdAt'; then
+  fail "unpublished must name rolling last 7 days from paid createdAt"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Not Monday 00:00 UTC'; then
+  fail "unpublished must reject Monday 00:00 UTC as the fair window"
+fi
+python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name rolling last-7-days without occupied chrome"
+import re
+import sys
+
+src = open(sys.argv[1], encoding="utf-8").read()
+match = re.search(
+    r"function UnpublishedWeekend\([\s\S]*?\n(?:export )?function ",
+    src,
+)
+if not match:
+    raise SystemExit("UnpublishedWeekend missing")
+body = match.group(0)
+if "This weekend is unpublished" not in body:
+    raise SystemExit("unpublished copy missing")
+if "No #1" not in body:
+    raise SystemExit("empty must stay No #1")
+if "Rolling last 7 days from paid createdAt" not in body:
+    raise SystemExit("unpublished must name rolling last 7 days from paid createdAt")
+if "Not Monday 00:00 UTC" not in body:
+    raise SystemExit("unpublished must reject Monday 00:00 UTC")
+if "data-rolling-week" in body:
+    raise SystemExit("unpublished must not stamp occupied data-rolling-week")
+if "week-window" in body:
+    raise SystemExit("unpublished must not reuse occupied week-window chrome")
+if 'className="empty-window"' not in body:
+    raise SystemExit("unpublished must use empty-window, not occupied rolling chrome")
+if "book-one" in body or "BookingHop" in body:
+    raise SystemExit("unpublished must not retouch occupied Book #1")
+PY
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
 if grep -q 'empty-kicker' src/app/\[city\]/board.tsx; then
@@ -257,6 +300,8 @@ grep -q 'data-occupied="false"' src/app/board.css \
   || fail "poster CSS must keep occupied chrome off empty /nyc"
 grep -q 'unpublished-weekend' src/app/board.css \
   || fail "poster CSS must style unpublished /nyc off the occupied fold"
+grep -q 'empty-window' src/app/board.css \
+  || fail "poster CSS must style unpublished rolling-window copy"
 python3 - src/app/board.css <<'PY' || fail "occupied Book chrome must not paint on unpublished /nyc"
 import re
 import sys
@@ -300,6 +345,20 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must keep weekend-answer off unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .number-one' not in css:
     raise SystemExit("empty CSS must keep occupied #1 chrome off unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window' not in css:
+    raise SystemExit("empty CSS must name the rolling window on unpublished")
+empty_window = re.search(
+    r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window\s*\{([^}]*)\}',
+    css,
+)
+if not empty_window:
+    raise SystemExit("empty-window CSS missing")
+if "background: var(--accent)" in empty_window.group(1):
+    raise SystemExit("do not recolor empty window copy")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] [data-rolling-week]' not in css:
+    raise SystemExit("empty CSS must keep occupied rolling-week chrome off unpublished")
+if '.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week]' not in css:
+    raise SystemExit("occupied rolling-week chrome must stay occupied-only")
 PY
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
 grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
@@ -1454,6 +1513,8 @@ if [[ -f package.json ]]; then
     || fail "open Polar session unpaid-off-poster test did not run"
   grep -q 'occupied week window is rolling last-7-days' "$test_log" \
     || fail "occupied rolling last-7-days leftover test did not run"
+  grep -q 'empty unpublished names rolling last-7-days' "$test_log" \
+    || fail "empty unpublished rolling last-7-days leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \

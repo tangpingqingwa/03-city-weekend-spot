@@ -723,6 +723,13 @@ a:hover {
   font-size: 0.95rem;
 }
 
+/* Empty unpublished names the same fair window as occupied. Not civil midnight. */
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 /* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
 .poster[data-occupied="false"] .fold,
 .poster[data-occupied="false"] .book-one,

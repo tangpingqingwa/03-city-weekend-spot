@@ -210,6 +210,9 @@ function UnpublishedWeekend({ city }: { city: City }) {
         This weekend is unpublished. No venue has paid to print on the{" "}
         {city.name} poster. Nothing is invented here.
       </p>
+      <p className="empty-window">
+        Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.
+      </p>
     </section>
   );
 }
