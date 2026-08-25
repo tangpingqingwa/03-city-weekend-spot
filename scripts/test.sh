@@ -235,35 +235,56 @@ grep -q 'data-empty-unpublished' src/app/\[city\]/board.tsx \
   || fail "empty board must stamp unpublished so occupied chrome stays off"
 grep -q 'unpublished-weekend' src/app/\[city\]/board.tsx \
   || fail "empty /nyc must use unpublished-weekend, not the occupied listings fold"
-if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'className="fold"'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'className="fold"'; then
   fail "unpublished weekend must not reuse the occupied listings fold"
 fi
-if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
   fail "unpublished weekend must not keep the occupied fold-rule"
 fi
-if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|rest-name'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|rest-name'; then
   fail "unpublished weekend must not compose Book #1, later Book, later-facts, or later-stack"
 fi
-if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'data-rolling-week'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'data-rolling-week'; then
   fail "unpublished must not stamp occupied data-rolling-week"
 fi
-if grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'week-window'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'week-window'; then
   fail "unpublished must not reuse occupied week-window chrome"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Rolling last 7 days from paid createdAt'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Outbid'; then
+  fail "unpublished must not offer Outbid when new bids are closed"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Rolling last 7 days from paid createdAt'; then
   fail "unpublished must name rolling last 7 days from paid createdAt"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Not Monday 00:00 UTC'; then
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Not Monday 00:00 UTC'; then
   fail "unpublished must reject Monday 00:00 UTC as the fair window"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Thursday noon'; then
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Thursday noon'; then
   fail "unpublished must name Thursday noon bid-open"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
   fail "unpublished must name Sunday local bid close"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Not anytime in the rolling week'; then
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Not anytime in the rolling week'; then
   fail "unpublished must reject anytime-in-the-rolling-week bids"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'empty-window-closed'; then
+  fail "unpublished must name window_closed on the empty poster"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'New bids are closed'; then
+  fail "unpublished must say new bids are closed"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Not a live claim on Monday'; then
+  fail "unpublished must reject a live claim on Monday"
+fi
+grep -q 'data-window-closed' src/app/\[city\]/board.tsx \
+  || fail "empty closed must stamp window_closed on the poster"
+grep -q 'occupied || bidsOpen' src/app/\[city\]/board.tsx \
+  || fail "empty closed must not render Outbid outside Thursday noon–Sunday local"
+grep -q 'empty-window-closed' src/app/board.css \
+  || fail "poster CSS must style unpublished window_closed copy"
+if grep -qE 'data-window-closed-after|data-claim-after-closed|data-outbid-after-open' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
+  fail "empty window_closed must not stamp another named hop"
 fi
 python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name bid-open without occupied chrome"
 import re
@@ -291,20 +312,44 @@ if "Sunday 23:59:59.999 local" not in body:
     raise SystemExit("unpublished must name Sunday local bid close")
 if "Not anytime in the rolling week" not in body:
     raise SystemExit("unpublished must reject anytime-in-the-rolling-week bids")
+if "New bids are closed" not in body:
+    raise SystemExit("unpublished must say new bids are closed")
+if "Not a live claim on Monday" not in body:
+    raise SystemExit("unpublished must reject a live claim on Monday")
 if "data-rolling-week" in body:
     raise SystemExit("unpublished must not stamp occupied data-rolling-week")
 if "week-window" in body:
     raise SystemExit("unpublished must not reuse occupied week-window chrome")
+if "Outbid" in body or "Claim #1" in body:
+    raise SystemExit("unpublished must not offer Outbid or Claim #1 as a live bid")
 if 'className="empty-window"' not in body:
     raise SystemExit("unpublished must use empty-window, not occupied rolling chrome")
 if 'className="empty-bid-open"' not in body:
     raise SystemExit("unpublished must use empty-bid-open, not occupied chrome")
+if 'className="empty-window-closed"' not in body:
+    raise SystemExit("unpublished must use empty-window-closed, not a checkout-only error")
+if "data-window-closed" not in body:
+    raise SystemExit("unpublished must stamp window_closed when new bids are closed")
 window_at = body.find('className="empty-window"')
 bid_at = body.find('className="empty-bid-open"')
+closed_at = body.find('className="empty-window-closed"')
 if not (window_at >= 0 and bid_at > window_at):
     raise SystemExit("bid-open clock must follow occupancy window copy")
+if not (closed_at > bid_at):
+    raise SystemExit("window_closed copy must follow bid-open clock")
 if "book-one" in body or "BookingHop" in body:
     raise SystemExit("unpublished must not retouch occupied Book #1")
+board = re.search(
+    r"export function CityBoard\([\s\S]*?\n\}\n",
+    src,
+)
+if not board:
+    raise SystemExit("CityBoard missing")
+city_board = board.group(0)
+if "occupied || bidsOpen" not in city_board:
+    raise SystemExit("empty closed must not offer Outbid outside Thursday noon–Sunday local")
+if re.search(r"\{occupied \|\| bidsOpen \? \([\s\S]*?<BidForm[\s\S]*?\) : null\}", city_board) is None:
+    raise SystemExit("empty BidForm/Outbid must stay gated on bidsOpen")
 PY
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
@@ -374,6 +419,10 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must name the rolling window on unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open' not in css:
     raise SystemExit("empty CSS must name bid-open on unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed' not in css:
+    raise SystemExit("empty CSS must name window_closed on unpublished")
+if '.poster[data-occupied="false"][data-window-closed] .outbid' not in css:
+    raise SystemExit("empty CSS must keep Outbid off unpublished when window_closed")
 empty_window = re.search(
     r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window\s*\{([^}]*)\}',
     css,
@@ -390,6 +439,14 @@ if not empty_bid_open:
     raise SystemExit("empty-bid-open CSS missing")
 if "background: var(--accent)" in empty_bid_open.group(1):
     raise SystemExit("do not recolor empty bid-open copy")
+empty_closed = re.search(
+    r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window-closed\s*\{([^}]*)\}',
+    css,
+)
+if not empty_closed:
+    raise SystemExit("empty-window-closed CSS missing")
+if "background: var(--accent)" in empty_closed.group(1):
+    raise SystemExit("do not recolor empty window_closed copy")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] [data-rolling-week]' not in css:
     raise SystemExit("empty CSS must keep occupied rolling-week chrome off unpublished")
 if '.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week]' not in css:
@@ -1554,6 +1611,8 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished rolling last-7-days leftover test did not run"
   grep -q 'empty unpublished names when new bids open' "$test_log" \
     || fail "empty unpublished bid-open leftover test did not run"
+  grep -q 'empty unpublished must not offer Outbid when new bids are closed' "$test_log" \
+    || fail "empty unpublished window_closed leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \

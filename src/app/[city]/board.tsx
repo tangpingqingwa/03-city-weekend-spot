@@ -5,6 +5,7 @@ import {
   type City,
 } from "../../core/cities";
 import { isPaidListing } from "../../core/listing";
+import { currentWindow, isWindowOpen } from "../../core/window";
 import { listingClickPath } from "../api/click/[id]/route";
 import { BidForm } from "./bid-form";
 
@@ -13,6 +14,7 @@ type CityBoardProps = {
   listings: readonly BoardListing[];
   weekendLabel?: string;
   checkoutError?: string;
+  now?: Date;
 };
 
 export function formatUsd(amount: number): string {
@@ -197,13 +199,20 @@ function LaterBookFoot({ listing }: { listing: BoardListing }) {
   );
 }
 
-function UnpublishedWeekend({ city }: { city: City }) {
+function UnpublishedWeekend({
+  city,
+  bidsOpen,
+}: {
+  city: City;
+  bidsOpen: boolean;
+}) {
   return (
     <section
       className="unpublished-weekend"
       aria-label={`${city.name} weekend listings`}
       data-empty-board="true"
       data-empty-unpublished=""
+      {...(!bidsOpen ? { "data-window-closed": "" } : {})}
     >
       <p className="empty-answer">No #1</p>
       <p className="empty-note">
@@ -216,6 +225,11 @@ function UnpublishedWeekend({ city }: { city: City }) {
       <p className="empty-bid-open">
         New bids open Thursday noon through Sunday 23:59:59.999 local. Not anytime in the rolling week.
       </p>
+      {!bidsOpen ? (
+        <p className="empty-window-closed">
+          New bids are closed. Not a live claim on Monday.
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -302,6 +316,7 @@ export function CityBoard({
   listings,
   weekendLabel = "This Friday / Saturday",
   checkoutError,
+  now: nowProp,
 }: CityBoardProps) {
   const paid = listings.filter(
     (listing) => paidAtMs(listing) !== undefined,
@@ -311,6 +326,8 @@ export function CityBoard({
   const errorCopy = checkoutErrorCopy(checkoutError);
   const occupied = paid.length > 0;
   const numberOne = paid.find((listing) => listing.rank === 1);
+  const now = nowProp ?? new Date();
+  const bidsOpen = isWindowOpen(currentWindow(city, now), now);
 
   return (
     <main
@@ -318,6 +335,7 @@ export function CityBoard({
       data-board=""
       data-city={city.slug}
       data-occupied={occupied ? "true" : "false"}
+      {...(!occupied && !bidsOpen ? { "data-window-closed": "" } : {})}
     >
       <header className="masthead">
         <p className="edition">One city · one weekend</p>
@@ -383,14 +401,16 @@ export function CityBoard({
       {occupied ? (
         <Leaderboard city={city} listings={paid} />
       ) : (
-        <UnpublishedWeekend city={city} />
+        <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
       )}
-      <BidForm
-        city={city}
-        defaultAmount={defaultAmount}
-        occupied={occupied}
-        notice={errorCopy}
-      />
+      {occupied || bidsOpen ? (
+        <BidForm
+          city={city}
+          defaultAmount={defaultAmount}
+          occupied={occupied}
+          notice={errorCopy}
+        />
+      ) : null}
     </main>
   );
 }
