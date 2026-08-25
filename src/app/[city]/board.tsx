@@ -227,7 +227,7 @@ function UnpublishedWeekend({
       </p>
       {!bidsOpen ? (
         <p className="empty-window-closed">
-          New bids are closed. Not a live claim on Monday.
+          New bids are closed. Not a live claim on Monday. New bids reopen Thursday noon through Sunday 23:59:59.999 local.
         </p>
       ) : null}
     </section>

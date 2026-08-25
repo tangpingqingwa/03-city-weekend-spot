@@ -308,14 +308,17 @@ grep -q 'EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY' src/app/\[city\]/board.tsx
   || fail "empty unpublished checkout window_closed must name reopen copy"
 grep -q 'empty-unpublished-checkout-error' src/app/board.css \
   || fail "poster CSS must style empty unpublished checkout window_closed"
-if grep -n 'className="empty-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'reopen'; then
-  fail "do not restamp empty unpublished window_closed with occupied reopen copy"
+if ! grep -n 'className="empty-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids reopen Thursday noon'; then
+  fail "empty unpublished closed must name when new bids reopen"
+fi
+if ! grep -n 'className="empty-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
+  fail "empty unpublished closed must name Sunday local reopen"
 fi
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'occupied-window-closed'; then
   fail "do not restamp empty unpublished with occupied-window-closed"
 fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'reopen'; then
-  fail "do not restamp empty unpublished with occupied reopen copy"
+if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'New bids reopen Thursday noon'; then
+  fail "empty unpublished must name when new bids reopen"
 fi
 if grep -qE 'data-window-closed-after|data-claim-after-closed|data-list-after-closed|data-outbid-after-open' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
   fail "window_closed must not stamp another named hop"
@@ -386,8 +389,6 @@ if 'className="empty-bid-open"' not in body:
     raise SystemExit("unpublished must use empty-bid-open, not occupied chrome")
 if 'className="empty-window-closed"' not in body:
     raise SystemExit("unpublished must use empty-window-closed, not a checkout-only error")
-if "reopen" in body:
-    raise SystemExit("do not restamp empty unpublished with occupied reopen copy")
 empty_closed_match = re.search(
     r'className="empty-window-closed">\s*([^<]+)',
     body,
@@ -395,8 +396,21 @@ empty_closed_match = re.search(
 if not empty_closed_match:
     raise SystemExit("empty-window-closed copy missing")
 empty_closed_copy = " ".join(empty_closed_match.group(1).split())
-if empty_closed_copy != "New bids are closed. Not a live claim on Monday.":
-    raise SystemExit("do not restamp empty unpublished window_closed")
+if empty_closed_copy != "New bids are closed. Not a live claim on Monday. New bids reopen Thursday noon through Sunday 23:59:59.999 local.":
+    raise SystemExit("empty unpublished window_closed must name Thursday noon–Sunday local reopen")
+if "New bids reopen Thursday noon" not in empty_closed_copy:
+    raise SystemExit("empty unpublished window_closed must name when new bids reopen")
+empty_bid_open_match = re.search(
+    r'className="empty-bid-open">\s*([^<]+)',
+    body,
+)
+if not empty_bid_open_match:
+    raise SystemExit("empty-bid-open copy missing")
+empty_bid_open_copy = " ".join(empty_bid_open_match.group(1).split())
+if "reopen" in empty_bid_open_copy:
+    raise SystemExit("do not restamp empty-bid-open with reopen copy")
+if empty_bid_open_copy != "New bids open Thursday noon through Sunday 23:59:59.999 local. Not anytime in the rolling week.":
+    raise SystemExit("do not restamp empty unpublished bid-open copy")
 if "data-window-closed" not in body:
     raise SystemExit("unpublished must stamp window_closed when new bids are closed")
 window_at = body.find('className="empty-window"')
@@ -1900,6 +1914,8 @@ if [[ -f package.json ]]; then
     || fail "occupied closed checkout window_closed leftover test did not run"
   grep -q 'empty unpublished checkout window_closed names when new bids reopen' "$test_log" \
     || fail "empty unpublished checkout window_closed leftover test did not run"
+  grep -q 'empty unpublished window_closed names when new bids reopen' "$test_log" \
+    || fail "empty unpublished poster window_closed leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \
