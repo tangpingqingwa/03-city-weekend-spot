@@ -104,8 +104,11 @@ test("empty board reads like an unpublished weekend poster", () => {
   assert.match(html, /No #1/);
   assert.match(html, /This weekend is unpublished/);
   assert.match(html, /Nothing is invented here/);
+  assert.match(html, /class="empty-window"/);
+  assert.match(html, /Rolling last 7 days from paid createdAt\. Not Monday 00:00 UTC\./);
   assert.match(html, /data-empty-unpublished=""/);
   assert.match(html, /data-occupied="false"/);
+  assert.doesNotMatch(html, /data-rolling-week/);
   assert.doesNotMatch(html, /class="fold"/);
   assert.doesNotMatch(html, /fold-rule/);
   assert.doesNotMatch(html, /empty-kicker/);
@@ -126,6 +129,7 @@ test("first-time visitor reads the weekend answer before claim chrome", () => {
   assert.ok(noOne >= 0 && unpublished > noOne);
   assert.match(empty, /class="empty-answer"/);
   assert.match(empty, /class="empty-note"/);
+  assert.match(empty, /class="empty-window"/);
   assert.match(empty, /Claim #1 for/);
   assert.match(empty, /action="\/api\/checkout"/);
 
@@ -3594,18 +3598,24 @@ test("empty NYC weekend stays unpublished without occupied chrome", () => {
   );
   const noOne = empty.indexOf("No #1");
   const unpublished = empty.indexOf("This weekend is unpublished");
+  const windowCopy = empty.indexOf(
+    "Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.",
+  );
   const stamp = empty.indexOf('data-empty-unpublished=""');
   const form = empty.indexOf("data-bid-form");
   const checkout = empty.indexOf('action="/api/checkout"');
   const outbid = empty.indexOf(">Outbid<");
   assert.ok(noOne >= 0 && unpublished > noOne);
+  assert.ok(windowCopy > unpublished);
   assert.ok(stamp >= 0 && stamp < form);
   assert.ok(form > unpublished && checkout >= 0 && outbid > form);
   assert.match(empty, /data-empty-board="true"/);
   assert.match(empty, /data-occupied="false"/);
   assert.match(empty, /class="unpublished-weekend"/);
   assert.match(empty, /class="empty-answer"/);
+  assert.match(empty, /class="empty-window"/);
   assert.match(empty, /Nothing is invented here/);
+  assert.doesNotMatch(empty, /data-rolling-week/);
   assert.match(empty, /Print this weekend/);
   assert.match(empty, /Claim #1 for/);
   assert.match(empty, /data-city="nyc"/);
@@ -4046,7 +4056,7 @@ test("occupied week window is rolling last-7-days — not Monday 00:00 UTC", () 
   assert.match(empty, /data-first-click="claim"/);
   assert.match(empty, /Then the venue URL/);
   assert.doesNotMatch(empty, /data-rolling-week/);
-  assert.doesNotMatch(empty, /Rolling last 7 days/);
+  assert.doesNotMatch(empty, /class="period-meta week-window"/);
   assert.doesNotMatch(empty, /data-prize=/);
   assert.doesNotMatch(empty, /24h lock/);
   assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
@@ -4101,6 +4111,69 @@ test("occupied week window is rolling last-7-days — not Monday 00:00 UTC", () 
     css,
     /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \[data-rolling-week\]/,
   );
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}rolling-week/);
+});
+
+test("empty unpublished names rolling last-7-days — not Monday 00:00 UTC", () => {
+  const empty = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: [] }),
+  );
+  const weekend = empty.indexOf('class="unpublished-weekend"');
+  const noOne = empty.indexOf("No #1");
+  const unpublished = empty.indexOf("This weekend is unpublished");
+  const windowCopy = empty.indexOf(
+    "Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.",
+  );
+  const form = empty.indexOf("data-bid-form");
+  const outbid = empty.indexOf(">Outbid<");
+  assert.ok(weekend >= 0 && noOne > weekend);
+  assert.ok(unpublished > noOne && windowCopy > unpublished);
+  assert.ok(form > windowCopy && outbid > form);
+  assert.match(empty, /class="empty-answer"/);
+  assert.match(empty, /class="empty-window"/);
+  assert.match(empty, /data-empty-unpublished=""/);
+  assert.match(empty, /data-occupied="false"/);
+  assert.match(empty, /Nothing is invented here/);
+  assert.match(empty, /Claim #1 for/);
+  assert.match(empty, /data-first-click="claim"/);
+  assert.doesNotMatch(empty, /data-rolling-week/);
+  assert.doesNotMatch(empty, /class="period-meta week-window"/);
+  assert.doesNotMatch(empty, /data-prize=/);
+  assert.doesNotMatch(empty, /data-book-number-one|class="book-one"|data-guest-first/);
+  assert.doesNotMatch(empty, /24h lock/);
+  assert.doesNotMatch(empty, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(empty, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(empty, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const occupied = renderToStaticMarkup(
+    createElement(CityBoard, { city: nyc, listings: rankedCards }),
+  );
+  assert.match(occupied, /data-occupied="true"/);
+  assert.match(occupied, /data-rolling-week=""/);
+  assert.match(occupied, /Rolling last 7 days\. Not Monday 00:00 UTC\./);
+  assert.match(occupied, /class="book-one"[^>]*data-guest-first=""/);
+  assert.doesNotMatch(occupied, /class="empty-window"/);
+  assert.doesNotMatch(occupied, /This weekend is unpublished/);
+  assert.doesNotMatch(occupied, /data-empty-unpublished|unpublished-weekend/);
+  assert.doesNotMatch(occupied, /24h lock/);
+  assert.doesNotMatch(occupied, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(occupied, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(occupied, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \[data-rolling-week\]/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="true"\] \.period-meta\.week-window\[data-rolling-week\]/,
+  );
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}empty-window/);
   assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}rolling-week/);
 });
 
