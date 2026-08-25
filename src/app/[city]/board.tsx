@@ -327,6 +327,10 @@ const CHECKOUT_ERROR_COPY: Record<string, string> = {
 const OCCUPIED_CLOSED_WINDOW_CLOSED_COPY =
   "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.";
 
+/** Empty unpublished leftover `?error=window_closed`. BidForm is hidden, so this path must name reopen. */
+const EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY =
+  "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.";
+
 export function checkoutErrorCopy(
   code: string | undefined,
   state?: { occupied: boolean; bidsOpen: boolean },
@@ -338,6 +342,13 @@ export function checkoutErrorCopy(
     state.bidsOpen === false
   ) {
     return OCCUPIED_CLOSED_WINDOW_CLOSED_COPY;
+  }
+  if (
+    code === "window_closed" &&
+    state?.occupied === false &&
+    state.bidsOpen === false
+  ) {
+    return EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY;
   }
   return CHECKOUT_ERROR_COPY[code] ?? "Checkout did not start. No rank claimed.";
 }
@@ -361,6 +372,10 @@ export function CityBoard({
   const errorCopy = checkoutErrorCopy(checkoutError, { occupied, bidsOpen });
   const occupiedClosedCheckoutError =
     occupied && !bidsOpen && checkoutError === "window_closed"
+      ? errorCopy
+      : null;
+  const emptyUnpublishedClosedCheckoutError =
+    !occupied && checkoutError === "window_closed" && !bidsOpen
       ? errorCopy
       : null;
 
@@ -460,6 +475,15 @@ export function CityBoard({
           data-occupied-closed-checkout-error=""
         >
           {occupiedClosedCheckoutError}
+        </p>
+      ) : null}
+      {emptyUnpublishedClosedCheckoutError ? (
+        <p
+          className="stub-note empty-unpublished-checkout-error"
+          data-checkout-error="true"
+          data-empty-unpublished-checkout-error=""
+        >
+          {emptyUnpublishedClosedCheckoutError}
         </p>
       ) : null}
       {bidsOpen ? (

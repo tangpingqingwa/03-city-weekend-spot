@@ -744,6 +744,14 @@ a:hover {
   font-size: 0.95rem;
 }
 
+/* Empty unpublished checkout window_closed names when new bids reopen. BidForm is hidden. */
+.poster[data-occupied="false"][data-window-closed] .empty-unpublished-checkout-error[data-checkout-error] {
+  margin: 0.9rem 0 1.1rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
 .poster[data-occupied="false"][data-window-closed] .outbid,
 .poster[data-occupied="false"][data-window-closed] .claim,
 .poster[data-occupied="false"][data-window-closed] [data-bid-form],
@@ -786,6 +794,7 @@ a:hover {
 }
 
 /* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
+.poster[data-occupied="true"] .empty-unpublished-checkout-error,
 .poster[data-occupied="false"] .occupied-closed-checkout-error,
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-closed-checkout-error,
 .poster[data-occupied="false"] .fold,
