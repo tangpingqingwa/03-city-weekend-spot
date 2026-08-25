@@ -298,6 +298,10 @@ if grep -qE 'data-window-closed-after|data-claim-after-closed|data-list-after-cl
 fi
 grep -q '\[data-window-closed\] .list-venue' src/app/board.css \
   || fail "occupied CSS must keep List a venue off occupied when window_closed"
+grep -q '\[data-window-closed\] .book-after-list-line' src/app/board.css \
+  || fail "occupied CSS must keep leftover Book after the list hop off occupied when window_closed"
+grep -q '\[data-window-closed\] .book-after-list-hop-line' src/app/board.css \
+  || fail "occupied CSS must keep leftover Book after List follows Book off occupied when window_closed"
 python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name bid-open without occupied chrome"
 import re
 import sys
@@ -368,6 +372,30 @@ if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"list-venue\"[\s\S]*?href=\"#c
     raise SystemExit("occupied List a venue must stay gated on bidsOpen, not a live claim on Monday")
 if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"list-after-book-hop\"[\s\S]*?href=\"#claim\"[\s\S]*?\) : null\}", city_board) is None:
     raise SystemExit("occupied list-after-book-hop must stay gated on bidsOpen")
+if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"book-after-list\"[\s\S]*?after the list hop[\s\S]*?\) : null\}", city_board) is None:
+    raise SystemExit("occupied leftover Book after the list hop must stay gated on bidsOpen")
+if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"book-after-list-hop\"[\s\S]*?after List follows Book[\s\S]*?\) : null\}", city_board) is None:
+    raise SystemExit("occupied leftover Book after List follows Book must stay gated on bidsOpen")
+def strip_bids_open_blocks(src: str) -> str:
+    pattern = re.compile(r"\{bidsOpen \? \([\s\S]*?\) : null\}")
+    prev = None
+    while prev != src:
+        prev = src
+        src = pattern.sub("", src)
+    return src
+stripped_board = strip_bids_open_blocks(city_board)
+if "after the list hop" in stripped_board:
+    raise SystemExit("occupied leftover Book hops must not talk about a list hop when List is gone")
+if "after List follows Book" in stripped_board:
+    raise SystemExit("occupied leftover Book hops must not talk about List follows Book when List is gone")
+if 'className="book-after-list"' in stripped_board:
+    raise SystemExit("occupied leftover book-after-list hop must not render when bids are closed")
+if 'className="book-after-list-hop"' in stripped_board:
+    raise SystemExit("occupied leftover book-after-list-hop must not render when bids are closed")
+if "after the list hop" not in city_board:
+    raise SystemExit("occupied leftover Book after the list hop must stay while bids are open")
+if "after List follows Book" not in city_board:
+    raise SystemExit("occupied leftover Book after List follows Book must stay while bids are open")
 if 'className="occupied-window-closed"' not in city_board:
     raise SystemExit("occupied closed must name window_closed on the occupied poster")
 if "New bids are closed. Not a live claim on Monday." not in city_board:
@@ -502,6 +530,10 @@ if '.poster[data-occupied="true"][data-window-closed] .list-after-book' not in c
     raise SystemExit("occupied CSS must keep later-rank List a venue off occupied when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] .list-after-book-hop' not in css:
     raise SystemExit("occupied CSS must keep list-after-book-hop off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] .book-after-list-line' not in css:
+    raise SystemExit("occupied CSS must keep leftover Book after the list hop off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] .book-after-list-hop-line' not in css:
+    raise SystemExit("occupied CSS must keep leftover Book after List follows Book off occupied when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] [href="#claim"]' not in css:
     raise SystemExit("occupied CSS must keep #claim List hops off occupied when window_closed")
 occupied_closed = re.search(
@@ -1694,6 +1726,8 @@ if [[ -f package.json ]]; then
     || fail "occupied window_closed leftover test did not run"
   grep -q 'occupied closed must not offer List a venue when new bids are closed' "$test_log" \
     || fail "occupied closed List a venue leftover test did not run"
+  grep -q 'occupied closed leftover Book hops must not talk about a list hop when List is gone' "$test_log" \
+    || fail "occupied closed leftover Book hop test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \

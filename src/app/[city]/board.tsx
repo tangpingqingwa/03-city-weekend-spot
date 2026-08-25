@@ -382,14 +382,16 @@ export function CityBoard({
                 </a>
               </p>
             ) : null}
-            <p className="book-after-list-line">
-              <BookingHop
-                listing={numberOne}
-                className="book-after-list"
-                afterList
-              />{" "}
-              after the list hop.
-            </p>
+            {bidsOpen ? (
+              <p className="book-after-list-line">
+                <BookingHop
+                  listing={numberOne}
+                  className="book-after-list"
+                  afterList
+                />{" "}
+                after the list hop.
+              </p>
+            ) : null}
             {bidsOpen ? (
               <p className="list-after-book-hop-line">
                 <a
@@ -402,14 +404,16 @@ export function CityBoard({
                 after Book follows List.
               </p>
             ) : null}
-            <p className="book-after-list-hop-line">
-              <BookingHop
-                listing={numberOne}
-                className="book-after-list-hop"
-                afterListHop
-              />{" "}
-              after List follows Book.
-            </p>
+            {bidsOpen ? (
+              <p className="book-after-list-hop-line">
+                <BookingHop
+                  listing={numberOne}
+                  className="book-after-list-hop"
+                  afterListHop
+                />{" "}
+                after List follows Book.
+              </p>
+            ) : null}
           </>
         ) : null}
       </header>

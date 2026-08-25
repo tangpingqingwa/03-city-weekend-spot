@@ -767,6 +767,10 @@ a:hover {
 .poster[data-occupied="true"][data-window-closed] .list-venue-line,
 .poster[data-occupied="true"][data-window-closed] .list-after-book-line,
 .poster[data-occupied="true"][data-window-closed] .list-after-book-hop-line,
+.poster[data-occupied="true"][data-window-closed] .book-after-list,
+.poster[data-occupied="true"][data-window-closed] .book-after-list-hop,
+.poster[data-occupied="true"][data-window-closed] .book-after-list-line,
+.poster[data-occupied="true"][data-window-closed] .book-after-list-hop-line,
 .poster[data-occupied="true"][data-window-closed] [href="#claim"] {
   display: none;
 }
