@@ -730,6 +730,13 @@ a:hover {
   font-size: 0.86rem;
 }
 
+/* Empty unpublished names when new bids open. Not anytime in the rolling week. */
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 /* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
 .poster[data-occupied="false"] .fold,
 .poster[data-occupied="false"] .book-one,

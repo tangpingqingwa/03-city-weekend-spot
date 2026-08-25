@@ -213,6 +213,9 @@ function UnpublishedWeekend({ city }: { city: City }) {
       <p className="empty-window">
         Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.
       </p>
+      <p className="empty-bid-open">
+        New bids open Thursday noon through Sunday 23:59:59.999 local. Not anytime in the rolling week.
+      </p>
     </section>
   );
 }
