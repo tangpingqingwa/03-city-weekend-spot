@@ -241,7 +241,7 @@ fi
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'fold-rule'; then
   fail "unpublished weekend must not keep the occupied fold-rule"
 fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|rest-name'; then
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -qE 'book-one|book-later|later-facts|place-foot|BookingHop|later-stack|later-stack-lists|rest-name'; then
   fail "unpublished weekend must not compose Book #1, later Book, later-facts, or later-stack"
 fi
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'data-rolling-week'; then
@@ -302,6 +302,10 @@ grep -q '\[data-window-closed\] .book-after-list-line' src/app/board.css \
   || fail "occupied CSS must keep leftover Book after the list hop off occupied when window_closed"
 grep -q '\[data-window-closed\] .book-after-list-hop-line' src/app/board.css \
   || fail "occupied CSS must keep leftover Book after List follows Book off occupied when window_closed"
+grep -q 'later-stack-lists' src/app/\[city\]/board.tsx \
+  || fail "occupied later-stack must name listing copy so closed can withhold it"
+grep -q '\[data-window-closed\] .later-stack-lists' src/app/board.css \
+  || fail "occupied CSS must keep later-stack listing copy off occupied when window_closed"
 python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name bid-open without occupied chrome"
 import re
 import sys
@@ -421,6 +425,17 @@ if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"list-after-book\"[\s\S]*?href
     raise SystemExit("later-rank List a venue must stay gated on bidsOpen")
 if "href=\"#claim\"" in later_list and "{bidsOpen ? (" not in later_list:
     raise SystemExit("later-rank List a venue must not hop to #claim when bids are closed")
+if re.search(r"\{bidsOpen \? \([\s\S]*?later-stack-lists[\s\S]*?Paying less than #1 still lists[\s\S]*?\) : null\}", later_list) is None:
+    raise SystemExit("occupied later-stack listing copy must stay gated on bidsOpen")
+stripped_later = strip_bids_open_blocks(later_list)
+if "Paying less than #1 still lists" in stripped_later:
+    raise SystemExit("occupied later-stack must not talk about listing when List is gone")
+if "Paying less than #1 still lists" not in later_list:
+    raise SystemExit("occupied later-stack must still talk about listing while bids are open")
+if "These venues are not this" not in stripped_later:
+    raise SystemExit("occupied later-stack must keep not-#1 copy when bids are closed")
+if "Also this weekend" not in stripped_later:
+    raise SystemExit("occupied later-stack kicker must stay when bids are closed")
 PY
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
@@ -534,6 +549,8 @@ if '.poster[data-occupied="true"][data-window-closed] .book-after-list-line' not
     raise SystemExit("occupied CSS must keep leftover Book after the list hop off occupied when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] .book-after-list-hop-line' not in css:
     raise SystemExit("occupied CSS must keep leftover Book after List follows Book off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] .later-stack-lists' not in css:
+    raise SystemExit("occupied CSS must keep later-stack listing copy off occupied when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] [href="#claim"]' not in css:
     raise SystemExit("occupied CSS must keep #claim List hops off occupied when window_closed")
 occupied_closed = re.search(
@@ -556,6 +573,11 @@ if re.search(
     css,
 ):
     raise SystemExit("do not hide occupied Book #1 when window_closed")
+if re.search(
+    r'\.poster\[data-occupied="true"\]\[data-window-closed\][^{]*\.later-stack\[data-later-stack\][^{]*\{[^}]*display:\s*none',
+    css,
+):
+    raise SystemExit("do not hide occupied later-stack when window_closed")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] [data-rolling-week]' not in css:
     raise SystemExit("empty CSS must keep occupied rolling-week chrome off unpublished")
 if '.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week]' not in css:
