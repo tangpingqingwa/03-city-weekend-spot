@@ -293,9 +293,11 @@ grep -q 'occupied-window-closed' src/app/board.css \
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'occupied-window-closed'; then
   fail "do not restamp empty unpublished with occupied-window-closed"
 fi
-if grep -qE 'data-window-closed-after|data-claim-after-closed|data-outbid-after-open' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
+if grep -qE 'data-window-closed-after|data-claim-after-closed|data-list-after-closed|data-outbid-after-open' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
   fail "window_closed must not stamp another named hop"
 fi
+grep -q '\[data-window-closed\] .list-venue' src/app/board.css \
+  || fail "occupied CSS must keep List a venue off occupied when window_closed"
 python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name bid-open without occupied chrome"
 import re
 import sys
@@ -362,6 +364,10 @@ if "occupied || bidsOpen" in city_board:
     raise SystemExit("occupied closed must not keep BidForm on occupied || bidsOpen")
 if re.search(r"\{bidsOpen \? \([\s\S]*?<BidForm[\s\S]*?\) : null\}", city_board) is None:
     raise SystemExit("BidForm/Outbid must stay gated on bidsOpen for empty and occupied")
+if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"list-venue\"[\s\S]*?href=\"#claim\"[\s\S]*?\) : null\}", city_board) is None:
+    raise SystemExit("occupied List a venue must stay gated on bidsOpen, not a live claim on Monday")
+if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"list-after-book-hop\"[\s\S]*?href=\"#claim\"[\s\S]*?\) : null\}", city_board) is None:
+    raise SystemExit("occupied list-after-book-hop must stay gated on bidsOpen")
 if 'className="occupied-window-closed"' not in city_board:
     raise SystemExit("occupied closed must name window_closed on the occupied poster")
 if "New bids are closed. Not a live claim on Monday." not in city_board:
@@ -376,6 +382,17 @@ rolling_at = city_board.find("data-rolling-week")
 occupied_closed_at = city_board.find('className="occupied-window-closed"')
 if not (rolling_at >= 0 and occupied_closed_at > rolling_at):
     raise SystemExit("occupied window_closed copy must follow occupancy rolling copy")
+leaderboard = re.search(
+    r"export function Leaderboard\([\s\S]*?\n\}\n",
+    src,
+)
+if not leaderboard:
+    raise SystemExit("Leaderboard missing")
+later_list = leaderboard.group(0)
+if re.search(r"\{bidsOpen \? \([\s\S]*?className=\"list-after-book\"[\s\S]*?href=\"#claim\"[\s\S]*?\) : null\}", later_list) is None:
+    raise SystemExit("later-rank List a venue must stay gated on bidsOpen")
+if "href=\"#claim\"" in later_list and "{bidsOpen ? (" not in later_list:
+    raise SystemExit("later-rank List a venue must not hop to #claim when bids are closed")
 PY
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
@@ -479,6 +496,14 @@ if '.poster[data-occupied="true"][data-window-closed] .outbid' not in css:
     raise SystemExit("occupied CSS must keep Outbid off occupied when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] .claim' not in css:
     raise SystemExit("occupied CSS must keep Claim #1 off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] .list-venue' not in css:
+    raise SystemExit("occupied CSS must keep List a venue off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] .list-after-book' not in css:
+    raise SystemExit("occupied CSS must keep later-rank List a venue off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] .list-after-book-hop' not in css:
+    raise SystemExit("occupied CSS must keep list-after-book-hop off occupied when window_closed")
+if '.poster[data-occupied="true"][data-window-closed] [href="#claim"]' not in css:
+    raise SystemExit("occupied CSS must keep #claim List hops off occupied when window_closed")
 occupied_closed = re.search(
     r'\.poster\[data-occupied="true"\] \.occupied-window-closed\s*\{([^}]*)\}',
     css,
@@ -1667,6 +1692,8 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished window_closed leftover test did not run"
   grep -q 'occupied must not offer Outbid when new bids are closed' "$test_log" \
     || fail "occupied window_closed leftover test did not run"
+  grep -q 'occupied closed must not offer List a venue when new bids are closed' "$test_log" \
+    || fail "occupied closed List a venue leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \

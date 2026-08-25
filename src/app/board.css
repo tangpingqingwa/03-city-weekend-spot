@@ -760,7 +760,14 @@ a:hover {
 
 .poster[data-occupied="true"][data-window-closed] .outbid,
 .poster[data-occupied="true"][data-window-closed] .claim,
-.poster[data-occupied="true"][data-window-closed] [data-bid-form] {
+.poster[data-occupied="true"][data-window-closed] [data-bid-form],
+.poster[data-occupied="true"][data-window-closed] .list-venue,
+.poster[data-occupied="true"][data-window-closed] .list-after-book,
+.poster[data-occupied="true"][data-window-closed] .list-after-book-hop,
+.poster[data-occupied="true"][data-window-closed] .list-venue-line,
+.poster[data-occupied="true"][data-window-closed] .list-after-book-line,
+.poster[data-occupied="true"][data-window-closed] .list-after-book-hop-line,
+.poster[data-occupied="true"][data-window-closed] [href="#claim"] {
   display: none;
 }
 
