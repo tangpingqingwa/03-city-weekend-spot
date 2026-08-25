@@ -751,6 +751,19 @@ a:hover {
   display: none;
 }
 
+/* Occupied /nyc: window_closed is on the poster, not only a checkout error. Keep Book #1. */
+.poster[data-occupied="true"] .occupied-window-closed {
+  margin: 0.55rem 0 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.poster[data-occupied="true"][data-window-closed] .outbid,
+.poster[data-occupied="true"][data-window-closed] .claim,
+.poster[data-occupied="true"][data-window-closed] [data-bid-form] {
+  display: none;
+}
+
 /* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
 .poster[data-occupied="false"] .fold,
 .poster[data-occupied="false"] .book-one,
