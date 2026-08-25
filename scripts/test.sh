@@ -229,6 +229,8 @@ grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must prin
 grep -q 'empty-note' src/app/\[city\]/board.tsx || fail "unpublished must sit under No #1, not above it"
 grep -q 'empty-window' src/app/\[city\]/board.tsx \
   || fail "unpublished must name the rolling last-7-days window"
+grep -q 'empty-bid-open' src/app/\[city\]/board.tsx \
+  || fail "unpublished must name when new bids open"
 grep -q 'data-empty-unpublished' src/app/\[city\]/board.tsx \
   || fail "empty board must stamp unpublished so occupied chrome stays off"
 grep -q 'unpublished-weekend' src/app/\[city\]/board.tsx \
@@ -254,7 +256,16 @@ fi
 if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Not Monday 00:00 UTC'; then
   fail "unpublished must reject Monday 00:00 UTC as the fair window"
 fi
-python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name rolling last-7-days without occupied chrome"
+if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Thursday noon'; then
+  fail "unpublished must name Thursday noon bid-open"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Sunday 23:59:59.999 local'; then
+  fail "unpublished must name Sunday local bid close"
+fi
+if ! grep -n 'function UnpublishedWeekend' -A 30 src/app/\[city\]/board.tsx | grep -q 'Not anytime in the rolling week'; then
+  fail "unpublished must reject anytime-in-the-rolling-week bids"
+fi
+python3 - src/app/\[city\]/board.tsx <<'PY' || fail "unpublished must name bid-open without occupied chrome"
 import re
 import sys
 
@@ -274,12 +285,24 @@ if "Rolling last 7 days from paid createdAt" not in body:
     raise SystemExit("unpublished must name rolling last 7 days from paid createdAt")
 if "Not Monday 00:00 UTC" not in body:
     raise SystemExit("unpublished must reject Monday 00:00 UTC")
+if "Thursday noon" not in body:
+    raise SystemExit("unpublished must name Thursday noon bid-open")
+if "Sunday 23:59:59.999 local" not in body:
+    raise SystemExit("unpublished must name Sunday local bid close")
+if "Not anytime in the rolling week" not in body:
+    raise SystemExit("unpublished must reject anytime-in-the-rolling-week bids")
 if "data-rolling-week" in body:
     raise SystemExit("unpublished must not stamp occupied data-rolling-week")
 if "week-window" in body:
     raise SystemExit("unpublished must not reuse occupied week-window chrome")
 if 'className="empty-window"' not in body:
     raise SystemExit("unpublished must use empty-window, not occupied rolling chrome")
+if 'className="empty-bid-open"' not in body:
+    raise SystemExit("unpublished must use empty-bid-open, not occupied chrome")
+window_at = body.find('className="empty-window"')
+bid_at = body.find('className="empty-bid-open"')
+if not (window_at >= 0 and bid_at > window_at):
+    raise SystemExit("bid-open clock must follow occupancy window copy")
 if "book-one" in body or "BookingHop" in body:
     raise SystemExit("unpublished must not retouch occupied Book #1")
 PY
@@ -302,6 +325,8 @@ grep -q 'unpublished-weekend' src/app/board.css \
   || fail "poster CSS must style unpublished /nyc off the occupied fold"
 grep -q 'empty-window' src/app/board.css \
   || fail "poster CSS must style unpublished rolling-window copy"
+grep -q 'empty-bid-open' src/app/board.css \
+  || fail "poster CSS must style unpublished bid-open copy"
 python3 - src/app/board.css <<'PY' || fail "occupied Book chrome must not paint on unpublished /nyc"
 import re
 import sys
@@ -347,6 +372,8 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must keep occupied #1 chrome off unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window' not in css:
     raise SystemExit("empty CSS must name the rolling window on unpublished")
+if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open' not in css:
+    raise SystemExit("empty CSS must name bid-open on unpublished")
 empty_window = re.search(
     r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window\s*\{([^}]*)\}',
     css,
@@ -355,10 +382,20 @@ if not empty_window:
     raise SystemExit("empty-window CSS missing")
 if "background: var(--accent)" in empty_window.group(1):
     raise SystemExit("do not recolor empty window copy")
+empty_bid_open = re.search(
+    r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-bid-open\s*\{([^}]*)\}',
+    css,
+)
+if not empty_bid_open:
+    raise SystemExit("empty-bid-open CSS missing")
+if "background: var(--accent)" in empty_bid_open.group(1):
+    raise SystemExit("do not recolor empty bid-open copy")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] [data-rolling-week]' not in css:
     raise SystemExit("empty CSS must keep occupied rolling-week chrome off unpublished")
 if '.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week]' not in css:
     raise SystemExit("occupied rolling-week chrome must stay occupied-only")
+if ".poster[data-occupied=\"true\"] .book-one" not in css:
+    raise SystemExit("occupied Book #1 must stay occupied-only")
 PY
 grep -q 'city-name' src/app/\[city\]/board.tsx || fail "city name must be the masthead"
 grep -q 'className="place"' src/app/\[city\]/board.tsx || fail "venue card must read as a place"
@@ -1515,6 +1552,8 @@ if [[ -f package.json ]]; then
     || fail "occupied rolling last-7-days leftover test did not run"
   grep -q 'empty unpublished names rolling last-7-days' "$test_log" \
     || fail "empty unpublished rolling last-7-days leftover test did not run"
+  grep -q 'empty unpublished names when new bids open' "$test_log" \
+    || fail "empty unpublished bid-open leftover test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \
