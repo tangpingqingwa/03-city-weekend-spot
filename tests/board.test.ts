@@ -11,6 +11,15 @@ import { default as HomePage } from "../src/app/page";
 const nyc = getCity("nyc");
 assert.ok(nyc);
 
+/** Thursday 2026-08-20 12:00 EDT — new bids open. */
+const NYC_BIDS_OPEN = new Date("2026-08-20T16:00:00.000Z");
+/** Sunday 2026-08-23 23:59:59.999 EDT — last instant new bids stay open. */
+const NYC_BIDS_OPEN_SUNDAY = new Date("2026-08-24T03:59:59.999Z");
+/** Thursday 2026-08-20 11:59:59.999 EDT — same ISO week, window_closed. */
+const NYC_BIDS_CLOSED_THU_MORNING = new Date("2026-08-20T15:59:59.999Z");
+/** Monday 2026-08-24 00:00:00.000 EDT — not a live claim on Monday. */
+const NYC_BIDS_CLOSED_MONDAY = new Date("2026-08-24T04:00:00.000Z");
+
 function fixtureListing(
   overrides: Partial<BoardListing> &
     Pick<BoardListing, "id" | "venueName" | "bidUsd" | "rank">,
@@ -71,7 +80,7 @@ test("GET / uses the default board path (redirect to /nyc)", () => {
 
 test("empty NYC window renders the bid form and no cards", () => {
   const html = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.match(html, /data-board=""/);
   assert.match(html, /data-city="nyc"/);
@@ -93,7 +102,7 @@ test("empty NYC window renders the bid form and no cards", () => {
 
 test("empty board reads like an unpublished weekend poster", () => {
   const html = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.match(html, /class="city-name"/);
   assert.match(html, />New York City</);
@@ -124,7 +133,7 @@ test("empty board reads like an unpublished weekend poster", () => {
 
 test("first-time visitor reads the weekend answer before claim chrome", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const emptyAnswer = empty.indexOf("data-empty-board");
   const emptyClaim = empty.indexOf("data-bid-form");
@@ -205,7 +214,7 @@ test("ranked cards keep money order in markup", () => {
 
 test("occupied NYC board names one List a venue hop to the claim form", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-venue/);
   assert.doesNotMatch(empty, /List a venue/);
@@ -287,7 +296,7 @@ test("occupied NYC board books the paid #1 as the weekend answer", () => {
 
 test("occupied later ranks stamp Book as the certain hop, not a second #1", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-later-book|data-book-later|book-later/);
   assert.doesNotMatch(empty, /data-list-after-book/);
@@ -363,7 +372,7 @@ test("occupied later ranks stamp Book as the certain hop, not a second #1", () =
 
 test("occupied later ranks stay quieter than occupied #1 venue", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-later-quiet/);
   assert.doesNotMatch(empty, /data-later-stack|data-later-rank|class="rest-name"/);
@@ -487,7 +496,7 @@ test("occupied later Book stays quieter than Book #1 after $bid is a later fact"
   );
 
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-later-book|data-book-later|book-later/);
   assert.doesNotMatch(empty, /data-later-quiet|data-later-stack|data-later-rank|class="rest-name"/);
@@ -589,7 +598,7 @@ test("occupied later Book stays quieter than Book #1 after $bid is a later fact"
 
 test("occupied Book #1 stays the first guest click", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-guest-first/);
   assert.doesNotMatch(empty, /data-book-one-first|data-book-number-one|class="book-one"/);
@@ -670,7 +679,7 @@ test("occupied Book #1 stays the first guest click", () => {
 
 test("occupied NYC board lists after later-rank Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book/);
   assert.doesNotMatch(empty, /after later Books/);
@@ -735,7 +744,7 @@ test("occupied NYC board lists after later-rank Book", () => {
 
 test("occupied NYC board books after the list hop", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list/);
   assert.doesNotMatch(empty, /after the list hop/);
@@ -811,7 +820,7 @@ test("occupied NYC board books after the list hop", () => {
 
 test("occupied NYC board lists after Book follows the list hop", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-hop/);
   assert.doesNotMatch(empty, /after Book follows List/);
@@ -894,7 +903,7 @@ test("occupied NYC board lists after Book follows the list hop", () => {
 
 test("occupied NYC board books after List follows Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-hop/);
   assert.doesNotMatch(empty, /after List follows Book/);
@@ -983,7 +992,7 @@ test("occupied NYC board books after List follows Book", () => {
 
 test("occupied NYC board books #1 as the first hop without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-one-first/);
   assert.doesNotMatch(empty, /data-book-number-one/);
@@ -1073,7 +1082,7 @@ test("occupied NYC board books #1 as the first hop without another Book", () => 
 
 test("occupied NYC board lists after Book #1 without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-one/);
   assert.doesNotMatch(empty, /data-list-venue/);
@@ -1171,7 +1180,7 @@ test("occupied NYC board lists after Book #1 without another Book", () => {
 
 test("occupied NYC board books #1 after List a venue without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-one/);
   assert.doesNotMatch(empty, /data-book-number-one|class="book-one"/);
@@ -1299,7 +1308,7 @@ test("occupied NYC board books #1 after List a venue without another Book", () =
 
 test("occupied NYC board lists after Book #1 is re-concentrated without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-two/);
   assert.doesNotMatch(empty, /data-list-after-book-one|data-list-venue/);
@@ -1410,7 +1419,7 @@ test("occupied NYC board lists after Book #1 is re-concentrated without another 
 
 test("occupied NYC board books #1 after List a venue is re-concentrated without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-two/);
   assert.doesNotMatch(empty, /data-book-after-list-one|data-book-number-one|class="book-one"/);
@@ -1553,7 +1562,7 @@ test("occupied NYC board books #1 after List a venue is re-concentrated without 
 
 test("occupied NYC board lists after Book #1 is re-concentrated again without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-three/);
   assert.doesNotMatch(empty, /data-list-after-book-two|data-list-after-book-one|data-list-venue/);
@@ -1676,7 +1685,7 @@ test("occupied NYC board lists after Book #1 is re-concentrated again without an
 
 test("occupied NYC board books #1 after List a venue is re-concentrated again without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-three/);
   assert.doesNotMatch(empty, /data-book-after-list-two|data-book-after-list-one|data-book-number-one|class="book-one"/);
@@ -1834,7 +1843,7 @@ test("occupied NYC board books #1 after List a venue is re-concentrated again wi
 
 test("occupied NYC board lists after the louder Book #1 without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-four/);
   assert.doesNotMatch(empty, /data-list-after-book-three|data-list-after-book-two|data-list-after-book-one|data-list-venue/);
@@ -1969,7 +1978,7 @@ test("occupied NYC board lists after the louder Book #1 without another Book", (
 
 test("occupied NYC board books #1 after the louder List a venue without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-four/);
   assert.doesNotMatch(empty, /data-book-after-list-three|data-book-after-list-two|data-book-after-list-one|data-book-number-one|class="book-one"/);
@@ -2142,7 +2151,7 @@ test("occupied NYC board books #1 after the louder List a venue without another 
 
 test("occupied NYC board lists after the louder Book #1 is re-concentrated again without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-five/);
   assert.doesNotMatch(empty, /data-list-after-book-four|data-list-after-book-three|data-list-after-book-two|data-list-after-book-one|data-list-venue/);
@@ -2289,7 +2298,7 @@ test("occupied NYC board lists after the louder Book #1 is re-concentrated again
 
 test("occupied NYC board books #1 after the louder List a venue is re-concentrated again without another Book", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-five/);
   assert.doesNotMatch(empty, /data-book-after-list-four|data-book-after-list-three|data-book-after-list-two|data-book-after-list-one|data-book-number-one|class="book-one"/);
@@ -2477,7 +2486,7 @@ test("occupied NYC board books #1 after the louder List a venue is re-concentrat
 
 test("occupied NYC board lists after Book #1 is re-concentrated again without another List", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-six/);
   assert.doesNotMatch(empty, /data-list-after-book-five|data-list-after-book-four|data-list-after-book-three|data-list-after-book-two|data-list-after-book-one|data-list-venue/);
@@ -2636,7 +2645,7 @@ test("occupied NYC board lists after Book #1 is re-concentrated again without an
 
 test("occupied NYC board books #1 after List a venue is re-concentrated again without another Book hop", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-six/);
   assert.doesNotMatch(empty, /data-book-after-list-five|data-book-after-list-four|data-book-after-list-three|data-book-after-list-two|data-book-after-list-one|data-book-number-one|class="book-one"/);
@@ -2839,7 +2848,7 @@ test("occupied NYC board books #1 after List a venue is re-concentrated again wi
 
 test("occupied NYC board lists after Book #1 is re-concentrated again without another List hop", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-seven/);
   assert.doesNotMatch(empty, /data-list-after-book-six|data-list-after-book-five|data-list-after-book-four|data-list-after-book-three|data-list-after-book-two|data-list-after-book-one|data-list-venue/);
@@ -3010,7 +3019,7 @@ test("occupied NYC board lists after Book #1 is re-concentrated again without an
 
 test("occupied NYC board lists after Book #1 is re-concentrated again without a second List hop", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-list-after-book-eight/);
   assert.doesNotMatch(empty, /data-list-after-book-seven|data-list-after-book-six|data-list-after-book-five|data-list-after-book-four|data-list-after-book-three|data-list-after-book-two|data-list-after-book-one|data-list-venue/);
@@ -3193,7 +3202,7 @@ test("occupied NYC board lists after Book #1 is re-concentrated again without a 
 
 test("occupied NYC board books #1 after List a venue is re-concentrated again without a second Book hop", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-book-after-list-seven/);
   assert.doesNotMatch(empty, /data-book-after-list-six|data-book-after-list-five|data-book-after-list-four|data-book-after-list-three|data-book-after-list-two|data-book-after-list-one|data-book-number-one|class="book-one"/);
@@ -3411,7 +3420,7 @@ test("occupied NYC board books #1 after List a venue is re-concentrated again wi
 
 test("occupied NYC #1 reads the venue prize before price, larger than $bid", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-prize-before-price|data-prize=/);
   assert.match(empty, /No #1/);
@@ -3497,7 +3506,7 @@ test("occupied NYC #1 $bid sits in a later-fact group after Book, not a muted tw
   );
 
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-later-fact/);
   assert.doesNotMatch(empty, /later-facts|later-fact/);
@@ -3600,7 +3609,7 @@ test("occupied NYC #1 $bid sits in a later-fact group after Book, not a muted tw
 
 test("empty NYC weekend stays unpublished without occupied chrome", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const noOne = empty.indexOf("No #1");
   const unpublished = empty.indexOf("This weekend is unpublished");
@@ -3676,7 +3685,7 @@ test("empty NYC weekend keeps Book #1 and later Book off unpublished", () => {
   assert.doesNotMatch(css, /^[\s]*\.number-one \.later-facts\[data-later-fact\]\s*\{/m);
 
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const weekend = empty.indexOf('class="unpublished-weekend"');
   const noOne = empty.indexOf("No #1");
@@ -3727,7 +3736,7 @@ test("empty NYC weekend keeps Book #1 and later Book off unpublished", () => {
 
 test("claim form makes unpaid checkout never ranks certain on empty and occupied NYC", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const emptyForm = empty.indexOf("data-bid-form");
   const emptyOutbid = empty.indexOf(">Outbid<");
@@ -3800,7 +3809,7 @@ test("empty NYC Claim #1 is the first click — venue URL is a later write", () 
   assert.doesNotMatch(later, /data-list-after-book-nine|data-book-after-list-eight/);
 
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const unpublished = empty.indexOf("data-empty-unpublished");
   const claim = empty.indexOf('id="claim"');
@@ -3908,7 +3917,7 @@ test("occupied later venues stay quieter than occupied #1 — prize stays first"
   assert.doesNotMatch(css, /data-list-after-book-nine|data-book-after-list-eight/);
 
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-later-stack|data-later-rank|class="rest-name"|Also this weekend/);
   assert.doesNotMatch(empty, /data-later-quiet|class="title"/);
@@ -4012,7 +4021,7 @@ test("abandoned unpaid checkout stays off occupied /nyc — No #1 until Polar re
     firstPaidAt: "1970-01-01T00:00:00.000Z",
   });
   const html = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [unpaid] }),
+    createElement(CityBoard, { city: nyc, listings: [unpaid], now: NYC_BIDS_OPEN }),
   );
   const noOne = html.indexOf("No #1");
   const unpublished = html.indexOf("This weekend is unpublished");
@@ -4057,7 +4066,7 @@ test("abandoned unpaid checkout stays off occupied /nyc — No #1 until Polar re
 
 test("occupied week window is rolling last-7-days — not Monday 00:00 UTC", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.match(empty, /data-empty-board="true"/);
   assert.match(empty, /data-occupied="false"/);
@@ -4127,7 +4136,7 @@ test("occupied week window is rolling last-7-days — not Monday 00:00 UTC", () 
 
 test("empty unpublished names rolling last-7-days — not Monday 00:00 UTC", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const weekend = empty.indexOf('class="unpublished-weekend"');
   const noOne = empty.indexOf("No #1");
@@ -4197,7 +4206,7 @@ test("empty unpublished names rolling last-7-days — not Monday 00:00 UTC", () 
 
 test("empty unpublished names when new bids open — Thursday noon–Sunday local", () => {
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   const weekend = empty.indexOf('class="unpublished-weekend"');
   const noOne = empty.indexOf("No #1");
@@ -4275,6 +4284,139 @@ test("empty unpublished names when new bids open — Thursday noon–Sunday loca
   assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}rolling-week/);
 });
 
+test("empty unpublished must not offer Outbid when new bids are closed — Thursday noon–Sunday local, not a live claim on Monday", () => {
+  const closed = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_CLOSED_MONDAY,
+    }),
+  );
+  const weekend = closed.indexOf('class="unpublished-weekend"');
+  const noOne = closed.indexOf("No #1");
+  const unpublished = closed.indexOf("This weekend is unpublished");
+  const windowCopy = closed.indexOf(
+    "Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.",
+  );
+  const bidOpen = closed.indexOf(
+    "New bids open Thursday noon through Sunday 23:59:59.999 local. Not anytime in the rolling week.",
+  );
+  const closedCopy = closed.indexOf(
+    "New bids are closed. Not a live claim on Monday.",
+  );
+  assert.ok(weekend >= 0 && noOne > weekend);
+  assert.ok(unpublished > noOne && windowCopy > unpublished);
+  assert.ok(bidOpen > windowCopy && closedCopy > bidOpen);
+  assert.match(closed, /class="empty-answer"/);
+  assert.match(closed, /class="empty-window"/);
+  assert.match(closed, /class="empty-bid-open"/);
+  assert.match(closed, /class="empty-window-closed"/);
+  assert.match(closed, /data-empty-unpublished=""/);
+  assert.match(closed, /data-window-closed=""/);
+  assert.match(closed, /data-occupied="false"/);
+  assert.match(closed, /Nothing is invented here/);
+  assert.doesNotMatch(closed, />Outbid</);
+  assert.doesNotMatch(closed, /Claim #1 for/);
+  assert.doesNotMatch(closed, /data-bid-form/);
+  assert.doesNotMatch(closed, /data-first-click="claim"/);
+  assert.doesNotMatch(closed, /data-empty-claim-first/);
+  assert.doesNotMatch(closed, /data-rolling-week/);
+  assert.doesNotMatch(closed, /class="period-meta week-window"/);
+  assert.doesNotMatch(closed, /data-prize=/);
+  assert.doesNotMatch(closed, /data-book-number-one|class="book-one"|data-guest-first/);
+  assert.doesNotMatch(closed, /24h lock/);
+  assert.doesNotMatch(closed, /data-list-after-book-nine|data-book-after-list-eight/);
+  assert.doesNotMatch(closed, /data-window-closed-after|data-claim-after-closed/);
+  assert.doesNotMatch(closed, /map|leaflet|google\.maps|OpenStreetMap/i);
+  assert.doesNotMatch(closed, /★|4\.8|star-rating|data-stars|review count|rated 4\.9/i);
+
+  const thursdayMorning = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_CLOSED_THU_MORNING,
+    }),
+  );
+  assert.match(thursdayMorning, /data-window-closed=""/);
+  assert.match(thursdayMorning, /New bids are closed\. Not a live claim on Monday\./);
+  assert.doesNotMatch(thursdayMorning, />Outbid</);
+  assert.doesNotMatch(thursdayMorning, /Claim #1 for/);
+  assert.doesNotMatch(thursdayMorning, /data-bid-form/);
+  assert.doesNotMatch(thursdayMorning, /data-rolling-week/);
+
+  const openSunday = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: [],
+      now: NYC_BIDS_OPEN_SUNDAY,
+    }),
+  );
+  assert.match(openSunday, />Outbid</);
+  assert.match(openSunday, /Claim #1 for/);
+  assert.match(openSunday, /data-bid-form=""/);
+  assert.match(openSunday, /This weekend is unpublished/);
+  assert.match(openSunday, /No #1/);
+  assert.doesNotMatch(openSunday, /data-window-closed/);
+  assert.doesNotMatch(openSunday, /class="empty-window-closed"/);
+  assert.doesNotMatch(openSunday, /New bids are closed/);
+  assert.doesNotMatch(openSunday, /data-rolling-week/);
+
+  const occupiedMonday = renderToStaticMarkup(
+    createElement(CityBoard, {
+      city: nyc,
+      listings: rankedCards,
+      now: NYC_BIDS_CLOSED_MONDAY,
+    }),
+  );
+  assert.match(occupiedMonday, /data-occupied="true"/);
+  assert.match(occupiedMonday, /data-rolling-week=""/);
+  assert.match(occupiedMonday, /class="book-one"[^>]*data-guest-first=""/);
+  assert.match(occupiedMonday, />Outbid</);
+  assert.match(occupiedMonday, /Claim #1 for/);
+  assert.match(occupiedMonday, /Sunday Roast/);
+  assert.doesNotMatch(occupiedMonday, /data-window-closed/);
+  assert.doesNotMatch(occupiedMonday, /class="empty-window-closed"/);
+  assert.doesNotMatch(occupiedMonday, /This weekend is unpublished/);
+  assert.doesNotMatch(occupiedMonday, /data-empty-unpublished|unpublished-weekend/);
+  assert.doesNotMatch(occupiedMonday, /24h lock/);
+  assert.doesNotMatch(occupiedMonday, /data-list-after-book-nine|data-book-after-list-eight/);
+
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window-closed/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\]\[data-window-closed\] \.outbid/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-bid-open/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \[data-rolling-week\]/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="true"\] \.period-meta\.week-window\[data-rolling-week\]/,
+  );
+  assert.match(
+    css,
+    /\.poster\[data-occupied="true"\] \.book-one/,
+  );
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}empty-window-closed/);
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}empty-bid-open/);
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}empty-window/);
+  assert.doesNotMatch(css, /background:\s*var\(--accent\)[\s\S]{0,80}rolling-week/);
+  assert.doesNotMatch(css, /data-window-closed-after|data-claim-after-closed|data-list-after-book-nine|data-book-after-list-eight/);
+});
+
 test("occupied later Book stays a foot hop — Book #1 is the only filled hop", () => {
   const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
   const laterFoot = css.match(
@@ -4306,7 +4448,7 @@ test("occupied later Book stays a foot hop — Book #1 is the only filled hop", 
   assert.doesNotMatch(css, /data-list-after-book-nine|data-book-after-list-eight/);
 
   const empty = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [] }),
+    createElement(CityBoard, { city: nyc, listings: [], now: NYC_BIDS_OPEN }),
   );
   assert.doesNotMatch(empty, /data-later-book-foot|data-later-book|data-book-later|book-later|place-foot/);
   assert.doesNotMatch(empty, /data-book-number-one|class="book-one"|data-guest-first/);
@@ -4409,7 +4551,7 @@ test("occupied later Book stays a foot hop — Book #1 is the only filled hop", 
     firstPaidAt: "1970-01-01T00:00:00.000Z",
   });
   const unpaidHtml = renderToStaticMarkup(
-    createElement(CityBoard, { city: nyc, listings: [unpaid] }),
+    createElement(CityBoard, { city: nyc, listings: [unpaid], now: NYC_BIDS_OPEN }),
   );
   assert.match(unpaidHtml, /No #1/);
   assert.match(unpaidHtml, /data-occupied="false"/);
@@ -4422,6 +4564,7 @@ test("failed checkout returns an honest error on the poster, not a stub", () => 
     createElement(CityBoard, {
       city: nyc,
       listings: [],
+      now: NYC_BIDS_OPEN,
       checkoutError: "listing_invalid",
     }),
   );

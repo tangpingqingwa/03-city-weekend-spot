@@ -737,6 +737,20 @@ a:hover {
   font-size: 0.86rem;
 }
 
+/* Empty unpublished: window_closed is on the poster, not only a checkout error. */
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed {
+  margin: 0.55rem 0 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.poster[data-occupied="false"][data-window-closed] .outbid,
+.poster[data-occupied="false"][data-window-closed] .claim,
+.poster[data-occupied="false"][data-window-closed] [data-bid-form],
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished][data-window-closed] .outbid {
+  display: none;
+}
+
 /* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
 .poster[data-occupied="false"] .fold,
 .poster[data-occupied="false"] .book-one,
