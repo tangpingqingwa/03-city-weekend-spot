@@ -3,15 +3,65 @@ import { Suspense, type ReactNode } from "react";
 import "./board.css";
 import PeriodTabs from "./period-tabs";
 
+const SITE_URL = "https://cityweekend.lol";
+const SITE_NAME = "City Weekend";
+const SITE_DESCRIPTION =
+  "Discover where to eat, drink and go in New York City this weekend on a transparent paid board. Rank is the bid.";
+
 export const metadata: Metadata = {
-  title: "City Weekend Spot",
-  description:
-    "This weekend in this city, #1 is whoever paid the most. Rank is money, not stars.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "City Weekend — New York Weekend Board",
+    template: "%s | City Weekend",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: ["New York weekend", "NYC things to do", "NYC restaurants", "NYC events"],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/brand-mark.svg", type: "image/svg+xml" }],
+    shortcut: "/brand-mark.svg",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/nyc",
+    siteName: SITE_NAME,
+    title: "City Weekend — New York Weekend Board",
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/brand-mark.png", width: 512, height: 512, alt: "City Weekend poster" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "City Weekend — New York Weekend Board",
+    description: SITE_DESCRIPTION,
+    images: ["/brand-mark.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+};
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  inLanguage: "en",
+  isAccessibleForFree: true,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      </head>
       <body>
         <script
           dangerouslySetInnerHTML={{
@@ -49,6 +99,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   aria-label="City Weekend home"
                   data-slot="brand"
                 >
+                  <img
+                    className="brand-mark"
+                    src="/brand-mark.svg"
+                    width="26"
+                    height="26"
+                    alt=""
+                    aria-hidden="true"
+                  />
                   <span>city weekend</span>
                 </a>
                 <Suspense

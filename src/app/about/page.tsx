@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "About · City Weekend Spot",
   description:
     "A public New York weekend board where venues are ranked only by bid.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

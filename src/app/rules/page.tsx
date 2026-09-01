@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Rules · City Weekend Spot",
   description:
     "Minimum $5, older listings win ties, raises pay the difference, and reviews are never used for ranking.",
+  alternates: { canonical: "/rules" },
 };
 
 export default function RulesPage() {
