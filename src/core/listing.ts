@@ -49,7 +49,7 @@ export type Listing = {
   clicks: number;
 };
 
-/** Polar paid instant. Placeholder / unpaid firstPaidAt never ranks. */
+/** Waffo-paid instant. Placeholder / unpaid firstPaidAt never ranks. */
 export function isPaidListing(listing: Pick<Listing, "firstPaidAt">): boolean {
   const paidAt = listing.firstPaidAt.trim();
   if (!paidAt) return false;

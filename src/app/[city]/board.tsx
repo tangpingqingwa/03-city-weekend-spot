@@ -1,17 +1,21 @@
 import React from "react";
 import {
   MIN_BID_USD,
+  getCity,
   type BoardListing,
   type City,
 } from "../../core/cities";
 import { isPaidListing } from "../../core/listing";
 import { currentWindow, isWindowOpen } from "../../core/window";
-import { listingClickPath } from "../api/click/[id]/route";
+import { listingClickPath } from "../../core/click";
+import { getCheckoutIntent, getDb } from "../../db";
+import type { BoardPeriod } from "../period-tabs-state";
 import { BidForm } from "./bid-form";
 
 type CityBoardProps = {
   city: City;
   listings: readonly BoardListing[];
+  period?: BoardPeriod;
   weekendLabel?: string;
   checkoutError?: string;
   now?: Date;
@@ -36,29 +40,11 @@ function BookingHop({
   listing,
   className,
   primary,
-  afterList,
-  afterListHop,
-  afterListOne,
-  afterListTwo,
-  afterListThree,
-  afterListFour,
-  afterListFive,
-  afterListSix,
-  afterListSeven,
   guestFirst,
 }: {
   listing: BoardListing;
   className: string;
   primary?: boolean;
-  afterList?: boolean;
-  afterListHop?: boolean;
-  afterListOne?: boolean;
-  afterListTwo?: boolean;
-  afterListThree?: boolean;
-  afterListFour?: boolean;
-  afterListFive?: boolean;
-  afterListSix?: boolean;
-  afterListSeven?: boolean;
   guestFirst?: boolean;
 }) {
   return (
@@ -68,15 +54,6 @@ function BookingHop({
       rel="noreferrer"
       data-booking-url={listing.bookingUrl}
       {...(primary ? { "data-book-number-one": "" } : {})}
-      {...(afterList ? { "data-book-after-list": "" } : {})}
-      {...(afterListHop ? { "data-book-after-list-hop": "" } : {})}
-      {...(afterListOne ? { "data-book-after-list-one": "" } : {})}
-      {...(afterListTwo ? { "data-book-after-list-two": "" } : {})}
-      {...(afterListThree ? { "data-book-after-list-three": "" } : {})}
-      {...(afterListFour ? { "data-book-after-list-four": "" } : {})}
-      {...(afterListFive ? { "data-book-after-list-five": "" } : {})}
-      {...(afterListSix ? { "data-book-after-list-six": "" } : {})}
-      {...(afterListSeven ? { "data-book-after-list-seven": "" } : {})}
       {...(guestFirst ? { "data-guest-first": "" } : {})}
       aria-label={`Book ${listing.venueName}`}
     >
@@ -92,11 +69,41 @@ function paidAtMs(listing: BoardListing): number | undefined {
     : undefined;
 }
 
+function validPaidTimestampMs(listing: BoardListing): number | undefined {
+  if (!listing.firstPaidAt) return undefined;
+  const timestamp = Date.parse(listing.firstPaidAt);
+  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : undefined;
+}
+
+function formatPaidTimestamp(listing: BoardListing, city: City): string | null {
+  const timestamp = validPaidTimestampMs(listing);
+  if (timestamp === undefined) return null;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: city.timezone,
+  }).format(new Date(timestamp));
+}
+
+function PaidAtFact({ listing }: { listing: BoardListing }) {
+  const city = getCity(listing.city);
+  const paidAt = city ? formatPaidTimestamp(listing, city) : null;
+  if (!paidAt || !listing.firstPaidAt) return null;
+
+  return (
+    <time className="paid-at" data-paid-at-fact="" dateTime={listing.firstPaidAt}>
+      Paid {paidAt}
+    </time>
+  );
+}
+
 function NumberOnePlace({ listing }: { listing: BoardListing }) {
   const kind = kindLabel(listing.kind);
   const paidAt = paidAtMs(listing);
   return (
-    <article
+    <li
       className="number-one"
       data-listing-card=""
       data-rank={listing.rank}
@@ -105,43 +112,41 @@ function NumberOnePlace({ listing }: { listing: BoardListing }) {
       data-guest-first=""
       data-weekend-answer=""
       data-prize-before-price=""
+      data-top-rank=""
+      data-poster-answer=""
       {...(paidAt !== undefined
         ? { "data-paid-at": listing.firstPaidAt ?? "paid" }
         : {})}
+      data-slot="paid-card"
     >
       <h2 className="weekend-answer" data-venue="" data-prize="">
         {listing.venueName}
       </h2>
       <span className="rank">#{listing.rank}</span>
-      {kind ? (
-        <p className="kind" data-kind="">
-          {kind}
-        </p>
-      ) : null}
-      {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
+      <div className="card-summary" data-card-summary="">
+        {kind ? (
+          <p className="kind" data-kind="">
+            {kind}
+          </p>
+        ) : null}
+        {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
+      </div>
       <BookingHop
         listing={listing}
         className="book-one"
         primary
         guestFirst
-        afterListOne
-        afterListTwo
-        afterListThree
-        afterListFour
-        afterListFive
-        afterListSix
-        afterListSeven
       />
       <footer className="later-facts" data-later-fact="">
         <span className="bid" data-bid="">
           {formatUsd(listing.bidUsd)}
         </span>
-        <span aria-hidden="true"> · </span>
+        <PaidAtFact listing={listing} />
         <span className="clicks" data-clicks="">
           {formatClicks(listing.clicks)}
         </span>
       </footer>
-    </article>
+    </li>
   );
 }
 
@@ -152,34 +157,40 @@ export function ListingCard({ listing }: { listing: BoardListing }) {
 
   const kind = kindLabel(listing.kind);
   return (
-    <article
+    <li
       className="place"
       data-listing-card=""
       data-rank={listing.rank}
       data-listing-id={listing.id}
       data-later-book=""
       data-later-rank=""
+      data-poster-entry=""
+      data-slot="paid-card"
+      {...(listing.rank <= 3 ? { "data-top-rank": "" } : {})}
     >
       <span className="rank">#{listing.rank}</span>
       <p className="rest-name" data-venue="">
         {listing.venueName}
       </p>
-      {kind ? (
-        <p className="kind" data-kind="">
-          {kind}
-        </p>
-      ) : null}
-      {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
+      <div className="card-summary" data-card-summary="">
+        {kind ? (
+          <p className="kind" data-kind="">
+            {kind}
+          </p>
+        ) : null}
+        {listing.pitch ? <p className="pitch">{listing.pitch}</p> : null}
+      </div>
       <p className="bid" data-bid="">
         {formatUsd(listing.bidUsd)}
       </p>
       <footer className="place-foot" data-later-book-foot="">
         <LaterBookFoot listing={listing} />
+        <PaidAtFact listing={listing} />
         <span className="clicks" data-clicks="">
           {formatClicks(listing.clicks)}
         </span>
       </footer>
-    </article>
+    </li>
   );
 }
 
@@ -212,22 +223,23 @@ function UnpublishedWeekend({
       aria-label={`${city.name} weekend listings`}
       data-empty-board="true"
       data-empty-unpublished=""
+      data-poster-empty=""
       {...(!bidsOpen ? { "data-window-closed": "" } : {})}
     >
       <p className="empty-answer">No #1</p>
       <p className="empty-note">
-        This weekend is unpublished. No venue has paid to print on the{" "}
-        {city.name} poster. Nothing is invented here.
+        This weekend is still open. No venue has purchased the #1 position on
+        the {city.name} poster.
       </p>
       <p className="empty-window">
-        Rolling last 7 days from paid createdAt. Not Monday 00:00 UTC.
+        Paid placements remain eligible for seven days.
       </p>
       <p className="empty-bid-open">
-        New bids open Thursday noon through Sunday 23:59:59.999 local. Not anytime in the rolling week.
+        New bids open Thursday at noon and close Sunday at 11:59 PM local time.
       </p>
       {!bidsOpen ? (
         <p className="empty-window-closed">
-          New bids are closed. Not a live claim on Monday. New bids reopen Thursday noon through Sunday 23:59:59.999 local.
+          New bids are closed and reopen Thursday at noon local time.
         </p>
       ) : null}
     </section>
@@ -250,61 +262,69 @@ export function Leaderboard({
 
   const numberOne = paid.find((listing) => listing.rank === 1);
   const later = paid.filter((listing) => listing.rank > 1);
+  const topThreeLater = later.filter((listing) => listing.rank <= 3);
+  const remainingLater = later.filter((listing) => listing.rank > 3);
+  const topThree = [
+    ...(numberOne ? [numberOne] : []),
+    ...topThreeLater,
+  ].sort((a, b) => a.rank - b.rank);
 
   return (
-    <section className="fold" aria-label={`${city.name} weekend listings`}>
+    <section
+      className="fold"
+      aria-label={`${city.name} weekend listings`}
+      data-slot="paid-board"
+      data-poster-list=""
+    >
       <p className="fold-rule" aria-hidden="true">
         this friday / saturday
       </p>
-      <ol className="leaderboard" data-leaderboard="">
-        {numberOne ? (
-          <li className="is-number-one">
-            <ListingCard listing={numberOne} />
-          </li>
-        ) : null}
+      <ol
+        className="leaderboard top-three-list"
+        data-leaderboard=""
+        data-slot="top-three"
+        aria-label="Top three paid venues"
+      >
+        {topThree.map((listing) => (
+          <ListingCard key={listing.id} listing={listing} />
+        ))}
       </ol>
       {later.length > 0 ? (
-        <>
-          <section
-            className="later-stack"
-            data-later-stack=""
-            aria-label={`Later venues in ${city.name}`}
-          >
-            {bidsOpen ? (
-              <p className="later-stack-kicker later-stack-also">
-                Also this weekend
-              </p>
-            ) : null}
-            {!bidsOpen ? (
-              <p className="later-stack-kicker later-stack-closed-kicker">
-                Already ranked
-              </p>
-            ) : null}
-            <p className="later-stack-dek">
-              {bidsOpen ? (
-                <span className="later-stack-lists">
-                  Paying less than #1 still lists.{" "}
-                </span>
-              ) : null}
-              These venues are not this weekend&apos;s #1.
-            </p>
-            <ol className="later-board">
-              {later.map((listing) => (
-                <li key={listing.id} className="is-rest">
-                  <ListingCard listing={listing} />
-                </li>
-              ))}
-            </ol>
-          </section>
+        <section
+          className={`later-stack${remainingLater.length > 0 ? " has-later-rows" : ""}`}
+          data-later-stack=""
+          data-poster-later-list=""
+          aria-label={`Later venues in ${city.name}`}
+        >
           {bidsOpen ? (
-            <p className="list-after-book-line">
-              <a className="list-after-book" href="#claim" data-list-after-book="">
-                List a venue
-              </a>{" "}
-              after later Books. Paying less than #1 still lists.
+            <p className="later-stack-kicker later-stack-also">
+              Also this weekend
             </p>
           ) : null}
-        </>
+          {!bidsOpen ? (
+            <p className="later-stack-kicker later-stack-closed-kicker">
+              Already ranked
+            </p>
+          ) : null}
+          <p className="later-stack-dek">
+            {bidsOpen ? (
+              <span className="later-stack-lists">
+                Paying less than #1 still lists.{" "}
+              </span>
+            ) : null}
+            These venues are not this weekend&apos;s #1.
+          </p>
+          {remainingLater.length > 0 ? (
+            <ol
+              className="later-board"
+              data-slot="later-rows"
+            >
+              {remainingLater.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </ol>
+          ) : null}
+        </section>
       ) : null}
     </section>
   );
@@ -320,42 +340,91 @@ const CHECKOUT_ERROR_COPY: Record<string, string> = {
   reviews_forbidden: "No star scores or review-speak. No charge and no rank claimed.",
   window_closed: "This weekend window is closed. No charge and no rank claimed.",
   payment_incomplete: "Checkout was not paid. The poster is unchanged.",
+  waffo_unavailable: "Checkout is unavailable or still awaiting confirmation. No rank is claimed until payment is confirmed.",
   polar_unavailable: "Checkout is unavailable. No charge and no rank claimed.",
 };
 
+const RECOVERABLE_CHECKOUT_ERROR_PREFIX = "waffo_unavailable:";
+const LOCAL_INTENT_ID = /^int_[A-Za-z0-9_-]{1,128}$/;
+const RECOVERABLE_INTENT_STATUSES = new Set(["creating", "open", "unknown"]);
+const WAFFO_RECOVERY_COPY =
+  CHECKOUT_ERROR_COPY.waffo_unavailable;
+
+function checkoutErrorCode(code: string | undefined): string | undefined {
+  if (!code?.startsWith(RECOVERABLE_CHECKOUT_ERROR_PREFIX)) return code;
+  return "waffo_unavailable";
+}
+
+/** Only a durable, still-recoverable local intent may become a completion link. */
+function checkoutRecoveryIntentId(code: string | undefined): string | undefined {
+  if (!code?.startsWith(RECOVERABLE_CHECKOUT_ERROR_PREFIX)) return undefined;
+  const candidate = code.slice(RECOVERABLE_CHECKOUT_ERROR_PREFIX.length).trim();
+  if (!LOCAL_INTENT_ID.test(candidate)) return undefined;
+  try {
+    const intent = getCheckoutIntent(getDb(), candidate);
+    return intent && RECOVERABLE_INTENT_STATUSES.has(intent.status) ? candidate : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Occupied closed leftover `?error=window_closed`. BidForm is hidden, so this path must name reopen. */
 const OCCUPIED_CLOSED_WINDOW_CLOSED_COPY =
-  "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.";
+  "This weekend's bidding window is closed. New bids reopen Thursday at noon local time. No charge was made.";
 
 /** Empty unpublished leftover `?error=window_closed`. BidForm is hidden, so this path must name reopen. */
 const EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY =
-  "This weekend window is closed. New bids reopen Thursday noon through Sunday 23:59:59.999 local. No charge and no rank claimed.";
+  "This weekend's bidding window is closed. New bids reopen Thursday at noon local time. No charge was made.";
 
 export function checkoutErrorCopy(
   code: string | undefined,
   state?: { occupied: boolean; bidsOpen: boolean },
 ): string | null {
-  if (!code) return null;
+  const normalizedCode = checkoutErrorCode(code);
+  if (!normalizedCode) return null;
   if (
-    code === "window_closed" &&
+    normalizedCode === "window_closed" &&
     state?.occupied === true &&
     state.bidsOpen === false
   ) {
     return OCCUPIED_CLOSED_WINDOW_CLOSED_COPY;
   }
   if (
-    code === "window_closed" &&
+    normalizedCode === "window_closed" &&
     state?.occupied === false &&
     state.bidsOpen === false
   ) {
     return EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY;
   }
-  return CHECKOUT_ERROR_COPY[code] ?? "Checkout did not start. No rank claimed.";
+  return CHECKOUT_ERROR_COPY[normalizedCode] ?? "Checkout did not start. No rank claimed.";
+}
+
+function checkoutErrorNotice(
+  code: string | undefined,
+  state: { occupied: boolean; bidsOpen: boolean },
+): React.ReactNode {
+  const copy = checkoutErrorCopy(code, state);
+  if (!copy) return null;
+  const intentId = checkoutRecoveryIntentId(code);
+  if (!intentId) return copy;
+  return (
+    <>
+      {WAFFO_RECOVERY_COPY}{" "}
+      <a
+        href={`/checkout/complete?intent=${encodeURIComponent(intentId)}`}
+        data-checkout-recovery=""
+      >
+        Check payment status
+      </a>
+      .
+    </>
+  );
 }
 
 export function CityBoard({
   city,
   listings,
+  period = "weekend",
   weekendLabel = "This Friday / Saturday",
   checkoutError,
   now: nowProp,
@@ -369,7 +438,9 @@ export function CityBoard({
   const numberOne = paid.find((listing) => listing.rank === 1);
   const now = nowProp ?? new Date();
   const bidsOpen = isWindowOpen(currentWindow(city, now), now);
-  const errorCopy = checkoutErrorCopy(checkoutError, { occupied, bidsOpen });
+  const errorState = { occupied, bidsOpen };
+  const errorNotice = checkoutErrorNotice(checkoutError, errorState);
+  const errorCopy = checkoutErrorCopy(checkoutError, errorState);
   const occupiedClosedCheckoutError =
     occupied && !bidsOpen && checkoutError === "window_closed"
       ? errorCopy
@@ -385,93 +456,92 @@ export function CityBoard({
       data-board=""
       data-city={city.slug}
       data-occupied={occupied ? "true" : "false"}
+      data-period={period}
+      data-slot="home-shell"
+      data-identity="city-weekend-poster"
       {...(!bidsOpen ? { "data-window-closed": "" } : {})}
     >
-      <header className="masthead">
-        <p className="edition">One city · one weekend</p>
-        <h1 className="city-name">{city.name}</h1>
-        <p className="weekend-slot">{weekendLabel}</p>
-        {occupied ? (
-          <>
+      <section className="board-context" data-slot="context" data-poster-masthead="">
+        <a
+          className="context-pill"
+          href="/rules"
+          data-context-pill=""
+          data-slot="stats-pill"
+          data-poster-edition=""
+          aria-label={`${city.name} weekly board rules`}
+        >
+          <span>{city.name} weekend board</span>
+          <span className="context-detail">Paid spots only. See rules.</span>
+        </a>
+        <header className="masthead" data-slot="context-copy" data-poster-masthead-copy="">
+          <p className="edition">One city · one weekend</p>
+          <h1 className="city-name">{city.name}</h1>
+          <p className="weekend-slot">{weekendLabel}</p>
+          {occupied ? (
             <p className="period-meta week-window" data-rolling-week="">
               Rolling last 7 days. Not Monday 00:00 UTC.
             </p>
-            {bidsOpen ? (
-              <p className="occupied-bid-close">
-                New bids close Sunday 23:59:59.999 local.
-              </p>
-            ) : null}
-            {!bidsOpen ? (
-              <p className="occupied-window-closed">
-                New bids are closed. Not a live claim on Monday. New bids reopen Thursday noon through Sunday 23:59:59.999 local.
-              </p>
-            ) : null}
-          </>
-        ) : (
-          <p className="period-meta">
-            This weekend, #1 is whoever paid the most. Rank is money, not stars.
-          </p>
-        )}
-        {occupied && numberOne ? (
-          <>
-            {bidsOpen ? (
-              <p className="list-venue-line">
-                <a
-                  className="list-venue"
-                  href="#claim"
-                  data-list-venue=""
-                  data-list-after-book-one=""
-                  data-list-after-book-two=""
-                  data-list-after-book-three=""
-                  data-list-after-book-four=""
-                  data-list-after-book-five=""
-                  data-list-after-book-six=""
-                  data-list-after-book-seven=""
-                  data-list-after-book-eight=""
-                >
-                  List a venue
-                </a>
-              </p>
-            ) : null}
-            {bidsOpen ? (
-              <p className="book-after-list-line">
-                <BookingHop
-                  listing={numberOne}
-                  className="book-after-list"
-                  afterList
-                />{" "}
-                after the list hop.
-              </p>
-            ) : null}
-            {bidsOpen ? (
-              <p className="list-after-book-hop-line">
-                <a
-                  className="list-after-book-hop"
-                  href="#claim"
-                  data-list-after-book-hop=""
-                >
-                  List a venue
-                </a>{" "}
-                after Book follows List.
-              </p>
-            ) : null}
-            {bidsOpen ? (
-              <p className="book-after-list-hop-line">
-                <BookingHop
-                  listing={numberOne}
-                  className="book-after-list-hop"
-                  afterListHop
-                />{" "}
-                after List follows Book.
-              </p>
-            ) : null}
-          </>
-        ) : null}
-      </header>
+          ) : (
+            <p className="period-meta">
+              This weekend, #1 is whoever paid the most. Rank is money, not stars.
+            </p>
+          )}
+        </header>
+      </section>
       {occupied ? (
-        <Leaderboard city={city} listings={paid} bidsOpen={bidsOpen} />
+        <>
+          {bidsOpen ? (
+            <BidForm
+              city={city}
+              defaultAmount={defaultAmount}
+              occupied={occupied}
+              notice={errorNotice}
+            />
+          ) : null}
+          <Leaderboard
+            city={city}
+            listings={paid}
+            bidsOpen={bidsOpen}
+          />
+          {occupied && numberOne ? (
+            <details className="board-details" data-board-details="">
+              <summary>Weekend details</summary>
+              {bidsOpen ? (
+                <p className="occupied-bid-close">
+                  New bids close Sunday at 11:59 PM local time.
+                </p>
+              ) : (
+                <p className="occupied-window-closed">
+                  New bids are closed and reopen Thursday at noon local time.
+                </p>
+              )}
+              {bidsOpen ? (
+                <p className="list-venue-line">
+                  <a
+                    className="list-venue"
+                    href="#claim"
+                    data-list-venue=""
+                    aria-label="List a venue"
+                  >
+                    List a venue
+                  </a>
+                </p>
+              ) : null}
+            </details>
+          ) : null}
+        </>
       ) : (
-        <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
+        <>
+          <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
+          {bidsOpen ? (
+            <BidForm
+              city={city}
+              defaultAmount={defaultAmount}
+              occupied={occupied}
+              notice={errorNotice}
+            />
+          ) : null}
+        </>
       )}
       {occupiedClosedCheckoutError ? (
         <p
@@ -490,14 +560,6 @@ export function CityBoard({
         >
           {emptyUnpublishedClosedCheckoutError}
         </p>
-      ) : null}
-      {bidsOpen ? (
-        <BidForm
-          city={city}
-          defaultAmount={defaultAmount}
-          occupied={occupied}
-          notice={errorCopy}
-        />
       ) : null}
     </main>
   );

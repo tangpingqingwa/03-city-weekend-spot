@@ -4,7 +4,7 @@ import React from "react";
 export const metadata: Metadata = {
   title: "Rules · City Weekend Spot",
   description:
-    "min $5, older wins ties, raise pays difference, no fake reviews, no NSFW.",
+    "Minimum $5, older listings win ties, raises pay the difference, and reviews are never used for ranking.",
 };
 
 export default function RulesPage() {
@@ -12,8 +12,8 @@ export default function RulesPage() {
     <main className="doc-page" data-page="rules">
       <h1>Rules</h1>
       <p>
-        These rules are the product. A bidder can predict rank from this page
-        alone. Rank is the bid. There are no fake reviews.
+        The board follows the published rules below.{" "}
+        <strong>Rank is the bid</strong>, and reviews never influence position.
       </p>
 
       <h2>Ranking</h2>
@@ -22,153 +22,111 @@ export default function RulesPage() {
           <tr>
             <th>Rank is the bid</th>
             <td>
-              Sort by <code>bidUsd</code> descending. Nothing else — no recency
-              boost, no editorial pick, no star average.
+              Venues are ordered by bid from highest to lowest. There is no
+              recency boost, editorial pick, or star-rating factor.
             </td>
           </tr>
           <tr>
             <th>Whole dollars</th>
-            <td>USD only. Integers. No cents. Step is $1.</td>
+            <td>Bids use whole US dollars. The step is $1.</td>
           </tr>
           <tr>
             <th>Minimum</th>
             <td>
-              First bid for a listing in this window must be{" "}
-              <strong>min $5</strong>.
+              A new venue starts at <strong>$5</strong> or more.
             </td>
           </tr>
           <tr>
             <th>Below #1 still lists</th>
             <td>
-              Paying less than #1 still appears at the rank that bid can take.
-              Those venues are not this weekend’s #1.
+              A bid below the current leader still appears at the rank that
+              amount can take.
             </td>
           </tr>
           <tr>
             <th>Equal bids</th>
-            <td>
-              <strong>older wins ties</strong>. Compare{" "}
-              <code>firstPaidAt</code> ascending, then listing id.
-            </td>
+            <td>The venue placed first keeps the higher rank.</td>
           </tr>
           <tr>
             <th>Raise</th>
             <td>
-              Same venue key in the same city + weekend window raises.{" "}
-              <strong>raise pays difference</strong> only (
-              <code>new − current</code>). New amount must be a whole dollar ≥
-              current + $1 and ≥ $5.
+              The same venue may raise by at least $1 while its placement is
+              active. The original payer is charged only the difference between
+              the current and new bid.
             </td>
           </tr>
           <tr>
-            <th>Cannot steal the difference</th>
+            <th>Listing ownership</th>
             <td>
-              A different listing that wants that rank must pay the{" "}
-              <strong>full</strong> target amount, not the incumbent’s
-              difference.
+              Another venue cannot take over an existing listing for the raise
+              amount. It submits a new listing and pays the full bid.
             </td>
           </tr>
           <tr>
             <th>Payment claims rank</th>
             <td>
-              A completed payment claims the rank. Unpaid checkout does not. We
-              do not invent a paid #1 venue.
+              Rank changes only after payment is confirmed. An incomplete or
+              abandoned checkout never appears on the board.
             </td>
           </tr>
         </tbody>
       </table>
 
-      <h2>Weekly weekend window</h2>
+      <h2>Weekend timing</h2>
       <table>
         <tbody>
           <tr>
-            <th>Timezone</th>
-            <td>
-              Each city’s IANA timezone. NYC is{" "}
-              <code>America/New_York</code>.
-            </td>
+            <th>Local time</th>
+            <td>New York listings follow America/New_York local time.</td>
           </tr>
           <tr>
-            <th>Occupied window</th>
+            <th>Active placement</th>
             <td>
-              Rolling last 7 days. Not Monday 00:00 UTC. A traveler
-              outside that civil midnight does not lose the poster on a
-              timezone tax. Not a 24h lock on #1.
+              Paid listings remain eligible for seven days from placement. The
+              board does not reset for everyone at Monday midnight.
             </td>
           </tr>
           <tr>
             <th>New bids</th>
             <td>
-              Thursday 12:00 (noon) local through Sunday 23:59:59.999 local.
+              New claims open Thursday at noon and close Sunday at the end of
+              the day, New York time.
             </td>
           </tr>
           <tr>
-            <th>Slot</th>
-            <td>This Friday / Saturday.</td>
+            <th>Weekend slot</th>
+            <td>The board highlights places for this Friday and Saturday.</td>
           </tr>
           <tr>
-            <th>
-              <code>windowId</code>
-            </th>
+            <th>Expiry</th>
             <td>
-              Deterministic <code>{"{city}:{iso_week}"}</code> in that city’s
-              timezone (ISO week, Thursday-anchored). Polar/audit label. Live
-              occupancy is paid <code>createdAt</code> in the rolling last 7
-              days.
-            </td>
-          </tr>
-          <tr>
-            <th>What does not carry</th>
-            <td>
-              Bids older than 7 days never reappear on the live board. Want
-              next weekend’s #1? Pay again.
+              A placement leaves the live ranking after seven days. To return,
+              the venue places a new full bid.
             </td>
           </tr>
         </tbody>
       </table>
       <p>
-        An empty window is valid. There is no #1 venue until someone pays. Do
-        not invent a listing.
+        If nobody has paid for a placement, the board has no #1 venue.
       </p>
 
-      <h2>No fake reviews</h2>
+      <h2>Review policy</h2>
       <p>
-        We never display stars, review scores, or invented quotes. Pitch or
-        venue name with star/review claims is{" "}
-        <code>reviews_forbidden</code>. There are <strong>no fake reviews</strong>
-        . Public clicks on the booking URL are the only counter. Clicks are
-        not a rating.
+        Listings cannot include star ratings, review scores, or unattributed
+        review claims. Public clicks on the booking link are the only counter,
+        and clicks are not a rating.
       </p>
 
-      <h2>Booking URL hygiene</h2>
+      <h2>Booking links</h2>
       <ol>
+        <li>Use a secure, public booking or venue link.</li>
+        <li>Tracking, referral, and affiliate parameters are removed.</li>
+        <li>Link shorteners, chat invitations, and adult content are rejected.</li>
         <li>
-          Require <code>https:</code>. <code>http:</code> is{" "}
-          <code>url_insecure</code>.
-        </li>
-        <li>
-          Strip tracking and affiliate query keys: <code>utm_*</code>,{" "}
-          <code>fbclid</code>, <code>gclid</code>, <code>gbraid</code>,{" "}
-          <code>wbraid</code>, <code>msclkid</code>, <code>ref</code>,{" "}
-          <code>ref_</code>, <code>affiliate</code>, <code>aff</code>,{" "}
-          <code>irclickid</code>, <code>mc_cid</code>, <code>mc_eid</code>,{" "}
-          <code>icid</code>.
-        </li>
-        <li>Strip fragments. Store and display only the stripped URL.</li>
-        <li>
-          Reject chat / invite hosts: Telegram, <code>t.me</code>,{" "}
-          <code>wa.me</code>, chat.whatsapp, <code>discord.gg</code>.
-        </li>
-        <li>
-          Reject <strong>NSFW</strong> path tokens and adult hosts. Reject{" "}
-          <code>javascript:</code>, <code>data:</code>, credentials-in-URL, and
-          localhost / link-local hosts.
+          Private, local-only, credentialed, or otherwise unsafe destinations
+          are rejected before checkout.
         </li>
       </ol>
-      <p>
-        Chat / invite and NSFW fail as <code>url_forbidden</code>. No listing.
-        No charge.
-      </p>
     </main>
   );
 }

@@ -1,40 +1,16 @@
 import { NextResponse } from "next/server";
-import {
-  applyPaidEvent,
-  getPaymentPort,
-  type WebhookResult,
-} from "../../../../billing/port";
 
-export const POLAR_WEBHOOK_PATH = "/api/polar/webhook" as const;
-
-function headerMap(headers: Headers): Record<string, string> {
-  const out: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    out[key] = value;
-  });
-  return out;
+/**
+ * Polar is retired. Keep the path explicit and inert so an old provider
+ * registration cannot settle anything after the Waffo migration.
+ */
+export function POST(_request: Request): Response {
+  return NextResponse.json(
+    { error: "polar_webhook_retired", canonical: "/api/waffo/webhook" },
+    { status: 410 },
+  );
 }
 
-function applyIfPaid(result: WebhookResult): boolean {
-  if ("ignored" in result) return false;
-  applyPaidEvent(result);
-  return true;
-}
-
-export async function POST(request: Request): Promise<Response> {
-  const rawBody = await request.text();
-  try {
-    const result = await getPaymentPort().handleWebhook(
-      rawBody,
-      headerMap(request.headers),
-    );
-    return NextResponse.json({ received: true, applied: applyIfPaid(result) });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "invalid webhook";
-    const status =
-      message.startsWith("BLOCKED-SECRET") || message.includes("signature")
-        ? 400
-        : 500;
-    return NextResponse.json({ error: message }, { status });
-  }
+export function GET(_request: Request): Response {
+  return POST(_request);
 }

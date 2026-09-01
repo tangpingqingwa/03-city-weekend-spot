@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Operator smoke against a local process. Not called from scripts/test.sh or CI.
-# Walks NYC board, about/rules, checkout (live Polar or BLOCKED-SECRET), click,
-# unknown city. Missing Polar secret → BLOCKED-SECRET: POLAR_ACCESS_TOKEN
-# Fixture listing is allowed only so click can run when live pay is blocked.
+# Walks the Waffo-owned route surface against an offline fixture process:
+# NYC board, about/rules, checkout, completion status, click, retired Polar,
+# and unknown city. No provider credentials or network calls are accepted.
+# Fixture listing is allowed only so click can exercise the public redirect.
 # Do not invent a paid rank.
 set -euo pipefail
 
@@ -13,6 +14,10 @@ fail() {
   echo "FAIL: $*" >&2
   exit 1
 }
+
+if [[ -n "${LIVE_SMOKE_BASE:-}" ]]; then
+  fail "LIVE_SMOKE_BASE is unsupported; live-smoke always spawns an isolated fixture"
+fi
 
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
   fail "live-smoke must not run in GitHub Actions"
@@ -37,17 +42,9 @@ PASS_ERROR=0
 BLOCKED=0
 FAIL=0
 STARTED_PID=""
-LIVE_PID=""
 WORKDIR=""
 RESULT_LOG=""
-BASE="${LIVE_SMOKE_BASE:-}"
-
-# Capture operator Polar flags before the fixture process unsets them.
-OP_POLAR_LIVE="${POLAR_LIVE:-}"
-OP_POLAR_ACCESS_TOKEN="${POLAR_ACCESS_TOKEN:-}"
-OP_POLAR_WEBHOOK_SECRET="${POLAR_WEBHOOK_SECRET:-}"
-OP_POLAR_API_BASE="${POLAR_API_BASE:-}"
-OP_POLAR_PRODUCT_ID="${POLAR_PRODUCT_ID:-}"
+BASE=""
 
 kill_tree() {
   local pid="${1:-}"
@@ -60,10 +57,6 @@ kill_tree() {
 }
 
 cleanup() {
-  if [[ -n "${LIVE_PID}" ]]; then
-    kill_tree "${LIVE_PID}"
-    wait "${LIVE_PID}" 2>/dev/null || true
-  fi
   if [[ -n "${STARTED_PID}" ]]; then
     kill_tree "${STARTED_PID}"
     wait "${STARTED_PID}" 2>/dev/null || true
@@ -114,11 +107,29 @@ nyc_window_id() {
   '
 }
 
+process_alive() {
+  local pid="$1"
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+  kill -0 "$pid" 2>/dev/null || return 1
+  local state
+  state="$(ps -p "$pid" -o state= 2>/dev/null | tr -d '[:space:]')"
+  [[ -n "$state" && "$state" != Z* ]]
+}
+
 wait_health() {
-  local url="$1/healthz"
+  local base="$1"
+  local pid="$2"
+  local log_path="$3"
+  local startup_token="$4"
+  local url="$base/healthz"
+  local ready_line="live-smoke ready pid=${pid} token=${startup_token}"
   local i
   for i in $(seq 1 80); do
-    if curl -fsS --connect-timeout 2 --max-time 5 "$url" >/dev/null 2>&1; then
+    if ! process_alive "$pid"; then
+      return 2
+    fi
+    if grep -Fq "$ready_line" "$log_path" \
+      && curl -fsS --connect-timeout 2 --max-time 5 "$url" >/dev/null 2>&1; then
       return 0
     fi
     sleep 0.1
@@ -135,10 +146,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import AboutPage from "../src/app/about/page.tsx";
 import { POST as postCheckout } from "../src/app/api/checkout/route.ts";
 import { GET as getClick } from "../src/app/api/click/[id]/route.ts";
-import { POST as postWebhook } from "../src/app/api/polar/webhook/route.ts";
+import { POST as postWaffoWebhook } from "../src/app/api/waffo/webhook/route.ts";
+import { POST as postPolarWebhook } from "../src/app/api/polar/webhook/route.ts";
 import { CityBoard } from "../src/app/[city]/board.tsx";
 import { GET as getHealthz } from "../src/app/healthz/route.ts";
 import RulesPage from "../src/app/rules/page.tsx";
+import CheckoutCompletePage from "../src/app/checkout/complete/page.tsx";
 import { applyPaidEvent } from "../src/billing/port.ts";
 import { resolveCity } from "../src/core/cities.ts";
 import { getBoardListings } from "../src/core/rank.ts";
@@ -149,6 +162,23 @@ if (!Number.isInteger(port) || port <= 0) {
   throw new Error("PORT is required");
 }
 const origin = process.env.PUBLIC_BASE_URL ?? `http://127.0.0.1:${port}`;
+const startupToken = process.env.SMOKE_STARTUP_TOKEN;
+if (!startupToken) {
+  throw new Error("SMOKE_STARTUP_TOKEN is required");
+}
+const retiredPaymentVars = [
+  "POLAR_LIVE",
+  "POLAR_ACCESS_TOKEN",
+  "POLAR_WEBHOOK_SECRET",
+  "POLAR_API_BASE",
+  "POLAR_PRODUCT_ID",
+  "POLAR_SUCCESS_URL",
+  "POLAR_FIXTURE_ONLY",
+] as const;
+const inheritedRetiredPaymentVars = retiredPaymentVars.filter((name) => process.env[name] !== undefined);
+if (inheritedRetiredPaymentVars.length > 0) {
+  throw new Error(`fixture child inherited retired payment vars: ${inheritedRetiredPaymentVars.join(",")}`);
+}
 
 function htmlDocument(inner: string): string {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>City Weekend Spot</title></head><body><header class="site-header"><nav class="site-nav"><a href="/">Board</a><a href="/about">About</a><a href="/rules">Rules</a></nav></header>${inner}</body></html>`;
@@ -248,12 +278,21 @@ const server = createServer((req, res) => {
       sendHtml(res, createElement(RulesPage));
       return;
     }
+    if (request.method === "GET" && path === "/checkout/complete") {
+      const intent = url.searchParams.get("intent") ?? undefined;
+      sendHtml(res, await CheckoutCompletePage({ searchParams: Promise.resolve({ intent }) }));
+      return;
+    }
     if (request.method === "POST" && path === "/api/checkout") {
       await sendWeb(res, await postCheckout(request));
       return;
     }
-    if (request.method === "POST" && path === "/api/polar/webhook") {
-      await sendWeb(res, await postWebhook(request));
+    if (request.method === "POST" && path === "/api/waffo/webhook") {
+      await sendWeb(res, await postWaffoWebhook(request));
+      return;
+    }
+    if ((request.method === "POST" || request.method === "GET") && path === "/api/polar/webhook") {
+      await sendWeb(res, await postPolarWebhook(request));
       return;
     }
     const click = path.match(/^\/api\/click\/([^/]+)$/);
@@ -326,7 +365,7 @@ const server = createServer((req, res) => {
 });
 
 server.listen(port, "127.0.0.1", () => {
-  process.stdout.write(`live-smoke listening ${origin}\n`);
+  process.stdout.write(`live-smoke ready pid=${process.pid} token=${startupToken}\n`);
 });
 EOF
 }
@@ -335,27 +374,40 @@ start_smoke_server() {
   local port="$1"
   local log_path="$2"
   local server_path="$3"
-  shift 3
+  local startup_token="$4"
   (
     cd "$root"
-    unset POLAR_LIVE POLAR_ACCESS_TOKEN POLAR_WEBHOOK_SECRET POLAR_FIXTURE_ONLY \
-      POLAR_API_BASE POLAR_PRODUCT_ID || true
-    export POLAR_FIXTURE_ONLY=1
+    unset PAYMENT_MODE WAFFO_MODE WAFFO_LIVE WAFFO_API_BASE \
+      WAFFO_PUBLIC_BASE_URL PUBLIC_BASE_URL \
+      NODE_ENV VERCEL_ENV APP_ENV DEPLOY_ENV BUILD_ENV NEXT_PHASE \
+      WAFFO_CHECKOUT_TIMEOUT_MS DATABASE_PATH \
+      WAFFO_PRIVATE_KEY WAFFO_PRIVATE_KEY_FILE \
+      WAFFO_MERCHANT_ID WAFFO_STORE_ID WAFFO_PRODUCT_ID WAFFO_WEBHOOK_PUBLIC_KEY \
+      WAFFO_WEBHOOK_TEST_PUBLIC_KEY WAFFO_WEBHOOK_PROD_PUBLIC_KEY \
+      POLAR_LIVE POLAR_ACCESS_TOKEN POLAR_WEBHOOK_SECRET POLAR_API_BASE \
+      POLAR_PRODUCT_ID POLAR_SUCCESS_URL POLAR_FIXTURE_ONLY || true
+    export PAYMENT_MODE=fixture
+    export DATABASE_PATH="${WORKDIR}/smoke.sqlite"
     export PORT="${port}"
     export PUBLIC_BASE_URL="http://127.0.0.1:${port}"
-    while [[ $# -gt 0 ]]; do
-      export "$1"
-      shift
-    done
-    exec npx --no-install tsx --tsconfig "${root}/tsconfig.json" "${server_path}"
+    export SMOKE_STARTUP_TOKEN="${startup_token}"
+    exec node --import tsx "${server_path}"
   ) >"${log_path}" 2>&1 &
   echo $!
+}
+
+assert_fixture_child() {
+  local ready_line="live-smoke ready pid=${STARTED_PID} token=${STARTUP_TOKEN}"
+  if ! process_alive "${STARTED_PID}" || ! grep -Fq "$ready_line" "${LOG_PATH}"; then
+    fail "fixture child ownership was not proven before request"
+  fi
 }
 
 http_get() {
   local base="$1"
   local path="$2"
   local out="$3"
+  assert_fixture_child
   curl -sS -o "$out" -w "%{http_code}" --connect-timeout 5 --max-time 20 \
     "${base}${path}"
 }
@@ -365,6 +417,7 @@ http_get_headers() {
   local path="$2"
   local body="$3"
   local hdrs="$4"
+  assert_fixture_child
   curl -sS -D "$hdrs" -o "$body" -w "%{http_code}" --connect-timeout 5 --max-time 20 \
     --max-redirs 0 \
     "${base}${path}"
@@ -376,6 +429,7 @@ http_post_json() {
   local payload="$3"
   local body="$4"
   local hdrs="$5"
+  assert_fixture_child
   curl -sS -D "$hdrs" -o "$body" -w "%{http_code}" --connect-timeout 5 --max-time 30 \
     --max-redirs 0 \
     -X POST \
@@ -425,7 +479,12 @@ html_has() {
 
 invented_stars() {
   local file="$1"
-  grep -Eiq '★|⭐|4\.8 stars|star rating|star-rating|data-stars=|review count' "$file"
+  grep -Eiq '★|⭐|4\.8 stars|data-stars=|data-rating=|review count|rated 4\.9' "$file"
+}
+
+board_rating_ui() {
+  local file="$1"
+  grep -Eiq '★|⭐|star-rating|rating|4\.8 stars|data-stars=|data-rating=|review count|rated 4\.9' "$file"
 }
 
 listing_count() {
@@ -441,7 +500,7 @@ id_for_venue() {
     import { readFileSync } from "node:fs";
     const html = readFileSync(process.argv[1], "utf8");
     const venue = process.argv[2];
-    const cards = [...html.matchAll(/<article class="card"[\s\S]*?<\/article>/g)].map((m) => m[0]);
+    const cards = [...html.matchAll(/<(?:article|li)\b[\s\S]*?<\/(?:article|li)>/g)].map((m) => m[0]);
     for (const card of cards) {
       if (card.includes(venue)) {
         const id = card.match(/data-listing-id="([^"]+)"/);
@@ -460,7 +519,7 @@ clicks_for_id() {
     import { readFileSync } from "node:fs";
     const html = readFileSync(process.argv[1], "utf8");
     const id = process.argv[2];
-    const cards = [...html.matchAll(/<article class="card"[\s\S]*?<\/article>/g)].map((m) => m[0]);
+    const cards = [...html.matchAll(/<(?:article|li)\b[\s\S]*?<\/(?:article|li)>/g)].map((m) => m[0]);
     for (const card of cards) {
       if (card.includes(`data-listing-id="${id}"`)) {
         const clicks = card.match(/(\d+) clicks?/);
@@ -474,10 +533,20 @@ clicks_for_id() {
   ' "$1" "$2"
 }
 
+PORT_RAW="${LIVE_SMOKE_PORT:-$(pick_port)}"
+if [[ ! "$PORT_RAW" =~ ^[0-9]{1,5}$ ]]; then
+  fail "LIVE_SMOKE_PORT must be a decimal TCP port from 1 to 65535"
+fi
+PORT=$((10#$PORT_RAW))
+if (( PORT < 1 || PORT > 65535 )); then
+  fail "LIVE_SMOKE_PORT must be a decimal TCP port from 1 to 65535"
+fi
+
 WORKDIR="$(mktemp -d "${root}/.live-smoke.XXXXXX")"
 RESULT_LOG="${WORKDIR}/results.tsv"
 : >"${RESULT_LOG}"
 STAMP="$(date -u +%Y%m%d%H%M%S)"
+STARTUP_TOKEN="smoke-${STAMP}-${PORT}"
 WINDOW_ID="$(nyc_window_id)"
 VENUE="Smoke Venue ${STAMP}"
 STRIPPED_URL="https://book.example.com/smoke-${STAMP}"
@@ -489,39 +558,44 @@ echo "== live-smoke (operator only; not CI) =="
 echo "root=${root}"
 echo "windowId=${WINDOW_ID}"
 
-if [[ -z "${BASE}" ]]; then
-  PORT="${LIVE_SMOKE_PORT:-$(pick_port)}"
-  BASE="http://127.0.0.1:${PORT}"
-  LOG_PATH="${WORKDIR}/server.log"
-  echo "starting local fixture process on ${BASE}"
-  STARTED_PID="$(start_smoke_server "$PORT" "$LOG_PATH" "$SERVER_PATH" "POLAR_FIXTURE_ONLY=1")"
-  if ! wait_health "$BASE"; then
-    echo "server log:" >&2
-    cat "${LOG_PATH}" >&2 || true
-    fail "local server did not become healthy at ${BASE}/healthz"
-  fi
-else
-  BASE="${BASE%/}"
-  echo "assuming existing server at ${BASE}"
-  if ! wait_health "$BASE"; then
-    fail "existing server at ${BASE} did not answer /healthz"
-  fi
+BASE="http://127.0.0.1:${PORT}"
+LOG_PATH="${WORKDIR}/server.log"
+echo "starting isolated loopback fixture process"
+STARTED_PID="$(start_smoke_server "$PORT" "$LOG_PATH" "$SERVER_PATH" "$STARTUP_TOKEN")"
+if ! wait_health "$BASE" "$STARTED_PID" "$LOG_PATH" "$STARTUP_TOKEN"; then
+  echo "server log:" >&2
+  cat "${LOG_PATH}" >&2 || true
+  fail "local fixture process did not become healthy (loopback port ${PORT})"
 fi
 
-echo "base=${BASE}"
-echo "operator POLAR_LIVE=${OP_POLAR_LIVE:-<unset>}"
-if [[ -n "${OP_POLAR_API_BASE}" ]]; then
-  echo "operator POLAR_API_BASE=${OP_POLAR_API_BASE}"
-else
-  echo "operator POLAR_API_BASE=<unset default production>"
-fi
-echo "operator POLAR_PRODUCT_ID=$([ -n "${OP_POLAR_PRODUCT_ID}" ] && echo set || echo unset)"
+echo "base=loopback:${PORT}"
 
 # --- healthz ---
 health_body="${WORKDIR}/healthz.json"
 health_code="$(http_get "$BASE" "/healthz" "$health_body" || true)"
 if [[ "$health_code" != "200" ]] || ! grep -q '"ok":true' "$health_body"; then
   fail "GET /healthz HTTP ${health_code}"
+fi
+
+# --- Completion and retired provider routes ---
+complete_body="${WORKDIR}/complete.html"
+complete_code="$(http_get "$BASE" "/checkout/complete?intent=unknown-smoke-intent" "$complete_body" || true)"
+polar_body="${WORKDIR}/polar-retired.json"
+polar_hdrs="${WORKDIR}/polar-retired.hdrs"
+polar_code="$(http_post_json "$BASE" "/api/polar/webhook" '{}' "$polar_body" "$polar_hdrs" || true)"
+if [[ "$complete_code" == "200" ]] \
+  && html_has "$complete_body" 'data-checkout-complete="true"' \
+  && html_has "$complete_body" 'data-checkout-state="unknown"'; then
+  record "checkout-complete" "PASS" "GET /checkout/complete is read-only and reports unknown intent truthfully"
+else
+  record "checkout-complete" "FAIL" "GET /checkout/complete HTTP ${complete_code} did not render unknown state"
+fi
+if [[ "$polar_code" == "410" ]] \
+  && grep -q 'polar_webhook_retired' "$polar_body" \
+  && grep -q '/api/waffo/webhook' "$polar_body"; then
+  record "retired-polar" "PASS" "POST /api/polar/webhook is inert 410; canonical settlement is Waffo"
+else
+  record "retired-polar" "FAIL" "retired Polar route HTTP ${polar_code} was not inert"
 fi
 
 # --- NYC board: current weekly weekend window, no star UI ---
@@ -537,12 +611,24 @@ if [[ "$root_code" != "302" && "$root_code" != "307" ]] || [[ "$root_loc" != *"/
 elif [[ "$board0_code" != "200" ]]; then
   record "nyc-board" "FAIL" "GET /nyc HTTP ${board0_code}"
 elif ! html_has "$board0" 'data-city="nyc"' \
-  || ! html_has "$board0" 'name="amountUsd"' \
-  || ! html_has "$board0" 'Outbid' \
   || ! html_has "$board0" 'This weekend'; then
-  record "nyc-board" "FAIL" "GET /nyc missing NYC board, weekend copy, or bid form"
-elif invented_stars "$board0"; then
-  record "nyc-board" "FAIL" "GET /nyc invented star UI"
+  record "nyc-board" "FAIL" "GET /nyc missing NYC board or weekend copy"
+elif ! html_has "$board0" "data-window-id=\"${WINDOW_ID}\""; then
+  record "nyc-board" "FAIL" "GET /nyc returned a different city/window than ${WINDOW_ID}"
+elif html_has "$board0" 'data-window-closed'; then
+  if html_has "$board0" 'data-bid-form=""|name="amountUsd"|data-action="outbid"|class="outbid"'; then
+    record "nyc-board" "FAIL" "GET /nyc closed response retained bid-form or Outbid UI"
+  elif board_rating_ui "$board0"; then
+    record "nyc-board" "FAIL" "GET /nyc closed response retained star/rating UI"
+  elif ! html_has "$board0" 'New bids are closed and reopen Thursday at noon local time'; then
+    record "nyc-board" "FAIL" "GET /nyc closed response omitted expected Thursday reopen copy"
+  else
+    record "nyc-board" "PASS-ERROR" "GET /nyc ${WINDOW_ID} is closed; bid form/Outbid/star UI absent and Thursday reopen copy present"
+  fi
+elif ! html_has "$board0" 'name="amountUsd"' || ! html_has "$board0" 'Outbid'; then
+  record "nyc-board" "FAIL" "GET /nyc missing open-window bid form"
+elif board_rating_ui "$board0"; then
+  record "nyc-board" "FAIL" "GET /nyc invented star/rating UI"
 elif [[ "$board0_count" == "0" ]] && html_has "$board0" 'data-empty-board="true"'; then
   record "nyc-board" "PASS" "GET / → /nyc 200 window ${WINDOW_ID} empty + bid form; no star UI"
 elif [[ "$board0_count" != "0" ]] \
@@ -560,13 +646,17 @@ rules_body="${WORKDIR}/rules.html"
 rules_code="$(http_get "$BASE" "/rules" "$rules_body" || true)"
 if [[ "$about_code" == "200" && "$rules_code" == "200" ]] \
   && html_has "$about_body" 'Rank is money, not stars' \
-  && html_has "$about_body" 'no fake reviews' \
-  && html_has "$about_body" 'NYC' \
-  && html_has "$about_body" 'city-weekend-spot' \
-  && html_has "$rules_body" 'min \$5' \
-  && html_has "$rules_body" 'older wins ties' \
-  && html_has "$rules_body" 'raise pays difference' \
-  && html_has "$rules_body" 'no fake reviews' \
+  && html_has "$about_body" 'star ratings, review scores, or invented quotes' \
+  && html_has "$about_body" 'City Weekend Spot' \
+  && html_has "$about_body" 'New York' \
+  && html_has "$about_body" 'English' \
+  && html_has "$rules_body" 'A new venue starts at' \
+  && html_has "$rules_body" '\$5' \
+  && html_has "$rules_body" 'venue placed first keeps the higher rank' \
+  && html_has "$rules_body" 'charged only the difference between' \
+  && html_has "$rules_body" 'reviews never influence position' \
+  && html_has "$rules_body" 'review claims' \
+  && html_has "$rules_body" 'adult content are rejected' \
   && ! invented_stars "$about_body" \
   && ! invented_stars "$rules_body"; then
   record "about-rules" "PASS" "GET /about and /rules 200; min \$5, older wins ties, raise pays difference, no fake reviews"
@@ -586,70 +676,15 @@ http_get "$BASE" "/nyc" "$board_min" >/dev/null || true
 if [[ "$min_code" == "400" && "$min_err" == "bid_below_min" ]] \
   && ! html_has "$board_min" "$VENUE"; then
   record "bid-below-min" "PASS-ERROR" "POST /api/checkout \$4 → 400 bid_below_min; board unchanged"
+elif [[ "$min_code" == "400" && "$min_err" == "window_closed" ]] \
+  && ! html_has "$board_min" "$VENUE"; then
+  record "bid-below-min" "PASS-ERROR" "POST /api/checkout while window closed → 400 window_closed; board unchanged"
 else
   record "bid-below-min" "FAIL" "\$4 checkout HTTP ${min_code} error=${min_err}"
 fi
 
-# --- Create checkout: live Polar session or BLOCKED-SECRET ---
-echo "== create checkout (live Polar or BLOCKED-SECRET) =="
-if [[ "${OP_POLAR_LIVE}" == "1" ]]; then
-  if [[ -z "${OP_POLAR_ACCESS_TOKEN}" ]]; then
-    echo "BLOCKED-SECRET: POLAR_ACCESS_TOKEN"
-    record "create-checkout" "BLOCKED-SECRET" "POLAR_ACCESS_TOKEN"
-  else
-    live_port="$(pick_port)"
-    live_log="${WORKDIR}/polar-live.log"
-    live_base="http://127.0.0.1:${live_port}"
-    LIVE_PID="$(start_smoke_server "$live_port" "$live_log" "$SERVER_PATH" \
-      "POLAR_LIVE=1" \
-      "POLAR_ACCESS_TOKEN=${OP_POLAR_ACCESS_TOKEN}" \
-      "POLAR_WEBHOOK_SECRET=${OP_POLAR_WEBHOOK_SECRET:-}" \
-      "POLAR_API_BASE=${OP_POLAR_API_BASE:-}" \
-      "POLAR_PRODUCT_ID=${OP_POLAR_PRODUCT_ID:-}" \
-      "POLAR_FIXTURE_ONLY=")"
-    if ! wait_health "$live_base"; then
-      if grep -q 'BLOCKED-SECRET: POLAR_ACCESS_TOKEN' "${live_log}"; then
-        echo "BLOCKED-SECRET: POLAR_ACCESS_TOKEN"
-        record "create-checkout" "BLOCKED-SECRET" "POLAR_ACCESS_TOKEN"
-      else
-        record "create-checkout" "FAIL" "live Polar process did not become healthy"
-      fi
-    else
-      live_body="${WORKDIR}/polar-live.json"
-      live_hdrs="${WORKDIR}/polar-live.hdrs"
-      live_code="$(http_post_json "$live_base" "/api/checkout" \
-        "{\"city\":\"nyc\",\"venueName\":\"Live Polar Venue\",\"bookingUrl\":\"https://book.example.com/live-polar\",\"amountUsd\":5,\"kind\":\"restaurant\"}" \
-        "$live_body" "$live_hdrs" || true)"
-      live_url="$(json_field "$live_body" "checkoutUrl" || true)"
-      live_err="$(json_field "$live_body" "error" || true)"
-      live_board="${WORKDIR}/polar-live-board.html"
-      http_get "$live_base" "/nyc" "$live_board" >/dev/null || true
-      if html_has "$live_board" 'Live Polar Venue'; then
-        record "create-checkout" "FAIL" "unpaid live Polar session appeared on the board"
-      elif [[ "$live_code" == "200" && "$live_url" == https://sandbox.polar.sh/* ]]; then
-        record "create-checkout" "PASS" "live Polar sandbox Checkout URL; unpaid session not listed"
-      elif [[ "$live_code" == "200" && "$live_url" == https://*polar.sh* ]]; then
-        record "create-checkout" "FAIL" "Polar checkout URL is not sandbox.polar.sh (got non-sandbox host)"
-      elif [[ "$live_code" == "503" && "$live_err" == "polar_unavailable" ]]; then
-        record "create-checkout" "PASS-ERROR" "polar_unavailable; no invented paid rank"
-      else
-        record "create-checkout" "PASS-ERROR" "POLAR_LIVE=1 HTTP ${live_code} error=${live_err}; no invented listing"
-      fi
-    fi
-    if [[ -n "${LIVE_PID}" ]]; then
-      kill_tree "${LIVE_PID}"
-      wait "${LIVE_PID}" 2>/dev/null || true
-    fi
-    LIVE_PID=""
-  fi
-else
-  if [[ -z "${OP_POLAR_ACCESS_TOKEN}" ]]; then
-    echo "BLOCKED-SECRET: POLAR_ACCESS_TOKEN"
-    record "create-checkout" "BLOCKED-SECRET" "POLAR_ACCESS_TOKEN"
-  else
-    record "create-checkout" "PASS-ERROR" "POLAR_LIVE unset; token present but live Polar not invoked"
-  fi
-fi
+# --- Create checkout: offline fixture only (never a provider operator path) ---
+echo "== create checkout (fixture-only; no provider network) =="
 
 # --- Click: fixture listing allowed when live pay is blocked ---
 fix_body="${WORKDIR}/fixture.json"
@@ -662,13 +697,22 @@ fix_err="$(json_field "$fix_body" "error" || true)"
 board_unpaid="${WORKDIR}/board-unpaid.html"
 http_get "$BASE" "/nyc" "$board_unpaid" >/dev/null || true
 
+if [[ "$fix_code" == "200" && -n "$fix_session" ]] \
+  && ! html_has "$board_unpaid" "$VENUE"; then
+  record "create-checkout" "PASS" "fixture intent created; unpaid session is not ranked"
+elif [[ "$fix_code" == "400" && "$fix_err" == "window_closed" ]]; then
+  record "create-checkout" "PASS-ERROR" "window_closed; no checkout or listing was invented"
+else
+  record "create-checkout" "FAIL" "fixture checkout HTTP ${fix_code} error=${fix_err}"
+fi
+
 listing_id=""
 if html_has "$board_unpaid" "$VENUE"; then
   record "click" "FAIL" "unpaid fixture checkout appeared on the board"
 elif [[ "$fix_code" == "200" && -n "$fix_session" ]]; then
   hook_body="${WORKDIR}/fixture-webhook.json"
   hook_hdrs="${WORKDIR}/fixture-webhook.hdrs"
-  hook_code="$(http_post_json "$BASE" "/api/polar/webhook" \
+  hook_code="$(http_post_json "$BASE" "/api/waffo/webhook" \
     "{\"type\":\"checkout.updated\",\"data\":{\"id\":\"${fix_session}\",\"status\":\"succeeded\"}}" \
     "$hook_body" "$hook_hdrs" || true)"
   board_paid="${WORKDIR}/board-paid.html"
@@ -676,7 +720,7 @@ elif [[ "$fix_code" == "200" && -n "$fix_session" ]]; then
   listing_id="$(id_for_venue "$board_paid" "$VENUE" || true)"
   if [[ "$hook_code" != "200" || "$board_paid_code" != "200" || -z "$listing_id" ]]; then
     record "click" "FAIL" "fixture paid event did not list (webhook HTTP ${hook_code})"
-  elif html_has "$board_paid" 'utm_source' || invented_stars "$board_paid"; then
+  elif html_has "$board_paid" 'utm_source' || board_rating_ui "$board_paid"; then
     record "click" "FAIL" "paid card leaked tracking or invented stars"
   else
     before_clicks="$(clicks_for_id "$board_paid" "$listing_id" || echo "")"
@@ -748,7 +792,7 @@ fi
 echo
 echo "== summary =="
 echo "PASS=${PASS} PASS-ERROR=${PASS_ERROR} BLOCKED-SECRET=${BLOCKED} FAIL=${FAIL}"
-echo "base=${BASE}"
+echo "base=loopback:${PORT}"
 echo "windowId=${WINDOW_ID}"
 if [[ -f "${RESULT_LOG}" ]]; then
   echo "----"

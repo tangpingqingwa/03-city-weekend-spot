@@ -1,111 +1,140 @@
 import { randomUUID } from "node:crypto";
+import {
+  attachCheckoutIntent,
+  getCheckoutIntent,
+  getDb,
+  markCheckoutIntentAbandoned,
+  sha256,
+  type AppDb,
+  type CheckoutIntentRow,
+} from "../db";
 import type {
-  CheckoutKind,
   CheckoutRecord,
   CheckoutStart,
   CreateCheckoutInput,
-  ListingDraft,
   PaidEvent,
   PaymentPort,
   WebhookResult,
 } from "./port";
+import { checkoutNow, prepareCheckoutIntent } from "./port";
 
-type StoredCheckout = CheckoutRecord;
-
-/** In-memory Polar. No network. Paid events list; abandon does not. */
+/** Explicit test-only provider. It uses the same durable intent/ledger path. */
 export class FixturePayment implements PaymentPort {
   readonly kind = "fixture" as const;
-  private readonly sessions = new Map<string, StoredCheckout>();
+  readonly mode = "fixture" as const;
+  private readonly database?: AppDb;
+
+  constructor(database?: AppDb) {
+    this.database = database;
+  }
+
+  private db(): AppDb {
+    return this.database ?? getDb();
+  }
 
   reset(): void {
-    this.sessions.clear();
+    // State is durable by design; test isolation is provided by DATABASE_PATH.
   }
 
   async createCheckout(input: CreateCheckoutInput): Promise<CheckoutStart> {
-    if (!Number.isInteger(input.amountUsd) || input.amountUsd < 1) {
-      throw new Error("bid_not_whole");
-    }
+    const intent = prepareCheckoutIntent(input, "fixture", "fixture", this.db());
     const sessionId = `fix_${randomUUID()}`;
     const checkoutUrl = fixtureCheckoutUrl(input.listingDraft.city, sessionId);
-    this.sessions.set(sessionId, {
-      sessionId,
-      status: "open",
+    attachCheckoutIntent(this.db(), intent.id, {
+      providerCheckoutId: sessionId,
       checkoutUrl,
-      listingDraft: { ...input.listingDraft },
-      amountUsd: input.amountUsd,
-      kind: input.kind,
+      expiresAt: new Date(checkoutNow().getTime() + 45 * 60_000).toISOString(),
     });
-    return { checkoutUrl, sessionId };
+    return { checkoutUrl, sessionId, intentId: intent.id };
   }
 
   getCheckout(sessionId: string): CheckoutRecord | undefined {
-    const session = this.sessions.get(sessionId);
-    return session ? copyCheckout(session) : undefined;
+    const intent = this.findIntent(sessionId);
+    if (!intent) return undefined;
+    const draft = parseDraft(intent.listing_draft_json);
+    return {
+      sessionId: intent.provider_checkout_id ?? intent.id,
+      status: intent.status === "creating" ? "open" : intent.status,
+      checkoutUrl: intent.checkout_url ?? fixtureCheckoutUrl(intent.city, intent.provider_checkout_id ?? intent.id),
+      listingDraft: draft,
+      amountUsd: intent.charge_cents / 100,
+      kind: intent.kind,
+      paidAt: intent.paid_at ?? undefined,
+      intentId: intent.id,
+      reason: intent.reason,
+    };
   }
 
   async completeCheckout(sessionId: string): Promise<PaidEvent> {
-    const session = this.requireSession(sessionId);
-    if (session.status === "abandoned") {
-      throw new Error("payment_incomplete");
-    }
-    if (session.status !== "paid") {
-      session.status = "paid";
-      session.paidAt = new Date().toISOString();
-    }
-    return paidEvent(session);
+    const intent = this.findIntent(sessionId);
+    if (!intent || intent.status === "abandoned") throw new Error("payment_incomplete");
+    const draft = parseDraft(intent.listing_draft_json);
+    const providerCheckoutId = intent.provider_checkout_id ?? sessionId;
+    const providerEventId = `fixture_delivery_${providerCheckoutId}`;
+    const providerOrderId = `fixture_order_${providerCheckoutId}`;
+    const providerPaymentId = `fixture_payment_${providerCheckoutId}`;
+    const businessEventId = `fixture_business_${providerCheckoutId}`;
+    const paidAt = intent.paid_at ?? checkoutNow().toISOString();
+    const payload = JSON.stringify({
+      id: providerEventId,
+      eventType: "order.completed",
+      eventId: businessEventId,
+      data: { checkoutId: providerCheckoutId, orderId: providerOrderId, paymentId: providerPaymentId },
+    });
+    return {
+      sessionId: providerCheckoutId,
+      intentId: intent.id,
+      listingDraft: draft,
+      amountUsd: intent.charge_cents / 100,
+      amountCents: intent.charge_cents,
+      kind: intent.kind,
+      paidAt,
+      providerCheckoutId,
+      providerOrderId,
+      providerPaymentId,
+      providerEventId,
+      businessEventId,
+      eventType: "order.completed",
+      currency: intent.currency,
+      productId: intent.product_id,
+      metadata: parseMetadata(intent.metadata_json),
+      intentFingerprint: intent.fingerprint,
+      targetBidUsd: intent.target_bid_cents / 100,
+      quoteBaseBidUsd: intent.quote_base_bid_cents === null ? null : intent.quote_base_bid_cents / 100,
+      payloadJson: payload,
+      payloadFingerprint: sha256(payload),
+    };
   }
 
   async abandonCheckout(sessionId: string): Promise<void> {
-    const session = this.sessions.get(sessionId);
-    if (!session || session.status !== "open") return;
-    session.status = "abandoned";
+    const intent = this.findIntent(sessionId);
+    if (intent) markCheckoutIntentAbandoned(this.db(), intent.id);
   }
 
-  async handleWebhook(
-    rawBody: string,
-    _headers: Record<string, string>,
-  ): Promise<WebhookResult> {
-    const event = parseJson(rawBody);
-    if (!isRecord(event)) {
-      return { ignored: true };
-    }
-    const data = isRecord(event.data) ? event.data : event;
-    const status = typeof data.status === "string" ? data.status : "";
-    const sessionId = typeof data.id === "string" ? data.id : "";
-    if (!sessionId) {
-      return { ignored: true };
-    }
-    if (status === "expired" || status === "failed" || status === "canceled") {
+  async handleWebhook(rawBody: string, _headers: Record<string, string>): Promise<WebhookResult> {
+    const parsed = parseJson(rawBody);
+    if (!isRecord(parsed)) return { ignored: true };
+    const data = isRecord(parsed.data) ? parsed.data : parsed;
+    const sessionId = readString(data.checkoutId) ?? readString(data.sessionId) ?? readString(data.id);
+    if (!sessionId || !this.findIntent(sessionId)) return { ignored: true };
+    const status = readString(data.status) ?? readString(data.orderStatus) ?? "";
+    if (["expired", "failed", "canceled", "cancelled", "abandoned"].includes(status)) {
       await this.abandonCheckout(sessionId);
       return { ignored: true };
     }
-    if (!isPaidStatus(status) && event.type !== "order.paid") {
+    if (!(status === "paid" || status === "succeeded" || status === "complete" || parsed.type === "order.completed" || parsed.eventType === "order.completed")) {
       return { ignored: true };
-    }
-    if (!this.sessions.has(sessionId)) {
-      const draft = draftFromMetadata(data);
-      const amountUsd = draftAmount(data);
-      if (!draft || amountUsd === undefined) {
-        return { ignored: true };
-      }
-      this.sessions.set(sessionId, {
-        sessionId,
-        status: "open",
-        checkoutUrl: fixtureCheckoutUrl(draft.city, sessionId),
-        listingDraft: draft,
-        amountUsd,
-        kind: draftKind(data),
-      });
     }
     return this.completeCheckout(sessionId);
   }
 
-  private requireSession(sessionId: string): StoredCheckout {
-    const session = this.sessions.get(sessionId);
-    if (!session) {
-      throw new Error("payment_incomplete");
-    }
-    return session;
+  private findIntent(sessionId: string): CheckoutIntentRow | undefined {
+    const db = this.db();
+    return getCheckoutIntent(db, sessionId) ?? (() => {
+      const rows = db.sqlite.prepare("SELECT * FROM checkout_intents WHERE provider_checkout_id = ?").get(sessionId) as Record<string, unknown> | undefined;
+      if (!rows) return undefined;
+      return getCheckoutIntent(db, String(rows.id));
+    })();
   }
 }
 
@@ -120,34 +149,20 @@ export function fixtureCheckoutUrl(city: string, sessionId: string): string {
   return `/${city}/return?sessionId=${encodeURIComponent(sessionId)}`;
 }
 
-function copyCheckout(session: StoredCheckout): CheckoutRecord {
-  return { ...session, listingDraft: { ...session.listingDraft } };
+function parseDraft(raw: string) {
+  return JSON.parse(raw) as CreateCheckoutInput["listingDraft"];
 }
 
-function paidEvent(session: StoredCheckout): PaidEvent {
-  return {
-    sessionId: session.sessionId,
-    listingDraft: { ...session.listingDraft },
-    amountUsd: session.amountUsd,
-    kind: session.kind,
-    paidAt: session.paidAt ?? new Date().toISOString(),
-  };
+function parseMetadata(raw: string): Record<string, string> {
+  const value = JSON.parse(raw) as Record<string, unknown>;
+  return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, String(val)]));
 }
 
-function isPaidStatus(status: string): boolean {
-  return (
-    status === "succeeded" ||
-    status === "paid" ||
-    status === "confirmed" ||
-    status === "complete"
-  );
-}
-
-function parseJson(rawBody: string): unknown {
+function parseJson(raw: string): unknown {
   try {
-    return JSON.parse(rawBody) as unknown;
+    return JSON.parse(raw) as unknown;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -155,50 +170,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function draftFromMetadata(data: Record<string, unknown>): ListingDraft | undefined {
-  const metadata = isRecord(data.metadata) ? data.metadata : {};
-  const city = readString(metadata.city);
-  const windowId = readString(metadata.windowId);
-  const venueName = readString(metadata.venueName);
-  const bookingUrl = readString(metadata.bookingUrl);
-  if (!city || !windowId || !venueName || !bookingUrl) return undefined;
-  return {
-    city,
-    windowId,
-    venueName,
-    bookingUrl,
-    kind: readKind(metadata.venueKind),
-    pitch: readString(metadata.pitch) ?? null,
-  };
-}
-
-function draftKind(data: Record<string, unknown>): CheckoutKind {
-  const metadata = isRecord(data.metadata) ? data.metadata : {};
-  return metadata.kind === "raise" ? "raise" : "create";
-}
-
-function draftAmount(data: Record<string, unknown>): number | undefined {
-  const metadata = isRecord(data.metadata) ? data.metadata : {};
-  const bidUsd = readInt(metadata.amountUsd) ?? readInt(metadata.bidUsd);
-  if (bidUsd !== undefined) return bidUsd;
-  const cents = readInt(data.amount);
-  if (cents !== undefined && cents % 100 === 0) return cents / 100;
-  return undefined;
-}
-
-function readKind(value: unknown): ListingDraft["kind"] {
-  if (value === "restaurant" || value === "bar" || value === "show") return value;
-  return null;
-}
-
 function readString(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
-}
-
-function readInt(value: unknown): number | undefined {
-  if (typeof value === "number" && Number.isInteger(value)) return value;
-  if (typeof value === "string" && /^-?\d+$/.test(value.trim())) {
-    return Number(value.trim());
-  }
-  return undefined;
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }

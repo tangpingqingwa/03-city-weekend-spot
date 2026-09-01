@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
+import { tmpdir } from "node:os";
 import { getCity, resolveCity, type City } from "../src/core/cities";
 import {
   ListingError,
@@ -16,11 +19,15 @@ import {
 import { currentWindow } from "../src/core/window";
 import {
   SCHEMA_SQL,
+  findListingByVenueKey,
   insertListing,
   listingFromRow,
   listingsForCityRollingWeek,
   listingsForCityWindow,
   openDatabase,
+  paymentEventByDeliveryId,
+  paymentEventsForCheckout,
+  recordPaymentEvent,
   upsertWindow,
 } from "../src/db";
 
@@ -122,6 +129,25 @@ test("equal bids: older firstPaidAt stays above, then id ASC", () => {
     ["a", "b", "older", "newer"],
   );
   assert.equal(ranked[0]?.rank, 1);
+});
+
+test("equal bids compare paid timestamps by instant, not offset-string order", () => {
+  const ranked = rankListings(
+    [
+      listing({
+        id: "utc-older",
+        bidUsd: 9,
+        firstPaidAt: "2026-08-20T16:30:00.000Z",
+      }),
+      listing({
+        id: "offset-newer",
+        bidUsd: 9,
+        firstPaidAt: "2026-08-20T12:00:00-05:00",
+      }),
+    ],
+    { city: "nyc", windowId: NYC_WINDOW },
+  );
+  assert.deepEqual(ranked.map((row) => row.id), ["utc-older", "offset-newer"]);
 });
 
 test("rankListings takes city; a second city uses the same rank.ts", () => {
@@ -313,7 +339,7 @@ test("live board loader invents no venues", () => {
   assert.deepEqual(getBoardListings("london"), []);
 });
 
-test("unpaid Polar checkout stays off the live board until paid", () => {
+test("unpaid Waffo checkout stays off the live board until paid", () => {
   const db = openDatabase(":memory:");
   const now = new Date("2026-08-20T16:00:00.000Z");
   const window = currentWindow(nyc, now);
@@ -476,4 +502,94 @@ test("in-memory db seeds NYC and ranks only that city + window", () => {
       { id: "db-low", rank: 2, bidUsd: 5 },
     ],
   );
+});
+
+test("file-backed SQLite preserves rank data across restart", () => {
+  const directory = mkdtempSync(join(tmpdir(), "city-weekend-rank-"));
+  const path = join(directory, "board.sqlite");
+  let writer: ReturnType<typeof openDatabase> | undefined;
+  let reader: ReturnType<typeof openDatabase> | undefined;
+  try {
+    const now = new Date("2026-08-20T16:00:00.000Z");
+    const window = currentWindow(nyc, now);
+    writer = openDatabase(path);
+    upsertWindow(writer, window);
+    insertListing(
+      writer,
+      listing({
+        id: "restart-listing",
+        windowId: window.id,
+        venueName: "Restart Room",
+        bookingUrl: "https://book.example.com/restart",
+        bidUsd: 12,
+        firstPaidAt: now.toISOString(),
+      }),
+    );
+    assert.equal(getBoardListings("nyc", now, writer)[0]?.rank, 1);
+    writer.close();
+    writer = undefined;
+
+    reader = openDatabase(path);
+    assert.equal(reader.listings.size, 1);
+    assert.equal(getBoardListings("nyc", now, reader)[0]?.bidUsd, 12);
+    assert.equal(reader.windows.get(window.id)?.city, "nyc");
+  } finally {
+    writer?.close();
+    reader?.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("venue history permits a new cycle and changed delivery replay is rejected", () => {
+  const directory = mkdtempSync(join(tmpdir(), "city-weekend-ledger-"));
+  const path = join(directory, "board.sqlite");
+  let left: ReturnType<typeof openDatabase> | undefined;
+  let right: ReturnType<typeof openDatabase> | undefined;
+  try {
+    left = openDatabase(path);
+    right = openDatabase(path);
+    const first = listing({
+      id: "lane-first",
+      venueName: "Same Lane",
+      bookingUrl: "https://book.example.com/same-lane",
+      bidUsd: 5,
+      firstPaidAt: "2026-08-20T16:00:00.000Z",
+    });
+    const second = listing({
+      id: "lane-second",
+      venueName: "Same Lane",
+      bookingUrl: "https://book.example.com/same-lane",
+      bidUsd: 5,
+      firstPaidAt: "2026-08-20T16:00:01.000Z",
+    });
+    insertListing(left, first);
+    const canonical = insertListing(right, second);
+    assert.equal(canonical.id, second.id);
+    assert.equal(left.listings.size, 2);
+    assert.equal(right.listings.size, 2);
+    assert.equal(findListingByVenueKey(right, first.venueKey)?.id, second.id);
+
+    const event = {
+      provider_event_id: "delivery-1",
+      provider_checkout_id: "checkout-1",
+      event_type: "order.completed",
+      business_event_id: "business-1",
+      received_at: "2026-08-20T16:00:02.000Z",
+      payload_json: '{"checkout_id":"checkout-1"}',
+    };
+    const recorded = recordPaymentEvent(left, event);
+    const replay = recordPaymentEvent(right, event);
+    assert.deepEqual(replay, recorded);
+    assert.equal(paymentEventByDeliveryId(right, "delivery-1")?.provider_checkout_id, "checkout-1");
+    assert.equal(paymentEventsForCheckout(left, "checkout-1").length, 1);
+    assert.throws(
+      () => recordPaymentEvent(right!, { ...event, payload_json: '{"checkout_id":"checkout-1","changed":true}' }),
+      /payment_event_identity_reuse/,
+    );
+    assert.equal((left!.sqlite.prepare("SELECT COUNT(*) AS count FROM payment_event_conflicts").get() as { count: number }).count, 1);
+  } finally {
+    left?.close();
+    right?.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

@@ -26,7 +26,13 @@ export function compareListings(a: RankableListing, b: RankableListing): number 
   if (a.bidUsd !== b.bidUsd) {
     return b.bidUsd - a.bidUsd;
   }
-  if (a.firstPaidAt !== b.firstPaidAt) {
+  const aPaidAt = Date.parse(a.firstPaidAt);
+  const bPaidAt = Date.parse(b.firstPaidAt);
+  if (Number.isFinite(aPaidAt) && Number.isFinite(bPaidAt)) {
+    if (aPaidAt !== bPaidAt) return aPaidAt - bPaidAt;
+  } else if (a.firstPaidAt !== b.firstPaidAt) {
+    // Legacy rows may contain an invalid timestamp; keep their ordering
+    // deterministic while valid provider timestamps sort chronologically.
     return a.firstPaidAt < b.firstPaidAt ? -1 : 1;
   }
   if (a.id !== b.id) {
@@ -79,8 +85,8 @@ export function toBoardListing(listing: RankedListing): BoardListing {
 
 /**
  * Live board for `city` + rolling last 7 days from paid createdAt.
- * ISO `{city}:{iso_week}` stays a Polar/audit label. Monday 00:00 UTC is not
- * occupancy expiry. Empty until Polar reports paid. Unpaid never invent a #1.
+ * ISO `{city}:{iso_week}` stays a Waffo/audit label. Monday 00:00 UTC is not
+ * occupancy expiry. Empty until Waffo reports paid. Unpaid never invent a #1.
  */
 export function getBoardListings(
   city: CitySlug,

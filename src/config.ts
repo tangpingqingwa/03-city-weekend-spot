@@ -1,36 +1,53 @@
-export type PolarEnv = Record<string, string | undefined>;
+import { requireWaffoConfig } from "./billing/waffo-session";
 
-/** Live Polar only when POLAR_LIVE=1. Unset / 0 / true stay fixture. */
-export function polarLiveEnabled(env: PolarEnv = process.env): boolean {
-  if (env.POLAR_FIXTURE_ONLY === "1") return false;
-  return env.POLAR_LIVE === "1";
+export type PaymentMode = "fixture" | "waffo-test" | "waffo-prod";
+export type AppEnv = Record<string, string | undefined>;
+
+/** Deployment systems expose different names for the same production boundary. */
+export function isProductionLike(env: AppEnv = process.env): boolean {
+  const values = [
+    env.NODE_ENV,
+    env.VERCEL_ENV,
+    env.APP_ENV,
+    env.DEPLOY_ENV,
+    env.BUILD_ENV,
+  ].map((value) => value?.trim().toLowerCase());
+  return values.some((value) => value === "production" || value === "prod" || value === "live")
+    || env.NEXT_PHASE?.trim() === "phase-production-build";
 }
 
-export function polarAccessToken(env: PolarEnv = process.env): string | undefined {
-  const token = env.POLAR_ACCESS_TOKEN?.trim();
-  return token ? token : undefined;
+/** Configuration is explicit; an unset or legacy mode is a startup error. */
+export function paymentMode(env: AppEnv = process.env): PaymentMode {
+  const explicit = env.PAYMENT_MODE?.trim();
+  const alias = env.WAFFO_MODE?.trim();
+  if (alias) throw new Error("BLOCKED-CONFIG: WAFFO_MODE is retired; set PAYMENT_MODE");
+  const mode = explicit;
+  if (mode === "fixture") {
+    if (isProductionLike(env)) throw new Error("BLOCKED-CONFIG: fixture mode is not allowed in production");
+    return mode;
+  }
+  if (mode === "waffo-test" || mode === "waffo-prod") return mode;
+  throw new Error("BLOCKED-CONFIG: PAYMENT_MODE must be fixture, waffo-test, or waffo-prod");
 }
 
-export function polarWebhookSecret(env: PolarEnv = process.env): string | undefined {
-  const secret = env.POLAR_WEBHOOK_SECRET?.trim();
-  return secret ? secret : undefined;
+export function publicBaseUrl(env: AppEnv = process.env): string {
+  const explicit = env.WAFFO_PUBLIC_BASE_URL?.trim();
+  const alias = env.PUBLIC_BASE_URL?.trim();
+  if (explicit && alias && explicit !== alias) throw new Error("BLOCKED-CONFIG: PUBLIC_BASE_URL aliases disagree");
+  const value = explicit ?? alias;
+  if (!value) throw new Error("BLOCKED-CONFIG: PUBLIC_BASE_URL");
+  return value.replace(/\/$/, "");
 }
 
-/** Optional Polar product. Sandbox checkout requires product_id. */
-export function polarProductId(env: PolarEnv = process.env): string | undefined {
-  const id = env.POLAR_PRODUCT_ID?.trim();
-  return id ? id : undefined;
+export function durableDatabasePath(env: AppEnv = process.env): string {
+  const value = env.DATABASE_PATH?.trim();
+  if (!value || value === ":memory:" || value.toLowerCase().startsWith("file::memory:") || value.toLowerCase().includes("mode=memory")) throw new Error("BLOCKED-CONFIG: DATABASE_PATH");
+  return value;
 }
 
-/** Default production host. Operator smoke may set POLAR_API_BASE to sandbox. */
-export function polarApiBase(env: PolarEnv = process.env): string {
-  const fromEnv = env.POLAR_API_BASE?.trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
-  return `https://${["api", "polar", "sh"].join(".")}`;
-}
-
-export function publicBaseUrl(env: PolarEnv = process.env): string {
-  const raw = env.PUBLIC_BASE_URL?.trim();
-  if (raw) return raw.replace(/\/$/, "");
-  return "http://localhost:3000";
+/** Shared request/readiness boundary used by health and mutation routes. */
+export function assertRuntimeReadiness(env: AppEnv = process.env): PaymentMode {
+  const mode = paymentMode(env);
+  if (mode !== "fixture") requireWaffoConfig(env, mode);
+  return mode;
 }

@@ -304,32 +304,32 @@ test("checkout rejects chat, NSFW, and review-speak without listing", async () =
   assert.equal(listingsForCityWindow(getDb(), "nyc", windowIdAt()).length, 0);
 });
 
-test("about and rules state min $5, older wins ties, raise pays difference, no fake reviews", () => {
+test("about and rules explain the public product without implementation notes", () => {
   const about = renderToStaticMarkup(createElement(AboutPage));
   const rules = renderToStaticMarkup(createElement(RulesPage));
 
   assert.match(about, /data-page="about"/);
   assert.match(about, /Rank is money, not stars/);
-  assert.match(about, /no fake reviews/i);
-  assert.match(about, /city-weekend-spot/);
-  assert.match(about, /outbid\.lol/);
-  assert.match(about, /NYC/);
-  assert.match(about, /global English/);
+  assert.match(about, /star ratings, review scores, or invented quotes/i);
+  assert.match(about, /City Weekend Spot/);
+  assert.match(about, /New York/);
   assert.match(about, /English/);
   assert.match(about, /USD/);
+  assert.match(about, /payment is confirmed/i);
 
   assert.match(rules, /data-page="rules"/);
-  assert.match(rules, /min \$5/);
-  assert.match(rules, /older wins ties/);
-  assert.match(rules, /raise pays difference/);
-  assert.match(rules, /Rolling last 7 days. Not Monday 00:00 UTC/);
-  assert.match(about, /rolling last 7 days/);
-  assert.match(rules, /no fake reviews/i);
-  assert.match(rules, /reviews_forbidden/);
-  assert.match(rules, /utm_\*/);
-  assert.match(rules, /url_forbidden/);
-  assert.match(rules, /NSFW/);
+  assert.match(rules, /starts at.*\$5/is);
+  assert.match(rules, /placed first keeps the higher rank/i);
+  assert.match(rules, /charged only the difference/i);
+  assert.match(rules, /remain eligible for seven days/i);
+  assert.match(rules, /star ratings, review scores/i);
+  assert.match(rules, /Tracking, referral, and affiliate parameters are removed/i);
+  assert.match(rules, /adult content are rejected/i);
 
   assert.doesNotMatch(about, /4\.8 stars|data-stars|data-rating|★|⭐/);
   assert.doesNotMatch(rules, /4\.8 stars|data-stars|data-rating|★|⭐/);
+  assert.doesNotMatch(
+    `${about}\n${rules}`,
+    /outbid\.lol|clone of|\bv1\b|fixture|API keys|Waffo|catalog row|weekId|createdAt|paidAt|localhost|link-local|BLOCKED-/i,
+  );
 });

@@ -34,8 +34,9 @@ One-line pitch: **This weekend in this city, #1 is whoever paid the most.**
 - **No fake reviews.** No star ratings, no invented quotes, no scraped scores.
 - Strip tracking and affiliate query strings. No chat / invite links. No NSFW.
 - Public click counts on the booking URL.
-- Live payments via Polar (merchant of record). Tests use a Polar **fixture**.
-- Pages: board, about, rules, checkout return.
+- Live payments via Waffo Pancake (merchant of record). Tests use an explicit
+  offline **fixture**; the retired Polar adapter and route cannot settle.
+- Pages: board, about, rules, read-only checkout completion/return.
 
 ### Non-goals
 
@@ -76,8 +77,8 @@ occupied rank: rolling last 7 days from paid createdAt
 slot meaning:  “this Friday / Saturday”
 ```
 
-- Occupied poster rank is Polar-paid rows whose `firstPaidAt` (`createdAt`) is still inside the **rolling last 7 days**. Not Monday 00:00 UTC. Not a 24h lock on #1.
-- New bids still open Thursday noon through Sunday 23:59:59.999 local. `{city}:{iso_week}` is a Polar/audit label, Thursday-anchored. Do not invent a second clock.
+- Occupied poster rank is Waffo-paid rows whose `firstPaidAt` (`createdAt`) is still inside the **rolling last 7 days**. Not Monday 00:00 UTC. Not a 24h lock on #1.
+- New bids still open Thursday noon through Sunday 23:59:59.999 local. `{city}:{iso_week}` is a provider/audit label, Thursday-anchored. Do not invent a second clock.
 - A traveler outside civil Monday midnight does not lose the occupied poster on a timezone tax.
 - Bids older than 7 days never reappear on the live board. Want #1 again? Pay again.
 
@@ -170,10 +171,11 @@ handleWebhook(rawBody: string, headers: Record<string, string>): Promise<PaidEve
 
 | Mode | When | Behavior |
 |---|---|---|
-| Fixture | tests, `POLAR_FIXTURE_ONLY=1`, or Polar unset | In-memory / signed fixture session. No network |
-| Live Polar | `POLAR_LIVE=1` + Polar secrets | Polar checkout + webhook. Merchant of record |
+| Fixture | local tests and smoke with explicit `PAYMENT_MODE=fixture` | Durable fixture intent/event path. No network |
+| Waffo test | `PAYMENT_MODE=waffo-test` plus test credentials/config | Waffo Pancake checkout + signed test webhook |
+| Waffo prod | `PAYMENT_MODE=waffo-prod` plus production credentials/config | Waffo Pancake checkout + signed production webhook |
 
-`POLAR_FIXTURE_ONLY=1` always wins. Unset / `0` / `true` stay fixture or fail-closed. CI must not set `POLAR_LIVE=1`.
+`PAYMENT_MODE` is mandatory and never inferred from legacy Polar variables. Waffo modes require durable SQLite, exact identifiers, signing keys, and (in production) an origin-only public HTTPS callback. The retired Polar adapter/path is inert and cannot settle.
 
 Rank updates **only** after a successful paid event. Abandoned checkout does not create or raise a listing.
 
@@ -187,6 +189,8 @@ GET  /:city                    public board for that city + current window
 POST /:city/checkout           { venueName, bookingUrl, amountUsd, kind?, pitch? }
                                → PaymentPort.createCheckout (create or raise)
 GET  /:city/return             checkout return; show paid / pending, never trust query alone
+GET  /checkout/complete?intent=…
+                               read-only durable intent status; never settles from query
 GET  /:city/click/:id          302 bookingUrl; increment public clicks
 GET  /about                    what this is; NYC v1; rank is money
 GET  /rules                    min $5, ties, raise = difference, no reviews, no NSFW
@@ -215,7 +219,7 @@ Board UI (clone outbid.lol, not a redesign):
 | `url_forbidden` | 400 | chat / NSFW / unusable host |
 | `reviews_forbidden` | 400 | pitch or name contains star/review claims |
 | `payment_incomplete` | 402 | checkout abandoned; board unchanged |
-| `polar_unavailable` | 503 | live Polar down; fixture never invents a paid event |
+| `waffo_unavailable` | 503 | Waffo unavailable or ambiguous; no invented paid event |
 
 Zero invented listings on any error.
 
@@ -236,7 +240,7 @@ Zero invented listings on any error.
 | 9 | Click booking CTA | 302 to stripped URL; public clicks +1 |
 | 10 | London slug before it is active | `city_unknown` or `city_inactive`; NYC rank untouched |
 | 11 | After 7 days from paid createdAt | board drops that listing; Monday 00:00 UTC does not |
-| 12 | `POLAR_LIVE` unset | fixture / fail-closed; no Polar network |
+| 12 | `PAYMENT_MODE=fixture` | offline fixture / fail-closed; no Waffo network |
 
 ---
 
@@ -244,17 +248,18 @@ Zero invented listings on any error.
 
 Operator-only. `scripts/live-smoke.sh` is **not** called from `scripts/test.sh` or Actions.
 
-Local process, `POLAR_LIVE=1` if Polar secrets exist, else record `BLOCKED-SECRET` for checkout only. Board, rules, about, and click still run.
+Local process runs with explicit `PAYMENT_MODE=fixture`, a durable temporary SQLite database, and no Waffo network. It checks the canonical Waffo route and the inert retired Polar path; board, rules, about, completion, and click still run.
 
 | Flow | Pass |
 |---|---|
 | NYC board | 200, current weekly weekend window, no star UI |
 | About / rules | 200, state min $5, older wins ties, raise pays difference, no fake reviews |
-| Create checkout | Polar session for a real https booking URL **or** `BLOCKED-SECRET` (`POLAR_ACCESS_TOKEN`) |
+| Create checkout | Fixture intent for a real https booking URL; unpaid session is not ranked |
+| Completion | `/checkout/complete?intent=…` reports durable pending/paid/failed/unknown state without mutation |
 | Click | 302, click count increments (fixture listing allowed if live pay is blocked) |
 | Unknown city | 404 `city_unknown` |
 
-Missing Polar secret is not a license to invent a paid rank.
+Missing Waffo configuration is not a license to invent a paid rank. The old `/api/polar/webhook` endpoint is 410 and never reads or settles a body.
 
 ---
 
@@ -292,4 +297,4 @@ Full process: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 Implementation plan (stack, modules, PR DAG): [BUILD.md](./BUILD.md).
 
-Until there is an application binary, `scripts/test.sh` still has to pass: contract files exist, SPEC/CONTRIBUTING agree, no tracked secrets. Adding a server means **extending** that script with unit/contract tests. Live Polar calls are optional and must not be required for `main` to stay green.
+Until there is an application binary, `scripts/test.sh` still has to pass: contract files exist, SPEC/CONTRIBUTING agree, no tracked secrets. Adding a server means **extending** that script with unit/contract tests. Live Waffo calls are optional and must not be required for `main` to stay green.

@@ -178,60 +178,6 @@ a:hover {
   display: none;
 }
 
-.poster[data-occupied="true"] .list-venue-line,
-.poster[data-occupied="true"] .book-after-list-line,
-.poster[data-occupied="true"] .list-after-book-hop-line,
-.poster[data-occupied="true"] .book-after-list-hop-line {
-  font-size: 0.72rem;
-}
-
-.poster[data-occupied="true"] .list-venue[data-list-venue],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-one],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-two],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-three],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-four],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-five],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-six],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-seven],
-.poster[data-occupied="true"] .list-venue[data-list-after-book-eight],
-.poster[data-occupied="true"] .book-after-list[data-book-after-list],
-.poster[data-occupied="true"] .list-after-book-hop[data-list-after-book-hop],
-.poster[data-occupied="true"] .book-after-list-hop[data-book-after-list-hop] {
-  display: inline-block;
-  width: auto;
-  min-width: 6.25rem;
-  min-height: 0;
-  height: 1.85rem;
-  padding: 0 0.7rem;
-  line-height: 1.7rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  border-width: 1px;
-  outline: none;
-  outline-offset: 0;
-  box-shadow: none;
-  background: transparent;
-  color: var(--muted);
-}
-
-.poster[data-occupied="true"] .list-venue[data-list-venue]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-one]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-two]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-three]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-four]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-five]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-six]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-seven]:hover,
-.poster[data-occupied="true"] .list-venue[data-list-after-book-eight]:hover,
-.poster[data-occupied="true"] .book-after-list[data-book-after-list]:hover,
-.poster[data-occupied="true"] .list-after-book-hop[data-list-after-book-hop]:hover,
-.poster[data-occupied="true"] .book-after-list-hop[data-book-after-list-hop]:hover {
-  background: transparent;
-  color: var(--ink);
-  outline: none;
-  box-shadow: none;
-}
 
 .list-venue-line {
   margin: 0.85rem 0 0;
@@ -250,251 +196,6 @@ a:hover {
   color: var(--accent);
 }
 
-.list-venue[data-list-after-book-one] {
-  min-width: 10.5rem;
-  height: 2.7rem;
-  padding: 0 1.25rem;
-  line-height: 2.55rem;
-  border: 1px solid var(--rule);
-  background: transparent;
-  color: var(--ink);
-  letter-spacing: 0.14em;
-  vertical-align: middle;
-}
-
-.list-venue[data-list-after-book-one]:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.list-venue[data-list-after-book-two] {
-  min-width: 12.5rem;
-  height: 3.05rem;
-  padding: 0 1.55rem;
-  line-height: 2.9rem;
-  letter-spacing: 0.16em;
-}
-
-.list-venue[data-list-after-book-two]:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.list-venue[data-list-after-book-three] {
-  min-width: 17rem;
-  height: 3.95rem;
-  padding: 0 2.25rem;
-  line-height: 3.8rem;
-  letter-spacing: 0.22em;
-}
-
-.list-venue[data-list-after-book-three]:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.list-venue[data-list-after-book-four] {
-  min-width: 20rem;
-  height: 4.55rem;
-  padding: 0 2.65rem;
-  line-height: 4.4rem;
-  letter-spacing: 0.24em;
-}
-
-.list-venue[data-list-after-book-four]:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.list-venue-line:has([data-list-after-book-five]) {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  margin: 1.15rem 0 0;
-}
-
-.list-venue[data-list-after-book-five] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-width: 0;
-  min-height: 5.35rem;
-  height: auto;
-  padding: 1.45rem 2.1rem;
-  line-height: 1;
-  font-size: 0.92rem;
-  letter-spacing: 0.28em;
-  border-width: 2px;
-  background: var(--panel);
-  box-shadow: inset 0 0 0 1px var(--paper);
-}
-
-.list-venue[data-list-after-book-five]:hover {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: none;
-}
-
-.list-venue-line:has([data-list-after-book-six]) {
-  margin: 1.35rem 0 0.2rem;
-}
-
-.list-venue[data-list-after-book-six] {
-  min-height: 6.45rem;
-  padding: 1.85rem 2.4rem;
-  font-size: 1.02rem;
-  letter-spacing: 0.32em;
-  border-width: 3px;
-  outline: 1px solid var(--rule);
-  outline-offset: 4px;
-}
-
-.list-venue[data-list-after-book-six]:hover {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: none;
-  outline-color: var(--ink);
-}
-
-.list-venue-line:has([data-list-after-book-seven]) {
-  margin: 1.55rem 0 0.4rem;
-}
-
-.list-venue[data-list-after-book-seven] {
-  min-height: 7.85rem;
-  padding: 2.35rem 2.9rem;
-  font-size: 1.18rem;
-  letter-spacing: 0.38em;
-  border-width: 4px;
-  outline-width: 2px;
-  outline-offset: 6px;
-}
-
-.list-venue[data-list-after-book-seven]:hover {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: none;
-  outline-color: var(--ink);
-}
-
-.list-venue-line:has([data-list-after-book-eight]) {
-  margin: 1.75rem 0 0.55rem;
-}
-
-.list-venue[data-list-after-book-eight] {
-  min-height: 10.35rem;
-  padding: 3.15rem 3.6rem;
-  font-size: 1.36rem;
-  letter-spacing: 0.44em;
-  border-width: 6px;
-  outline-width: 3px;
-  outline-offset: 8px;
-}
-
-.list-venue[data-list-after-book-eight]:hover {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: none;
-  outline-color: var(--ink);
-}
-
-.book-after-list-line {
-  margin: 0.75rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.book-after-list {
-  display: inline-block;
-  min-width: 8.5rem;
-  height: 2.35rem;
-  padding: 0 1.15rem;
-  line-height: 2.2rem;
-  border: 1px solid var(--rule);
-  background: var(--ink);
-  color: var(--paper);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
-.book-after-list:hover {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.list-after-book-hop-line {
-  margin: 0.75rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.list-after-book-hop {
-  display: inline-block;
-  min-width: 8.5rem;
-  height: 2.35rem;
-  padding: 0 1.15rem;
-  line-height: 2.2rem;
-  border: 1px solid var(--rule);
-  background: transparent;
-  color: var(--ink);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
-.list-after-book-hop:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.book-after-list-hop-line {
-  margin: 0.75rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.book-after-list-hop {
-  display: inline-block;
-  min-width: 8.5rem;
-  height: 2.35rem;
-  padding: 0 1.15rem;
-  line-height: 2.2rem;
-  border: 1px solid var(--rule);
-  background: var(--ink);
-  color: var(--paper);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
-.book-after-list-hop:hover {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.list-after-book-line {
-  margin: 1.15rem 0 0;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.list-after-book {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  border-bottom: 1px dashed var(--rule);
-}
-
-.list-after-book:hover {
-  color: var(--accent);
-}
 
 .claim {
   scroll-margin-top: 1.25rem;
@@ -548,8 +249,7 @@ a:hover {
 
 .amount-field {
   color: var(--accent);
-  text-decoration: underline dashed;
-  text-underline-offset: 0.3em;
+  text-decoration: none;
   font-variant-numeric: tabular-nums;
 }
 
@@ -611,70 +311,35 @@ a:hover {
   color: var(--accent-ink);
 }
 
-/* Empty /nyc: Claim #1 is the only first click. Venue URL is a later write after Outbid. */
-.poster[data-occupied="false"] .claim.empty-claim-first[data-empty-claim-first] {
+/* Empty /nyc: venue identity flows directly into the Claim #1 form. */
+.poster[data-occupied="false"] .claim {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.poster[data-occupied="false"] .claim.empty-claim-first[data-empty-claim-first] [data-bid-form] {
+.poster[data-occupied="false"] .claim [data-bid-form] {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.poster[data-occupied="false"]
-  .claim.empty-claim-first[data-empty-claim-first]
-  h2[data-first-click="claim"] {
-  font-size: clamp(1.85rem, 5vw, 2.55rem);
-}
-
-.poster[data-occupied="false"] .claim.empty-claim-first[data-empty-claim-first] .outbid {
-  width: auto;
-  min-width: 9rem;
-  margin: 0.95rem auto 0;
-}
-
-.poster[data-occupied="false"]
-  .claim.empty-claim-first[data-empty-claim-first]
-  .venue-identity[data-later-write] {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
+.poster[data-occupied="false"] .claim .bid-row {
   width: 100%;
   max-width: 28rem;
-  margin: 0.85rem auto 0;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--rule-soft);
 }
 
-.poster[data-occupied="false"]
-  .claim.empty-claim-first[data-empty-claim-first]
-  .later-write-label {
-  margin: 0;
-  text-align: center;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.poster[data-occupied="false"] .claim .bid-row input[name="venue"] {
   color: var(--muted);
 }
 
-.poster[data-occupied="false"]
-  .claim.empty-claim-first[data-empty-claim-first]
-  .venue-identity[data-later-write]
-  input[name="venue"] {
-  width: 100%;
-  min-width: 0;
-  height: 2.2rem;
-  padding: 0 0.8rem;
-  border: 1px solid var(--rule);
-  background: var(--panel);
-  font: inherit;
-  font-size: 0.88rem;
-  color: var(--muted);
+.poster[data-occupied="false"] .claim .bid-row .outbid {
+  flex: 0 0 auto;
+}
+
+.poster[data-occupied="false"] .claim h2 {
+  font-size: clamp(1.85rem, 5vw, 2.55rem);
 }
 
 .stub-note,
@@ -792,15 +457,7 @@ a:hover {
 .poster[data-occupied="true"][data-window-closed] .claim,
 .poster[data-occupied="true"][data-window-closed] [data-bid-form],
 .poster[data-occupied="true"][data-window-closed] .list-venue,
-.poster[data-occupied="true"][data-window-closed] .list-after-book,
-.poster[data-occupied="true"][data-window-closed] .list-after-book-hop,
 .poster[data-occupied="true"][data-window-closed] .list-venue-line,
-.poster[data-occupied="true"][data-window-closed] .list-after-book-line,
-.poster[data-occupied="true"][data-window-closed] .list-after-book-hop-line,
-.poster[data-occupied="true"][data-window-closed] .book-after-list,
-.poster[data-occupied="true"][data-window-closed] .book-after-list-hop,
-.poster[data-occupied="true"][data-window-closed] .book-after-list-line,
-.poster[data-occupied="true"][data-window-closed] .book-after-list-hop-line,
 .poster[data-occupied="true"][data-window-closed] .later-stack-lists,
 .poster[data-occupied="true"][data-window-closed] .later-stack-also,
 .poster[data-occupied="true"][data-window-closed] [href="#claim"] {
@@ -952,14 +609,7 @@ a:hover {
   letter-spacing: 0.16em;
 }
 
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-one][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-two][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-three][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-four][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-five][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-six][data-guest-first],
-.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-after-list-seven][data-guest-first] {
+.poster[data-occupied="true"] .number-one[data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -978,88 +628,6 @@ a:hover {
   outline-offset: 5px;
 }
 
-.poster[data-occupied="true"] .book-one[data-book-after-list-one] {
-  margin-top: 0.85rem;
-  min-width: 14rem;
-  height: 3.35rem;
-  padding: 0 1.85rem;
-  line-height: 3.2rem;
-  letter-spacing: 0.18em;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-two] {
-  margin-top: 0.9rem;
-  min-width: 15.5rem;
-  height: 3.65rem;
-  padding: 0 2.05rem;
-  line-height: 3.5rem;
-  letter-spacing: 0.2em;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-three] {
-  margin-top: 0.95rem;
-  min-width: 18.5rem;
-  height: 4.25rem;
-  padding: 0 2.45rem;
-  line-height: 4.1rem;
-  letter-spacing: 0.22em;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-four] {
-  margin-top: 1rem;
-  min-width: 21.5rem;
-  height: 4.85rem;
-  padding: 0 2.85rem;
-  line-height: 4.7rem;
-  letter-spacing: 0.26em;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-five] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-  width: 100%;
-  min-width: 0;
-  min-height: 5.85rem;
-  height: auto;
-  margin-top: 1.05rem;
-  padding: 1.65rem 2.25rem;
-  line-height: 1;
-  font-size: 0.98rem;
-  letter-spacing: 0.3em;
-  border-width: 2px;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-six] {
-  min-height: 6.95rem;
-  margin-top: 1.2rem;
-  padding: 2.05rem 2.6rem;
-  font-size: 1.08rem;
-  letter-spacing: 0.34em;
-  border-width: 3px;
-  outline: 1px solid var(--rule);
-  outline-offset: 4px;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-six]:hover {
-  outline-color: var(--accent);
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-seven] {
-  min-height: 9.05rem;
-  margin-top: 1.4rem;
-  padding: 2.85rem 3.3rem;
-  font-size: 1.32rem;
-  letter-spacing: 0.42em;
-  border-width: 5px;
-  outline-width: 2px;
-  outline-offset: 6px;
-}
-
-.poster[data-occupied="true"] .book-one[data-book-after-list-seven]:hover {
-  outline-color: var(--accent);
-}
 
 .poster[data-occupied="true"] .number-one[data-book-one-first] .bid {
   margin-top: 0.85rem;
@@ -1374,5 +942,4201 @@ a:hover {
 
   .bid {
     text-align: left;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   City Weekend visual parity skin
+
+   The rules above remain the product's state contract.  This final, scoped
+   layer supplies the measured wide poster composition and the compact mobile
+   treatment without changing any listing, payment, or route semantics.
+   ------------------------------------------------------------------------- */
+
+:root {
+  --paper: #fffdfb;
+  --ink: #282522;
+  --muted: #88817b;
+  --rule: #ebe6e1;
+  --rule-soft: #f0ebe7;
+  --panel: #fffdfb;
+  --accent: #db765d;
+  --accent-ink: #fffdfb;
+  --max: 62rem;
+  --coral-soft: #fbe1da;
+  --coral-pale: #fff1ed;
+  --focus: #db765d;
+  --card-shadow: 0 12px 30px rgba(63, 39, 28, 0.07);
+}
+
+:root[data-theme="dark"] {
+  --paper: #171412;
+  --ink: #f5efeb;
+  --muted: #9a8f88;
+  --rule: #403530;
+  --rule-soft: #4a3d37;
+  --panel: #201b18;
+  --accent: #df765b;
+  --accent-ink: #fff8f4;
+  --coral-soft: #4a2d25;
+  --coral-pale: #38231e;
+  --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+html {
+  background: var(--paper);
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-width: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "DM Sans", "DM Sans Fallback", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  background-image: none;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+:where(a, button, input):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.sheet {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: var(--paper);
+  background-image: none;
+}
+
+.site-header {
+  position: relative;
+  z-index: 10;
+  height: 76px;
+}
+
+.site-header-inner {
+  width: min(100% - 2rem, var(--max));
+  max-width: var(--max);
+  height: 76px;
+  padding: 0;
+  border-bottom: 0;
+  align-items: center;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.logo:hover {
+  color: var(--ink);
+}
+
+.period-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+  padding: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.period-pill-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 999px;
+}
+
+.period-pill-item.is-active {
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(61, 45, 38, 0.05);
+}
+
+.site-nav {
+  justify-self: end;
+}
+
+.site-nav ul {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.site-nav a,
+.site-nav a:not([aria-current="page"]),
+.site-nav a[aria-current="page"] {
+  color: var(--muted);
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"]:hover {
+  color: var(--ink);
+}
+
+.site-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-search {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-popover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  width: min(320px, calc(100vw - 2rem));
+  max-height: min(70vh, 420px);
+  gap: 10px;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: 0 16px 40px rgba(61, 45, 38, 0.14);
+  color: var(--ink);
+}
+
+.search-popover[hidden],
+.search-results[hidden],
+.search-empty[hidden] {
+  display: none;
+}
+
+.search-popover-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search-popover-header h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 20px;
+}
+
+.search-close {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 18px;
+}
+
+.search-close:hover {
+  color: var(--accent);
+}
+
+.search-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.search-status,
+.search-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.search-results {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-result-link {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--rule-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rule-soft) 52%, var(--panel));
+  color: var(--ink);
+}
+
+.search-result-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.search-result-name,
+.search-result-kind {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-name {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 18px;
+}
+
+.search-result-kind {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.search-button,
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.search-button:hover,
+.theme-toggle:hover {
+  color: var(--accent);
+}
+
+.poster {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100% - 2rem, var(--max));
+  max-width: var(--max);
+  min-height: calc(100vh - 76px);
+  padding: 0 0 64px;
+  margin: 0 auto;
+}
+
+.context-pill {
+  order: 0;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 6px;
+  min-height: 32px;
+  margin: 16px 0 20px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rule-soft) 70%, var(--panel));
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.context-pill:hover {
+  color: var(--ink);
+}
+
+.context-pill > span:first-child {
+  color: #51925c;
+  font-weight: 650;
+}
+
+.context-pill .context-detail {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.masthead {
+  order: 1;
+  position: relative;
+  width: 100%;
+  height: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  text-align: center;
+  overflow: visible;
+}
+
+.masthead .edition,
+.masthead .city-name,
+.masthead .weekend-slot,
+.masthead .period-meta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.masthead .list-venue-line {
+  position: absolute;
+  top: -49px;
+  right: 0;
+  margin: 0;
+}
+
+.masthead .list-venue {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 18px;
+  text-transform: none;
+}
+
+.masthead .list-venue:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.masthead .occupied-window-closed {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  left: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.claim {
+  order: 2;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  scroll-margin-top: 1.25rem;
+}
+
+.claim-kicker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.claim form {
+  width: 100%;
+}
+
+.claim h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 60px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 60px;
+  text-align: center;
+}
+
+.amount-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--coral-soft);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.step:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.amount-field {
+  color: var(--accent);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.amount-field input {
+  width: 5.5ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  line-height: inherit;
+  outline: none;
+  text-align: left;
+}
+
+.claim-note[data-unpaid-off-board] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bid-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 256px 115px;
+  gap: 8px;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.poster .bid-row .venue-field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: transparent;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.poster .bid-row .venue-field input[name="venue"] {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 4px 12px 4px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 24px;
+  outline: none;
+}
+
+.poster .bid-row .venue-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--coral-soft);
+}
+
+.poster .bid-row .venue-field input[name="venue"]::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.category-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.category-select:hover,
+.category-select[aria-expanded="true"] {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.outbid {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-transform: none;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.outbid:hover:not(:disabled) {
+  background: #ca674f;
+  color: var(--accent-ink);
+  transform: translateY(-1px);
+}
+
+.outbid:disabled,
+.outbid[aria-disabled="true"] {
+  background: #efb5a7;
+  color: #fff9f7;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.category-menu {
+  position: absolute;
+  z-index: 30;
+  top: 52px;
+  right: 123px;
+  display: flex;
+  flex-direction: column;
+  width: 256px;
+  max-height: 480px;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 16px 36px rgba(50, 34, 27, 0.16);
+}
+
+.category-menu-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.category-menu-option:hover,
+.category-menu-option[aria-selected="true"] {
+  background: var(--coral-pale);
+  color: var(--accent);
+}
+
+.category-rail {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  height: 32px;
+  margin-top: 32px;
+  padding: 0;
+  overflow: visible;
+}
+
+.category-rail-scroll {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: 32px;
+  overflow: hidden;
+}
+
+.category-chip,
+.category-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.category-chip:hover,
+.category-more:hover {
+  color: var(--accent);
+}
+
+.category-chip.is-active {
+  padding-right: 11px;
+  padding-left: 11px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.category-more {
+  min-width: 78px;
+  margin-left: auto;
+  border-color: var(--rule);
+  background: var(--panel);
+}
+
+.raise-hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.claim .stub-note {
+  margin: 12px 0 0;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.fold,
+.unpublished-weekend {
+  order: 3;
+  width: 100%;
+}
+
+.poster[data-occupied="true"] .fold {
+  margin-top: 20px;
+  padding: 0;
+}
+
+.fold-rule {
+  display: none;
+}
+
+.leaderboard {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.leaderboard > li,
+.later-board > li,
+.later-stack > .later-board li + li {
+  border: 0;
+}
+
+.number-one,
+.place {
+  position: relative;
+  width: 100%;
+  min-height: 106px;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 25px;
+  background: var(--panel);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-rows: 22px 20px minmax(24px, auto);
+  grid-template-areas:
+    "rank name amount"
+    "rank kind amount"
+    "rank pitch pitch";
+  align-items: center;
+  gap: 0 12px;
+  min-height: 106px;
+  padding: 16px;
+  border: 2px solid var(--accent);
+  border-radius: 25px;
+  background: var(--coral-soft);
+  text-align: left;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at]:hover,
+.poster[data-occupied="true"] .number-one[data-paid-at]:focus-within {
+  border-color: #cf674e;
+}
+
+.number-one .rank,
+.place .rank {
+  grid-area: rank;
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  justify-self: center;
+  width: 40px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-transform: none;
+}
+
+.number-one .weekend-answer,
+.place .rest-name {
+  grid-area: name;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 22px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.number-one .kind,
+.place .kind {
+  grid-area: kind;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-align: left;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.number-one .pitch,
+.place .pitch {
+  grid-area: pitch;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .number-one .later-facts[data-later-fact] {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  pointer-events: none;
+}
+
+.poster[data-occupied="true"] .number-one .later-facts > span[aria-hidden="true"] {
+  display: none;
+}
+
+.poster[data-occupied="true"] .number-one .later-facts .bid {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: right;
+}
+
+.poster[data-occupied="true"] .number-one .later-facts .clicks {
+  position: absolute;
+  bottom: 13px;
+  left: 124px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .book-one[data-book-number-one] {
+  position: absolute;
+  z-index: 2;
+  right: 14px;
+  bottom: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  width: auto;
+  min-height: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  outline: 0;
+  background: var(--accent);
+  box-shadow: none;
+  color: var(--accent-ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 18px;
+  opacity: 0;
+  pointer-events: none;
+  text-transform: none;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at]:hover .book-one[data-book-number-one],
+.poster[data-occupied="true"] .number-one[data-paid-at]:focus-within .book-one[data-book-number-one],
+.poster[data-occupied="true"] .number-one[data-paid-at] .book-one[data-book-number-one]:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .book-one[data-book-number-one]:hover {
+  background: #ca674f;
+  color: var(--accent-ink);
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .later-stack-kicker,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .later-stack-dek {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.poster[data-occupied="true"] .later-board {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-rows: 22px 20px minmax(24px, auto);
+  grid-template-areas:
+    "rank name amount"
+    "rank kind amount"
+    "rank pitch foot";
+  align-items: center;
+  gap: 0 12px;
+  min-height: 106px;
+  padding: 16px;
+  border: 1px solid #f2c1b5;
+  border-radius: 25px;
+  background: var(--coral-pale);
+  box-shadow: var(--card-shadow);
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank]:hover,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank]:focus-within {
+  border-color: #e39b89;
+}
+
+.place .rank {
+  width: 40px;
+}
+
+.place .bid {
+  grid-area: amount;
+  align-self: start;
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: right;
+}
+
+.poster[data-occupied="true"] .place-foot[data-later-book-foot] {
+  position: absolute;
+  z-index: 1;
+  right: 16px;
+  bottom: 13px;
+  left: 124px;
+  display: block;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  pointer-events: none;
+}
+
+.poster[data-occupied="true"] .place-foot[data-later-book-foot] .clicks {
+  display: inline;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.poster[data-occupied="true"] .place-foot[data-later-book-foot] .book-later[data-later-book-foot] {
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 16px;
+  opacity: 0;
+  pointer-events: none;
+  text-transform: none;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.poster[data-occupied="true"] .place[data-later-rank]:hover .book-later[data-later-book-foot],
+.poster[data-occupied="true"] .place[data-later-rank]:focus-within .book-later[data-later-book-foot],
+.poster[data-occupied="true"] .place[data-later-rank] .book-later[data-later-book-foot]:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.poster[data-occupied="true"] .place[data-later-rank] .book-later[data-later-book-foot]:hover {
+  background: #ca674f;
+  color: var(--accent-ink);
+}
+
+.poster[data-occupied="true"] .later-board li:nth-child(n + 3) .place[data-later-rank] {
+  min-height: 78px;
+  border-color: var(--rule);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: none;
+}
+
+.poster[data-occupied="true"] .later-board li:nth-child(n + 3) .rank {
+  width: 34px;
+  min-height: 26px;
+  font-size: 12px;
+}
+
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] {
+  order: 3;
+  margin-top: 22px;
+  padding: 38px 24px 34px;
+  border: 1px dashed var(--rule);
+  border-radius: 24px;
+  background: var(--panel);
+  text-align: center;
+}
+
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-answer {
+  margin: 0;
+  color: var(--ink);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 48px;
+}
+
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-note {
+  max-width: 34rem;
+  margin: 10px auto 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open,
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed {
+  max-width: 36rem;
+  margin: 8px auto 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.poster[data-window-closed] .masthead .list-venue-line {
+  display: none;
+}
+
+.poster[data-window-closed] .claim {
+  display: none;
+}
+
+.poster > .occupied-closed-checkout-error,
+.poster > .empty-unpublished-checkout-error {
+  order: 4;
+  width: 100%;
+  margin: 16px 0 0;
+  color: var(--accent);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .site-header {
+    height: 68px;
+  }
+
+  .site-header-inner {
+    position: relative;
+    width: calc(100% - 2rem);
+    height: 68px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .logo {
+    gap: 6px;
+    font-size: 19px;
+  }
+
+  .period-pill {
+    position: absolute;
+    z-index: 20;
+    top: 138px;
+    left: 50%;
+    display: inline-flex;
+    min-height: 40px;
+    transform: translateX(-50%);
+    font-size: 13px;
+  }
+
+  .period-pill-item {
+    padding: 0 10px;
+  }
+
+  .site-nav {
+    justify-self: end;
+  }
+
+  .site-nav ul {
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .site-actions {
+    gap: 6px;
+  }
+
+  .search-button,
+  .theme-toggle {
+    width: auto;
+    min-width: 0;
+    padding-right: 1px;
+    padding-left: 1px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .poster {
+    width: calc(100% - 2rem);
+    min-height: calc(100vh - 68px);
+    padding-bottom: 40px;
+  }
+
+  .context-pill {
+    width: auto;
+    max-width: 100%;
+    margin-top: 16px;
+    margin-bottom: 84px;
+    padding-right: 11px;
+    padding-left: 11px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 18px;
+    text-overflow: ellipsis;
+  }
+
+  .context-pill > span:nth-child(2) {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .context-detail {
+    flex: 0 0 auto;
+  }
+
+  .masthead .list-venue-line {
+    display: none;
+  }
+
+  .claim h2 {
+    height: 42px;
+    font-size: 28px;
+    letter-spacing: -0.055em;
+    line-height: 42px;
+  }
+
+  .amount-stepper {
+    gap: 6px;
+  }
+
+  .step {
+    width: 24px;
+    height: 24px;
+  }
+
+  .amount-field input {
+    width: 5.2ch;
+  }
+
+  .bid-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 22px;
+  }
+
+  .poster .bid-row input[name="venue"],
+  .category-select,
+  .outbid {
+    width: 100%;
+    flex: 0 0 44px;
+    height: 44px;
+  }
+
+  .category-menu {
+    top: 52px;
+    right: 0;
+    left: 0;
+    width: auto;
+    max-height: 480px;
+    border-radius: 14px;
+  }
+
+  .category-rail {
+    margin-top: 32px;
+  }
+
+  .category-rail-scroll {
+    gap: 8px;
+  }
+
+  .category-chip {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 12px;
+  }
+
+  .category-chip.is-active {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .category-chip:nth-child(4) {
+    display: none;
+  }
+
+  .category-more {
+    min-width: 74px;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 12px;
+  }
+
+  .poster[data-occupied="true"] .fold {
+    margin-top: 19px;
+  }
+
+  .poster[data-occupied="true"] .later-board {
+    gap: 8px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at],
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    grid-template-rows: 20px 34px minmax(28px, auto);
+    gap: 0 8px;
+    min-height: 123px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .number-one .rank,
+  .place .rank {
+    width: 30px;
+    min-height: 24px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .number-one .weekend-answer,
+  .place .rest-name {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .number-one .kind,
+  .place .kind {
+    font-size: 11px;
+    line-height: 18px;
+  }
+
+  .number-one .pitch,
+  .place .pitch {
+    align-self: start;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    max-height: 36px;
+    font-size: 12px;
+    line-height: 17px;
+    white-space: normal;
+  }
+
+  .number-one .later-facts .bid,
+  .place .bid {
+    top: 10px;
+    right: 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .number-one .later-facts .clicks {
+    bottom: 11px;
+    left: 88px;
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .poster[data-occupied="true"] .place-foot[data-later-book-foot] {
+    right: 12px;
+    bottom: 10px;
+    left: 88px;
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .book-one[data-book-number-one] {
+    right: 12px;
+    bottom: 10px;
+    min-width: 58px;
+    min-height: 28px;
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .poster[data-occupied="true"] .place-foot[data-later-book-foot] .book-later[data-later-book-foot] {
+    min-width: 50px;
+    min-height: 26px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  .poster[data-occupied="true"] .later-board li:nth-child(n + 3) .place[data-later-rank] {
+    min-height: 88px;
+    border-radius: 18px;
+  }
+
+  .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] {
+    margin-top: 20px;
+    padding: 30px 16px 28px;
+    border-radius: 20px;
+  }
+
+  .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-answer {
+    font-size: 32px;
+    line-height: 40px;
+  }
+}
+
+/* Keep the parity card anatomy authoritative over the historical newspaper
+   selectors above (those selectors are retained for the state contract). */
+.poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .weekend-answer {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  line-height: 22px;
+  text-align: left;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .rank {
+  width: 40px;
+  min-height: 30px;
+  color: var(--accent-ink);
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-transform: none;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .kind {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-align: left;
+  text-transform: none;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .pitch {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] {
+  position: absolute;
+  inset: 0;
+  display: block;
+  max-width: none;
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+  position: absolute;
+  bottom: 13px;
+  left: 124px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at][data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first] {
+  right: 14px;
+  bottom: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 66px;
+  min-height: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  outline: 0;
+  background: var(--accent);
+  box-shadow: none;
+  color: var(--accent-ink);
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 18px;
+  opacity: 0;
+  pointer-events: none;
+  text-transform: none;
+  transform: translateY(4px);
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at][data-book-one-first][data-guest-first]:hover .book-one[data-book-number-one][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-paid-at][data-book-one-first][data-guest-first]:focus-within .book-one[data-book-number-one][data-guest-first],
+.poster[data-occupied="true"] .number-one[data-paid-at][data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first]:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .rank {
+  width: 40px;
+  min-height: 30px;
+  color: var(--accent-ink);
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-transform: none;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .kind {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-align: left;
+  text-transform: none;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .pitch {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .bid {
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 22px;
+  text-align: right;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .place-foot[data-later-book-foot] {
+  right: 16px;
+  bottom: 13px;
+  left: 124px;
+  display: block;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .place-foot[data-later-book-foot] .book-later[data-later-book-foot] {
+  right: 0;
+  bottom: -7px;
+  display: inline-flex;
+  min-width: 54px;
+  min-height: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  letter-spacing: 0;
+  line-height: 16px;
+  opacity: 0;
+  pointer-events: none;
+  text-transform: none;
+  transform: translateY(4px);
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank]:hover .book-later[data-later-book-foot],
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank]:focus-within .book-later[data-later-book-foot],
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .book-later[data-later-book-foot]:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+@media (max-width: 40rem) {
+  .poster[data-occupied="true"] .number-one[data-prize-before-price][data-paid-at] .weekend-answer {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .rank,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .rank {
+    width: 30px;
+    min-height: 24px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .kind,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .kind {
+    font-size: 11px;
+    line-height: 18px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .pitch,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .pitch {
+    font-size: 12px;
+    line-height: 17px;
+    white-space: normal;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .bid {
+    top: 10px;
+    right: 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+    bottom: 11px;
+    left: 88px;
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .place-foot[data-later-book-foot] {
+    right: 12px;
+    bottom: 10px;
+    left: 88px;
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at][data-book-one-first][data-guest-first] .book-one[data-book-number-one][data-guest-first] {
+    right: 12px;
+    bottom: 10px;
+    min-width: 58px;
+    min-height: 28px;
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .place-foot[data-later-book-foot] .book-later[data-later-book-foot] {
+    min-width: 50px;
+    min-height: 26px;
+    height: 26px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* r2 geometry: the empty-state legacy cap must not collapse the identity
+   field; the claim row owns the full board width in every board state. */
+.poster .claim .bid-row,
+.poster[data-occupied="false"] .claim .bid-row {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 40rem) {
+  .site-actions {
+    gap: 8px;
+  }
+
+  .poster .bid-row,
+  .poster[data-occupied="false"] .claim .bid-row {
+    width: 100%;
+    max-width: none;
+  }
+
+  .poster .bid-row .venue-field,
+  .poster .bid-row .venue-field input[name="venue"],
+  .poster .bid-row .category-select,
+  .poster .bid-row .outbid {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 44px;
+  }
+
+  .category-rail-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .category-rail-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* r3: occupied timing and listing invitation live after the paid cards in an
+   accessible disclosure, so they cannot collide with the Claim hero. */
+.poster[data-occupied="true"] .board-details {
+  order: 6;
+  width: 100%;
+  margin: 16px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-soft);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.poster .outbid {
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .board-details summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 650;
+  list-style: none;
+}
+
+.poster[data-occupied="true"] .board-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.poster[data-occupied="true"] .board-details summary:hover,
+.poster[data-occupied="true"] .board-details[open] summary {
+  color: var(--ink);
+}
+
+.poster[data-occupied="true"] .board-details .occupied-bid-close,
+.poster[data-occupied="true"] .board-details .occupied-window-closed {
+  position: static;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.poster[data-occupied="true"] .board-details .list-venue-line {
+  margin: 8px 0 0;
+}
+
+.poster[data-occupied="true"] .board-details .list-venue {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.poster[data-occupied="true"] .board-details .list-venue:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at],
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] {
+  height: 110px;
+  min-height: 110px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] {
+  grid-template-rows: 22px 20px 18px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+  bottom: 11px;
+  left: 68px;
+}
+
+.poster[data-occupied="true"] .later-board {
+  gap: 12px;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] {
+  margin-top: 12px;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] .place-foot[data-later-book-foot] {
+  left: 68px;
+}
+
+@media (max-width: 40rem) {
+  .poster[data-occupied="true"] .number-one[data-paid-at],
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] {
+    height: 124px;
+    min-height: 124px;
+    grid-template-rows: 20px 18px 36px;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+    bottom: 11px;
+    left: 58px;
+  }
+
+  .poster[data-occupied="true"] .later-board {
+    gap: 3px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] {
+    margin-top: 4px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-rank] .place-foot[data-later-book-foot] {
+    left: 58px;
+  }
+
+  .poster[data-occupied="true"] .board-details {
+    margin-top: 12px;
+  }
+
+}
+
+/* r7 card anatomy: keep r6's outer geometry, but make each real listing fact
+   occupy the same compact, predictable line box. The high-specificity amount
+   rule repairs the legacy `bid` grid-area so later prices stay top-right. */
+.poster[data-occupied="true"] .number-one[data-paid-at] .weekend-answer,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .rest-name {
+  align-self: start;
+  min-width: 0;
+  min-height: 22px;
+  line-height: 22px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .kind,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .kind {
+  align-self: start;
+  min-height: 18px;
+  line-height: 18px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .pitch,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .pitch {
+  align-self: start;
+  min-height: 18px;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .bid {
+  grid-area: amount;
+  align-self: start;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid,
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .place-foot[data-later-book-foot] .clicks {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .poster[data-occupied="true"] .number-one[data-paid-at] .weekend-answer,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .rest-name {
+    min-height: 20px;
+    line-height: 20px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .kind,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .kind {
+    min-height: 18px;
+    line-height: 18px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .pitch,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .pitch {
+    min-height: 34px;
+    max-height: 34px;
+    line-height: 17px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+/* r8 card-only baseline refinement: retain r6/r7 card surfaces and move the
+   visible text/price ink into the reference tracks without changing height. */
+.poster[data-occupied="true"] .number-one[data-paid-at] .weekend-answer,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .rest-name {
+  position: relative;
+  top: -2px;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid {
+  top: 11px;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .bid {
+  position: relative;
+  top: -2px;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .clicks {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 16px;
+}
+
+@media (max-width: 40rem) {
+  .poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid {
+    top: 8px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .bid {
+    top: -2px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .clicks {
+    line-height: 15px;
+  }
+}
+
+/* r9 card schema: keep the established surfaces and dimensions while giving
+   real title/price, summary, and footer facts explicit tracks. */
+.poster[data-occupied="true"] .number-one[data-paid-at],
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] {
+  grid-template-rows: 22px minmax(0, 1fr) 16px;
+  grid-template-areas:
+    "rank name amount"
+    "rank summary amount"
+    "rank footer footer";
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .card-summary,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary {
+  grid-area: summary;
+  align-self: start;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .card-summary .kind,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary .kind {
+  flex: 0 0 18px;
+  min-height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .card-summary .pitch,
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary .pitch {
+  flex: 0 1 auto;
+  min-height: 18px;
+  max-height: 36px;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] {
+  position: static;
+  inset: auto;
+  grid-area: footer;
+  align-self: end;
+  width: auto;
+  max-width: none;
+  display: block;
+}
+
+.poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+  position: static;
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  line-height: 16px;
+}
+
+.poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] {
+  position: static;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  grid-area: footer;
+  align-self: end;
+  min-width: 0;
+  min-height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@media (max-width: 40rem) {
+  .poster[data-occupied="true"] .number-one[data-paid-at],
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] {
+    grid-template-rows: 20px minmax(0, 1fr) 15px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .card-summary .pitch,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary .pitch {
+    min-height: 17px;
+    max-height: 34px;
+    line-height: 17px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+    line-height: 15px;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] {
+    min-height: 15px;
+  }
+}
+
+/* r10 mobile rollback: retain r9's real summary DOM while restoring the r8
+   title/type/pitch/click baselines inside the unchanged card surfaces. */
+@media (max-width: 40rem) {
+  .poster[data-occupied="true"] .number-one[data-paid-at],
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    grid-template-rows: 20px minmax(0, 1fr) 15px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .card-summary,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary {
+    max-height: 52px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .card-summary .kind,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary .kind {
+    min-height: 18px;
+    line-height: 18px;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .card-summary .pitch,
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] .card-summary .pitch {
+    min-height: 34px;
+    max-height: 34px;
+    line-height: 17px;
+    -webkit-line-clamp: 2;
+  }
+
+  .poster[data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+    position: absolute;
+    bottom: 11px;
+    left: 58px;
+    line-height: 15px;
+    white-space: nowrap;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    left: 58px;
+    grid-area: auto;
+    min-height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    white-space: nowrap;
+  }
+
+  .poster[data-occupied="true"] .later-stack[data-later-stack] .place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .clicks {
+    min-width: 0;
+    max-width: 100%;
+    line-height: 15px;
+    white-space: nowrap;
+  }
+}
+
+/* r7 component reconstruction: the JSX now owns the shared sequence.  This
+   layer only maps those semantic slots onto the frozen City Weekend tracks;
+   the earlier state selectors remain in place for payment/window contracts. */
+:root {
+  --shell-d: 992px;
+  --shell-m: 358px;
+  --control-h: 44px;
+  --rail-h: 32px;
+  --mobile-card-h: 123px;
+  --mobile-list-gap: 6px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] {
+  display: block;
+  width: min(100% - 2rem, var(--shell-d));
+  max-width: var(--shell-d);
+  min-height: calc(100vh - 76px);
+  padding: 0 0 64px;
+  margin: 0 auto;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .board-context {
+  display: contents;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .board-context > .context-pill {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 16px auto 20px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .board-context > .masthead {
+  display: contents;
+  position: static;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .claim {
+  width: 100%;
+  margin: 0;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .claim > form[data-slot="claim-form"] {
+  width: 100%;
+  margin: 24px 0 0;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .claim h2[data-slot="claim-heading"] {
+  height: 60px;
+  margin: 0;
+  font-size: 40px;
+  line-height: 60px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .bid-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 256px 115px;
+  gap: 8px;
+  width: 100%;
+  max-width: none;
+  margin-top: 24px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .claim > form[data-slot="claim-form"] > .bid-row {
+  margin-top: 0;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .bid-row > .venue-field,
+.poster[data-slot="home-shell"][data-occupied="true"] .bid-row > .category-select,
+.poster[data-slot="home-shell"][data-occupied="true"] .bid-row > .outbid {
+  min-width: 0;
+  width: 100%;
+  height: var(--control-h);
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .category-rail[data-slot="category-rail"] {
+  width: 100%;
+  height: var(--rail-h);
+  margin-top: 32px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .category-rail-scroll {
+  width: 100%;
+  max-width: 100%;
+  height: var(--rail-h);
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .raise-hint {
+  position: absolute;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .fold[data-slot="paid-board"] {
+  width: 100%;
+  margin-top: 20px;
+  padding: 0;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .fold-rule {
+  display: none;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li,
+.poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  list-style: none;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li:is(.number-one, .place),
+.poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li:is(.number-one, .place) {
+  box-sizing: border-box;
+  height: 110px;
+  min-height: 110px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.number-one[data-paid-at],
+.poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li.number-one[data-paid-at] {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-rows: 22px minmax(0, 1fr) 16px;
+  grid-template-areas:
+    "rank name amount"
+    "rank summary amount"
+    "rank footer footer";
+  align-items: start;
+  gap: 0 12px;
+  padding: 16px;
+  border: 2px solid var(--accent);
+  border-radius: 25px;
+  background: var(--coral-soft);
+  text-align: left;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank],
+.poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-rows: 22px minmax(0, 1fr) 16px;
+  grid-template-areas:
+    "rank name amount"
+    "rank summary amount"
+    "rank footer footer";
+  align-items: start;
+  gap: 0 12px;
+  padding: 16px;
+  border: 1px solid #f2c1b5;
+  border-radius: 25px;
+  background: var(--coral-pale);
+  text-align: left;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .weekend-answer,
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .rest-name {
+  grid-area: name;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 22px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .card-summary,
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .card-summary {
+  display: flex;
+  grid-area: summary;
+  flex-direction: column;
+  align-self: start;
+  min-width: 0;
+  min-height: 0;
+  max-height: 40px;
+  overflow: hidden;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .card-summary .kind,
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .card-summary .kind {
+  flex: 0 0 18px;
+  min-width: 0;
+  min-height: 18px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .card-summary .pitch,
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .card-summary .pitch {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 18px;
+  max-height: 36px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .rank,
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .rank {
+  grid-area: rank;
+  align-self: center;
+  justify-self: center;
+  width: 40px;
+  min-height: 30px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] {
+  position: static;
+  inset: auto;
+  display: flex;
+  grid-area: footer;
+  align-self: end;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  min-height: 16px;
+  margin: 0;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  pointer-events: none;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 22px;
+  text-align: right;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+  position: static;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .bid {
+  grid-area: amount;
+  align-self: start;
+  min-width: 0;
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 22px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] :is(.place-foot)[data-later-book-foot] {
+  position: static;
+  grid-area: footer;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] :is(.place-foot)[data-later-book-foot] .clicks {
+  position: static;
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  color: var(--muted);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .later-stack[data-later-stack] {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .later-stack[data-later-stack].has-later-rows {
+  margin-top: 24px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .later-stack[data-later-stack] .later-stack-kicker,
+.poster[data-slot="home-shell"][data-occupied="true"] .later-stack[data-later-stack] .later-stack-dek {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .board-details {
+  width: 100%;
+  margin-top: 16px;
+}
+
+@media (max-width: 40rem) {
+  .poster[data-slot="home-shell"][data-occupied="true"] {
+    width: var(--shell-m);
+    max-width: calc(100% - 2rem);
+    min-height: calc(100vh - 68px);
+    padding-bottom: 40px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .board-context > .context-pill {
+    width: auto;
+    max-width: 100%;
+    margin: 16px auto 84px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .claim h2[data-slot="claim-heading"] {
+    height: 42px;
+    font-size: 28px;
+    line-height: 42px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .bid-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 22px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .claim > form[data-slot="claim-form"] {
+    margin-top: 22px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .claim > form[data-slot="claim-form"] > .bid-row {
+    margin-top: 0;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .bid-row > .venue-field,
+  .poster[data-slot="home-shell"][data-occupied="true"] .bid-row > .category-select,
+  .poster[data-slot="home-shell"][data-occupied="true"] .bid-row > .outbid {
+    flex: 0 0 var(--control-h);
+    width: 100%;
+    max-width: 100%;
+    height: var(--control-h);
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .category-rail[data-slot="category-rail"] {
+    height: var(--rail-h);
+    margin-top: 32px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .fold[data-slot="paid-board"] {
+    margin-top: 19px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] {
+    gap: var(--mobile-list-gap);
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li:is(.number-one, .place),
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li:is(.number-one, .place) {
+    height: var(--mobile-card-h);
+    min-height: var(--mobile-card-h);
+    border-radius: 20px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.number-one[data-paid-at],
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li.number-one[data-paid-at],
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank],
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    grid-template-rows: 20px minmax(0, 1fr) 15px;
+    gap: 0 8px;
+    padding: 12px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .rank,
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .rank {
+    width: 30px;
+    min-height: 24px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .weekend-answer,
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .rest-name {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .card-summary,
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .card-summary {
+    max-height: 52px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .card-summary .kind,
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .card-summary .kind {
+    flex-basis: 18px;
+    min-height: 18px;
+    font-size: 11px;
+    line-height: 18px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .card-summary .pitch,
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .card-summary .pitch {
+    min-height: 17px;
+    max-height: 34px;
+    font-size: 12px;
+    line-height: 17px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid {
+    top: 8px;
+    right: 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks,
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] :is(.place-foot)[data-later-book-foot] .clicks {
+    line-height: 15px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] .bid {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .place[data-later-rank] :is(.place-foot)[data-later-book-foot] {
+    min-height: 15px;
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] {
+    gap: var(--mobile-list-gap);
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-stack[data-later-stack].has-later-rows {
+    margin-top: 20px;
+  }
+}
+
+/* r7.1 viewport track: keep document scrolling, but remove the platform
+   scrollbar gutter so the measured shell remains 992px/358px wide. */
+html,
+body {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* r7.3 component contract: keep measured pill tracks intrinsic and make the
+   two remaining mobile offsets through normal-flow margins. */
+.logo {
+  width: 119.67px;
+}
+
+.period-pill {
+  width: 173px;
+  height: 40px;
+  min-height: 40px;
+  align-self: start;
+  margin-top: 20px;
+}
+
+.period-pill-item {
+  min-width: 0;
+  padding-right: 5.5px;
+  padding-left: 5.5px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] > .board-context > .context-pill {
+  width: 310px;
+  max-width: 100%;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.context-pill > span:first-child,
+.context-pill > span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.context-pill > span:nth-child(2) {
+  flex: 0 1 auto;
+}
+
+@media (max-width: 40rem) {
+  .logo {
+    width: auto;
+  }
+
+  .period-pill {
+    width: 173px;
+    top: 139px;
+    margin-top: 0;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .board-context > .context-pill {
+    width: 306px;
+    margin-top: 17px;
+    /* r7.4 heading track: move only the claim heading down 6px while the
+       controls keep their established y=265 anchor through the compensating
+       form margin. */
+    margin-bottom: 90px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .fold[data-slot="paid-board"] {
+    margin-top: 20px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] > .claim > form[data-slot="claim-form"] {
+    margin-top: 16px;
+  }
+}
+
+/* r8 mobile rank track: keep the three occupied card surfaces and every
+   other fact anchor unchanged while placing the real rank badge near the
+   reference card top. The 15px normal-flow inset is card border + padding
+   aware (2px + 12px + 15px ≈ 29px from the outer card top). */
+@media (max-width: 40rem) {
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li:is(.number-one, .place) .rank,
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li:is(.number-one, .place) .rank {
+    align-self: start;
+    margin-top: 15px;
+  }
+}
+
+/* r9 mobile card-inner tracks: keep the existing 123px surfaces and move
+   only the real title, summary, and metadata rows onto the reference
+   baselines (+14px, +36px, and +86px from each outer card top). */
+@media (max-width: 40rem) {
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li:is(.number-one, .place),
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li:is(.number-one, .place) {
+    grid-template-rows: 22px 50px 15px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.number-one[data-paid-at] .weekend-answer,
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank] .rest-name,
+  .poster[data-slot="home-shell"][data-occupied="true"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] .rest-name {
+    position: static;
+    top: auto;
+  }
+}
+
+/* r9.1 mobile footer track: keep the visible clicks/footer line at the
+   explicit +86px row and contain the opacity-zero Book action inside that
+   footer. It remains available on card hover/focus without leaking below the
+   fixed 123px surface. */
+@media (max-width: 40rem) {
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.number-one[data-paid-at] .later-facts[data-later-fact],
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-rank] .place-foot[data-later-book-foot] {
+    align-self: start;
+    height: 15px;
+    min-height: 15px;
+    align-items: flex-start;
+    line-height: 15px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-rank] .place-foot[data-later-book-foot] {
+    position: relative;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-rank] .place-foot[data-later-book-foot] .book-later[data-later-book-foot] {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    height: 15px;
+    min-height: 15px;
+    line-height: 15px;
+  }
+}
+
+/* r9.2 lead footer correction: only the visible #1 clicks line needs the
+   measured -8px nudge; later-card footer tracks and the absolute bid stay
+   on their r9.1 geometry. The static footer keeps the price containing
+   block on the card, while its negative margin moves both footer ink boxes. */
+@media (max-width: 40rem) {
+  .poster[data-slot="home-shell"][data-occupied="true"] .leaderboard[data-slot="top-three"] > li.number-one[data-paid-at] .later-facts[data-later-fact] {
+    margin-top: -8px;
+  }
+}
+
+/* r17 real-field card rhythm: keep the truthful paid timestamp with the
+   click fact and expose the existing Book links as compact footer actions.
+   The card surfaces, tracks, and content measure remain unchanged. */
+.poster[data-slot="home-shell"][data-occupied="true"] :is(.number-one[data-paid-at] .paid-at[data-paid-at-fact], .place[data-later-rank] .paid-at[data-paid-at-fact]) {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at][data-book-one-first] .book-one[data-book-number-one][data-guest-first],
+.poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .book-later[data-later-book-foot] {
+  z-index: 2;
+  display: inline-flex;
+  min-width: 0;
+  min-height: 16px;
+  width: auto;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed var(--rule);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 16px;
+  opacity: 1;
+  pointer-events: auto;
+  text-transform: none;
+  transform: none;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at][data-book-one-first] .book-one[data-book-number-one][data-guest-first] {
+  position: absolute;
+  right: 14px;
+  bottom: 11px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .book-later[data-later-book-foot] {
+  position: absolute;
+  top: auto;
+  right: 14px;
+  bottom: 11px;
+}
+
+.poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at][data-book-one-first] .book-one[data-book-number-one][data-guest-first]:hover,
+.poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .book-later[data-later-book-foot]:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+@media (max-width: 40rem) {
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.number-one[data-paid-at] .paid-at[data-paid-at-fact], .place[data-later-rank] .paid-at[data-paid-at-fact]) {
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] .number-one[data-paid-at][data-book-one-first] .book-one[data-book-number-one][data-guest-first] {
+    right: 12px;
+    bottom: 10px;
+    min-height: 15px;
+    height: 15px;
+    line-height: 15px;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] {
+    position: relative;
+  }
+
+  .poster[data-slot="home-shell"][data-occupied="true"] :is(.leaderboard[data-slot="top-three"], .later-board[data-slot="later-rows"]) > li.place[data-later-book][data-later-rank] :is(.place-foot)[data-later-book-foot] .book-later[data-later-book-foot] {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    min-height: 15px;
+    height: 15px;
+    line-height: 15px;
+  }
+}
+
+/* r23 City Weekend identity: the public board is a local printed poster.
+   Keep the semantic/data contract above, but make this final layer the visual
+   owner so the rejected reference fixture cannot define the product surface. */
+:root {
+  --paper: #f3ead6;
+  --ink: #1b1410;
+  --muted: #6a5848;
+  --rule: #2a2118;
+  --rule-soft: #c9b89a;
+  --panel: #fff8ea;
+  --accent: #9c2b18;
+  --accent-ink: #fff6ec;
+  --max: 44rem;
+  --poster-stage: #2a241c;
+  --poster-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] {
+  --paper: #201b17;
+  --ink: #f3e9dc;
+  --muted: #b5a28e;
+  --rule: #ead8c1;
+  --rule-soft: #705e4b;
+  --panel: #2b241e;
+  --accent: #df765b;
+  --accent-ink: #241711;
+  --poster-stage: #171310;
+  --poster-shadow: 0 18px 50px rgba(0, 0, 0, 0.52);
+}
+
+html,
+body {
+  background: var(--poster-stage);
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at 20% 0%, #3a3228 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 100%, #1a1612 0%, transparent 50%);
+}
+
+.city-weekend-sheet {
+  width: min(100% - 1.5rem, 52rem);
+  max-width: 52rem;
+  min-height: 100vh;
+  margin: 1.25rem auto 2.5rem;
+  border: 1px solid var(--ink);
+  box-shadow: var(--poster-shadow);
+  background: var(--paper);
+  background-image:
+    linear-gradient(180deg, rgba(255, 248, 232, 0.55), transparent 8rem),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 31px,
+      rgba(42, 33, 24, 0.035) 32px
+    );
+}
+
+.city-weekend-sheet .site-header {
+  height: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.city-weekend-sheet .site-header-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  width: 100%;
+  max-width: var(--max);
+  min-height: 4.4rem;
+  height: auto;
+  padding: 1rem 1.25rem 0.85rem;
+  border-bottom: 1px solid var(--rule);
+  gap: 0.75rem;
+}
+
+.city-weekend-sheet .brand-period-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.city-weekend-sheet .logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.city-weekend-sheet .period-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  min-height: 2rem;
+  margin-top: 0;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.city-weekend-sheet .period-pill-item {
+  min-height: 1.9rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.city-weekend-sheet .period-pill-item.is-active {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: none;
+}
+
+.city-weekend-sheet .site-nav ul {
+  justify-content: flex-end;
+  gap: 0.85rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .site-nav a,
+.city-weekend-sheet .site-nav a:not([aria-current="page"]),
+.city-weekend-sheet .site-nav a[aria-current="page"] {
+  color: var(--muted);
+}
+
+.city-weekend-sheet .site-nav a:hover {
+  color: var(--accent);
+}
+
+.city-weekend-sheet .site-actions {
+  gap: 0.7rem;
+}
+
+.city-weekend-sheet .search-button,
+.city-weekend-sheet .theme-toggle {
+  min-height: 2rem;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .search-button:hover,
+.city-weekend-sheet .theme-toggle:hover {
+  color: var(--accent);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] {
+  display: block;
+  width: 100%;
+  max-width: var(--max);
+  min-height: 0;
+  margin: 0 auto;
+  padding: 1.15rem 1.25rem 3.75rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] > .board-context {
+  display: block;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .context-pill {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 0;
+  margin: 0 0 1.1rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.67rem;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .context-pill > span:first-child {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .context-pill .context-detail {
+  color: var(--muted);
+  font-weight: 600;
+  text-align: right;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead {
+  position: static;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0.5rem 0 1.55rem;
+  border-bottom: 4px double var(--rule);
+  overflow: visible;
+  text-align: center;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .edition,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .city-name,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .weekend-slot,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .period-meta {
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  color: inherit;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .edition {
+  margin-bottom: 0.65rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .city-name {
+  color: var(--ink);
+  font-size: clamp(3rem, 10vw, 5.2rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .weekend-slot {
+  margin-top: 0.9rem;
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .period-meta {
+  max-width: 35rem;
+  margin: 0.55rem auto 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 1.7rem 0 1.1rem;
+  padding: 1.25rem 0 1.1rem;
+  border-top: 2px solid var(--rule);
+  border-bottom: 1px dashed var(--rule-soft);
+  scroll-margin-top: 1.25rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim-kicker {
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0 0 0.45rem;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim h2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.45rem, 4vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-stepper {
+  gap: 0.45rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .step {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .step:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-field {
+  color: var(--accent);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-field input {
+  width: 5.5ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  line-height: inherit;
+  outline: none;
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim form {
+  width: 100%;
+  margin-top: 1.2rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10.5rem 7.5rem;
+  gap: 0.55rem;
+  width: 100%;
+  margin: 0;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .venue-field,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .category-select,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .outbid {
+  width: 100%;
+  min-width: 0;
+  height: 3rem;
+  border-radius: 0;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .venue-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .venue-field input[name="venue"] {
+  width: 100%;
+  min-width: 0;
+  height: 3rem;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  outline: none;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .venue-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .venue-field input[name="venue"]::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-select {
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-select:hover,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-select[aria-expanded="true"] {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .outbid {
+  padding: 0 0.8rem;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .outbid:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: none;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .outbid:disabled,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .outbid[aria-disabled="true"] {
+  border-color: var(--rule-soft);
+  background: var(--rule-soft);
+  color: var(--paper);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-menu {
+  top: calc(100% + 0.5rem);
+  right: 8rem;
+  width: 10.5rem;
+  padding: 0.3rem;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: var(--panel);
+  box-shadow: 0.35rem 0.35rem 0 var(--rule-soft);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-menu-option {
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-menu-option:hover,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-menu-option[aria-selected="true"] {
+  background: var(--paper);
+  color: var(--accent);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-rail {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  height: auto;
+  min-height: 2rem;
+  margin-top: 1rem;
+  padding: 0;
+  overflow: visible;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-rail-scroll {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  width: 100%;
+  min-height: 2rem;
+  height: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-chip,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 1.9rem;
+  padding: 0.2rem 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-chip:hover,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-more:hover {
+  color: var(--accent);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-chip.is-active {
+  padding-right: 0;
+  padding-left: 0;
+  border-bottom-color: var(--accent);
+  background: transparent;
+  color: var(--ink);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-more {
+  margin-left: auto;
+  color: var(--ink);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .raise-hint {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  color: var(--muted);
+  font-size: 0.77rem;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim-note[data-unpaid-off-board] {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  color: var(--accent);
+  font-size: 0.77rem;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim .stub-note {
+  margin: 0.65rem 0 0;
+  color: var(--accent);
+  font-size: 0.77rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold-rule::before,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold-rule::after {
+  height: 1px;
+  flex: 1 1 auto;
+  background: var(--rule-soft);
+  content: "";
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.number-one[data-paid-at] {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  grid-template-rows: auto minmax(3.5rem, 1fr) auto auto;
+  grid-template-areas:
+    "rank name"
+    "rank summary"
+    "rank book"
+    "rank footer";
+  align-items: start;
+  gap: 0 1.1rem;
+  width: 100%;
+  height: auto;
+  min-height: 14.75rem;
+  padding: 1.45rem 1.5rem 1.1rem;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--panel);
+  box-shadow: 0.35rem 0.35rem 0 var(--rule-soft);
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .rank {
+  grid-area: rank;
+  align-self: start;
+  justify-self: start;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  color: var(--accent);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .weekend-answer {
+  grid-area: name;
+  min-width: 0;
+  margin: 0;
+  overflow: visible;
+  color: var(--ink);
+  font-size: clamp(2.25rem, 7vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.92;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .card-summary {
+  display: flex;
+  grid-area: summary;
+  flex-direction: column;
+  align-self: start;
+  min-width: 0;
+  max-height: none;
+  overflow: visible;
+  margin-top: 0.6rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .card-summary .kind,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .card-summary .pitch {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .card-summary .kind {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .card-summary .pitch {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .book-one[data-book-number-one][data-guest-first] {
+  position: static;
+  grid-area: book;
+  justify-self: start;
+  align-self: end;
+  z-index: 2;
+  display: inline-flex;
+  min-width: 0;
+  min-height: 2rem;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.25rem 0;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  opacity: 1;
+  pointer-events: auto;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .book-one[data-book-number-one][data-guest-first]:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .later-facts[data-later-fact] {
+  position: static;
+  display: flex;
+  grid-area: footer;
+  align-items: baseline;
+  gap: 0.7rem;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 1.2rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .later-facts[data-later-fact] .bid {
+  position: static;
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .later-facts[data-later-fact] .paid-at,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .later-facts[data-later-fact] .clicks {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank],
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(2.1rem, auto) auto;
+  grid-template-areas:
+    "rank title bid"
+    "rank summary bid"
+    "rank foot foot";
+  align-items: start;
+  gap: 0 1rem;
+  width: 100%;
+  min-height: 7rem;
+  height: auto;
+  padding: 1rem 0.15rem 0.9rem;
+  border: 0;
+  border-top: 1px dashed var(--rule-soft);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank] .rank,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] .rank {
+  grid-area: rank;
+  align-self: start;
+  justify-self: start;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank] .rest-name,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] .rest-name {
+  grid-area: title;
+  min-width: 0;
+  margin: 0;
+  overflow: visible;
+  color: var(--ink);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank] .card-summary,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] .card-summary {
+  display: flex;
+  grid-area: summary;
+  flex-direction: column;
+  align-self: start;
+  min-width: 0;
+  max-height: none;
+  overflow: visible;
+  margin-top: 0.3rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .card-summary .kind {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .card-summary .pitch {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .bid {
+  grid-area: bid;
+  align-self: start;
+  min-width: 0;
+  margin: 0;
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .place-foot[data-later-book-foot] {
+  position: static;
+  display: flex;
+  grid-area: foot;
+  align-items: baseline;
+  gap: 0.7rem;
+  min-width: 0;
+  min-height: 1.2rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  pointer-events: none;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .place-foot[data-later-book-foot] .book-later {
+  position: static;
+  display: inline-flex;
+  min-width: 0;
+  min-height: 1.2rem;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.2rem 0;
+  border: 0;
+  border-bottom: 1px dashed var(--accent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  opacity: 1;
+  pointer-events: auto;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .place-foot[data-later-book-foot] .book-later:hover {
+  color: var(--ink);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .place-foot[data-later-book-foot] .paid-at,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .place-foot[data-later-book-foot] .clicks {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-stack[data-later-stack] {
+  width: 100%;
+  margin: 1.6rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-stack[data-later-stack] .later-stack-kicker {
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-stack[data-later-stack] .later-stack-dek {
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-board[data-slot="later-rows"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details {
+  margin-top: 1.25rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--rule-soft);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details .occupied-bid-close,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details .occupied-window-closed,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details .list-venue-line {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .list-venue {
+  display: inline-block;
+  border-bottom: 1px dashed var(--accent);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend[data-empty-unpublished] {
+  display: block;
+  min-height: 0;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 2px dashed var(--rule);
+  border-radius: 3px;
+  background: var(--panel);
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-answer {
+  margin: 0;
+  color: var(--accent);
+  font-size: clamp(2.5rem, 9vw, 4.6rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-note {
+  max-width: 35rem;
+  margin: 1rem 0 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-window,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-bid-open,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-window-closed {
+  max-width: 35rem;
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .stub-note[data-checkout-error] {
+  margin-top: 1rem;
+  color: var(--accent);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+/* The maker note closes the printed poster with the same quiet centered
+   author credit as the reference footer, using the poster's ink and rule
+   palette without adding another product navigation surface. */
+.city-weekend-sheet .maker-footer {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 1.15rem 1.25rem 2.4rem;
+  border-top: 1px dashed var(--rule-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.city-weekend-sheet .maker-footer a {
+  color: var(--accent);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-decoration: underline dashed;
+  text-underline-offset: 0.22em;
+}
+
+.city-weekend-sheet .maker-footer a:hover {
+  color: var(--ink);
+}
+
+.city-weekend-sheet .maker-footer a:focus-visible {
+  color: var(--ink);
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 40rem) {
+  .city-weekend-sheet {
+    width: calc(100% - 1rem);
+    max-width: none;
+    margin: 0.5rem auto 1.25rem;
+  }
+
+  .city-weekend-sheet .site-header-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 0;
+    padding: 0.9rem 1rem 0.75rem;
+  }
+
+  .city-weekend-sheet .brand-period-group {
+    display: contents;
+  }
+
+  .city-weekend-sheet .logo {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.7rem;
+  }
+
+  .city-weekend-sheet .period-pill {
+    position: static;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    top: auto;
+    left: auto;
+    margin-top: 0.25rem;
+    transform: none;
+  }
+
+  .city-weekend-sheet .site-nav {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
+    margin-top: 0.55rem;
+  }
+
+  .city-weekend-sheet .site-nav ul {
+    gap: 0.75rem;
+    font-size: 0.62rem;
+  }
+
+  .city-weekend-sheet .site-actions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] {
+    width: 100%;
+    max-width: none;
+    padding: 0.8rem 1rem 2.75rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .context-pill {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 0.9rem;
+    font-size: 0.62rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .context-pill .context-detail {
+    text-align: left;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead {
+    padding-bottom: 1.15rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .city-name {
+    font-size: clamp(2.7rem, 16vw, 4.2rem);
+    line-height: 0.87;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .weekend-slot {
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.13em;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .masthead .period-meta {
+    font-size: 0.75rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim h2 {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.7rem 0.25rem;
+    font-size: 1.45rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-stepper {
+    align-self: center;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .venue-field,
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .category-select,
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row > .outbid {
+    height: 2.9rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-menu {
+    top: calc(100% + 0.45rem);
+    right: 0;
+    width: min(100%, 18rem);
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .category-rail-scroll {
+    gap: 0.95rem;
+    padding-bottom: 0.15rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .raise-hint {
+    font-size: 0.72rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold,
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend {
+    margin-top: 1.5rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold-rule {
+    margin-bottom: 0.75rem;
+    font-size: 0.6rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.number-one[data-paid-at] {
+    grid-template-columns: 3.3rem minmax(0, 1fr);
+    grid-template-rows: auto minmax(4.3rem, 1fr) auto auto;
+    min-height: 15rem;
+    padding: 1.1rem 1rem 0.9rem;
+    box-shadow: 0.25rem 0.25rem 0 var(--rule-soft);
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .weekend-answer {
+    font-size: clamp(2rem, 10vw, 3.15rem);
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .card-summary .pitch {
+    font-size: 0.86rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .leaderboard[data-slot="top-three"] > li.place[data-later-rank],
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .later-board[data-slot="later-rows"] > li.place[data-later-rank] {
+    grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+    gap: 0 0.7rem;
+    min-height: 6.7rem;
+    padding: 0.85rem 0.05rem 0.75rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .rest-name {
+    font-size: 1.05rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .card-summary .pitch {
+    font-size: 0.76rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .number-one[data-paid-at] .later-facts[data-later-fact],
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .place[data-later-rank] .place-foot[data-later-book-foot] {
+    gap: 0.5rem;
+    font-size: 0.66rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend[data-empty-unpublished] {
+    padding: 1.1rem;
+  }
+
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-answer {
+    font-size: clamp(2.6rem, 17vw, 4rem);
+  }
+
+  .city-weekend-sheet .maker-footer {
+    padding: 1rem 1rem 2rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .city-weekend-sheet *,
+  .city-weekend-sheet *::before,
+  .city-weekend-sheet *::after {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

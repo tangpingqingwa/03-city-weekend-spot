@@ -1,37 +1,12 @@
 import { NextResponse } from "next/server";
-import type { Listing } from "../../../../core/listing";
 import { canonicalizeBookingUrl } from "../../../../core/url";
-import {
-  getDb,
-  listingFromRow,
-  updateListing,
-  type AppDb,
-} from "../../../../db";
+import { incrementListingClicks } from "../../../../core/click";
 
-export const CLICK_PATH = "/api/click" as const;
 export const dynamic = "force-dynamic";
 
 type ClickContext = {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 };
-
-export function listingClickPath(id: string): string {
-  return `${CLICK_PATH}/${id}`;
-}
-
-/** One increment per successful redirect. Destination is the stored booking URL. */
-export function incrementListingClicks(
-  id: string,
-  db: AppDb = getDb(),
-): Listing | undefined {
-  const trimmed = id.trim();
-  if (!trimmed) return undefined;
-  const row = db.listings.get(trimmed);
-  if (!row) return undefined;
-  const listing: Listing = { ...listingFromRow(row), clicks: row.clicks + 1 };
-  updateListing(db, listing);
-  return listing;
-}
 
 function outboundBookingUrl(stored: string): string {
   try {
@@ -42,11 +17,11 @@ function outboundBookingUrl(stored: string): string {
 }
 
 /** Public booking hop. Increments clicks, then 302s to the stripped URL. */
-export async function GET(
+export async function getClick(
   _request: Request,
   context: ClickContext,
 ): Promise<Response> {
-  const params = await Promise.resolve(context.params);
+  const params = await context.params;
   const listing = incrementListingClicks(params.id ?? "");
   if (!listing) {
     return NextResponse.json({ error: "listing_not_found" }, { status: 404 });
@@ -54,4 +29,8 @@ export async function GET(
   const response = NextResponse.redirect(outboundBookingUrl(listing.bookingUrl), 302);
   response.headers.set("cache-control", "private, no-store");
   return response;
+}
+
+export async function GET(request: Request, context: ClickContext): Promise<Response> {
+  return getClick(request, context);
 }

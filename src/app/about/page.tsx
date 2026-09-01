@@ -4,7 +4,7 @@ import React from "react";
 export const metadata: Metadata = {
   title: "About · City Weekend Spot",
   description:
-    "This weekend in this city, #1 is whoever paid the most. Rank is money, not stars. NYC v1.",
+    "A public New York weekend board where venues are ranked only by bid.",
 };
 
 export default function AboutPage() {
@@ -12,47 +12,38 @@ export default function AboutPage() {
     <main className="doc-page" data-page="about">
       <h1>About</h1>
       <p>
-        City Weekend Spot is a weekly weekend window auction for the first
-        place a local looks when deciding where to eat, drink, or see a show
-        this Friday or Saturday. Occupied rank lives in the rolling last 7
-        days from paid createdAt, not Monday 00:00 UTC. One public board per
-        city. Venues bid whole USD for the #1 slot.
+        City Weekend Spot is a public board for the first place New Yorkers
+        look when deciding where to eat, drink, or see a show this Friday or
+        Saturday. Venues bid whole US dollars for the #1 position.
       </p>
       <p>
-        <strong>Rank is money, not stars.</strong> Rank is the bid. Nothing
-        else. Paying less than #1 still lists at the rank that bid can take.
-        Equal bids: the older listing keeps the higher rank.
+        <strong>Rank is money, not stars.</strong> Rank is the bid and nothing
+        else. A bid below #1 still appears at the rank it can take. When bids
+        are equal, the listing placed first stays higher.
       </p>
       <p>
-        A listing is <strong>venue + city + booking URL</strong>. Optional
-        one-line pitch. Optional kind (restaurant, bar, or show). Kind and
-        pitch never sort the board.
+        A listing includes the venue, city, booking link, and an optional
+        one-line pitch and category. Those details help people choose where to
+        go, but they never affect ranking.
       </p>
       <p>
-        There are <strong>no fake reviews</strong>. We do not scrape or display
-        stars, review scores, invented quotes, or “people say…” blurbs. Public{" "}
-        <strong>clicks</strong> on the booking URL are the only counter. Clicks
-        are not a rating.
+        The board does not use star ratings, review scores, or invented quotes.
+        Public clicks on the booking link are the only counter, and clicks are
+        not a rating.
       </p>
       <p>
-        No ads, no API keys, no revenue share with booking platforms. Copy is{" "}
-        <strong>English</strong>. Currency is <strong>USD</strong>. The market
-        is <strong>global English</strong> — there is no China-city default.
-        v1 ships the <strong>NYC</strong> lane (
-        <code>nyc</code>, <code>America/New_York</code>). Adding another city
-        is a catalog row, not a rewrite of ranking. This is the{" "}
-        <strong>city-weekend-spot</strong> vertical, a clone of{" "}
-        <a href="https://outbid.lol">outbid.lol</a> pay-to-rank mechanics.
+        New York listings follow <strong>America/New_York</strong> local time.
+        The board is in <strong>English</strong> and bids use{" "}
+        <strong>USD</strong>.
       </p>
       <p>
-        Anyone can read the board without an account. Payment is the only write
-        path. Live money is Polar Checkout. Tests use a fixture so they never
-        call live Polar. Abandoned checkout does not invent a #1 venue.
+        Anyone can read the board without an account. A venue appears only
+        after payment is confirmed. A canceled or abandoned checkout never
+        creates a listing.
       </p>
       <p>
-        <a href="/rules">Read the rules</a> for the $5 minimum, older-wins
-        ties, raise-pays-difference, no fake reviews, and banned chat / NSFW
-        URLs.
+        <a href="/rules">Read the rules</a> for the $5 minimum, ties, raises,
+        weekend timing, review policy, and booking-link standards.
       </p>
     </main>
   );

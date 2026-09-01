@@ -271,7 +271,7 @@ export function rollingWeekStart(now: Date = new Date()): Date {
 }
 
 /**
- * Polar-paid placement still occupies the poster if `paidAt` is in `[now − 7d, now]`.
+ * Waffo-paid placement still occupies the poster if `paidAt` is in `[now − 7d, now]`.
  * Monday 00:00 UTC is not the drop. Not a 24h lock on #1.
  */
 export function bidInRollingWeek(

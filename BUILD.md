@@ -15,8 +15,8 @@ Pay-to-rank clone of outbid.lol. NYC is the v1 lane. Ranking is `(city, window)`
 | Runtime | Node 22, TypeScript `strict` |
 | App | Next.js App Router (outbid-like public board) + Route Handlers |
 | DB | SQLite via `better-sqlite3` (one file; cities, windows, listings, payments, clicks) |
-| Payments | `PaymentPort`. Adapter `fixture` in tests; live Polar when `POLAR_LIVE=1` |
-| Tests | `node:test` + `tsx` + fixture Polar. No live Polar in CI |
+| Payments | `PaymentPort`. Adapter `fixture` in tests; Waffo Pancake in explicit `waffo-test`/`waffo-prod` |
+| Tests | `node:test` + `tsx` + fixture Waffo boundary. No live Waffo in CI |
 | Process | `next dev` locally; `next start` in prod. `/healthz` on the same process |
 
 **Out of stack:** Prisma, Redis, Kubernetes, multi-region, a reviews engine, a second ranking algorithm per city.
@@ -29,7 +29,7 @@ Pay-to-rank clone of outbid.lol. NYC is the v1 lane. Ranking is `(city, window)`
 cities (slug pk, name, timezone, active)
 windows (id, city, starts_at, ends_at)
 listings (id, city, window_id, venue_key, venue_name, kind, booking_url, pitch, bid_usd, first_paid_at, clicks)
-payments (id, listing_id, polar_session, amount_usd, kind create|raise)
+payments (id, listing_id, provider_checkout_id, provider_order_id, provider_payment_id, amount_usd, kind create|raise)
 ```
 
 Board query (every city, including NYC):
@@ -39,7 +39,7 @@ WHERE city = ? AND window_id = current_window(city)
 ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
 ```
 
-`current_window(city)` uses that city’s IANA timezone for the ISO `{city}:{iso_week}` label and new-bid hours. Occupied live board filters Polar-paid `firstPaidAt` in the rolling last 7 days, not Monday 00:00 UTC. Adding `london` must not touch this `ORDER BY`.
+`current_window(city)` uses that city’s IANA timezone for the ISO `{city}:{iso_week}` label and new-bid hours. Occupied live board filters Waffo-paid `firstPaidAt` in the rolling last 7 days, not Monday 00:00 UTC. Adding `london` must not touch this `ORDER BY`.
 
 ---
 
@@ -62,7 +62,9 @@ ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
       about/page.tsx
       rules/page.tsx
       api/checkout/route.ts
-      api/polar/webhook/route.ts
+      api/waffo/webhook/route.ts
+      api/polar/webhook/route.ts  # retired 410 compatibility path
+      checkout/complete/page.tsx
       api/click/[id]/route.ts
       healthz/route.ts
     core/
@@ -74,7 +76,9 @@ ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
     billing/
       port.ts
       fixture.ts
-      polar.ts                 # live, env-gated
+      waffo.ts                 # signed Waffo Pancake boundary
+      waffo-session.ts         # fail-closed Waffo config/URL checks
+      polar.ts                 # retired inert compatibility module
     db.ts
     config.ts
   tests/
@@ -101,9 +105,9 @@ HTTP / pages call `core/*` only. They do not import `billing/polar.ts` directly.
 | listing | venue + city + booking URL required; “4.9 stars” → `reviews_forbidden` |
 | url | `utm_source` stripped; telegram invite → `url_forbidden` |
 | city | unknown slug 404; second city uses the same `rank.ts` |
-| polar fixture | unpaid checkout does not list; paid fixture event lists |
+| waffo fixture | unpaid checkout does not list; paid fixture event lists |
 | clicks | GET click route 302 + increments |
-| live gate | unset / `0` / `true` stay fixture; `POLAR_FIXTURE_ONLY=1` wins |
+| provider gate | explicit `PAYMENT_MODE=fixture` for offline tests; Waffo modes fail closed without config |
 
 `scripts/test.sh` stays offline. Once `package.json` exists it runs `tsc --noEmit` and `node:test`. It must never call `scripts/live-smoke.sh`.
 
@@ -131,11 +135,11 @@ Each heading below is one PR. Dependencies are hard. Do not start the next PR in
 - **Dependencies:** PR 2
 - **Acceptance:** SPEC window bounds. Unknown city 404. Ranking function takes `city`; NYC is data.
 
-### PR 4: Polar checkout and fixture
-- **Description:** `PaymentPort.createCheckout`. Fixture adapter for tests. Live Polar behind `POLAR_LIVE=1`. Rank changes only on paid webhook / fixture event.
-- **Files:** `src/billing/port.ts`, `src/billing/fixture.ts`, `src/billing/polar.ts`, `src/app/api/checkout/route.ts`, `src/app/api/polar/webhook/route.ts`, `tests/checkout.test.ts`
+### PR 4: Waffo checkout and fixture
+- **Description:** `PaymentPort.createCheckout`. Fixture adapter for tests. Waffo Pancake behind explicit `waffo-test`/`waffo-prod` config. Rank changes only on the signed Waffo webhook / fixture event; the old Polar path is inert.
+- **Files:** `src/billing/port.ts`, `src/billing/fixture.ts`, `src/billing/waffo.ts`, `src/billing/waffo-session.ts`, `src/app/api/checkout/route.ts`, `src/app/api/waffo/webhook/route.ts`, `src/app/api/polar/webhook/route.ts`, `tests/checkout.test.ts`
 - **Dependencies:** PR 3
-- **Acceptance:** $5 fixture create lists at #1. Abandoned checkout does not. CI does not set `POLAR_LIVE`.
+- **Acceptance:** $5 fixture create lists at #1. Abandoned checkout does not. CI has no provider secrets and only runs offline fixture tests.
 
 ### PR 5: Raise-bid
 - **Description:** Same venue key in the same city + window raises by paying the difference. Different listing pays full amount.
@@ -156,7 +160,7 @@ Each heading below is one PR. Dependencies are hard. Do not start the next PR in
 - **Acceptance:** SPEC acceptance 9. Clicks are visible on the card.
 
 ### PR 8: live-smoke
-- **Description:** Operator script walks NYC board, about/rules, checkout (live Polar or `BLOCKED-SECRET`), click, unknown city. Not in CI.
+- **Description:** Offline operator script walks NYC board, about/rules, fixture checkout, read-only completion, canonical Waffo webhook, retired Polar 410, click, and unknown city. Not in CI and never calls a provider.
 - **Files:** `scripts/live-smoke.sh`, `docs/live-smoke.md`, `tests/live-smoke.test.ts` (offline guards only)
 - **Dependencies:** PR 4, PR 6, PR 7
 - **Acceptance:** Script is executable. `scripts/test.sh` and `.github/workflows/ci.yml` do not invoke it. Docs record PASS / PASS-ERROR / BLOCKED-SECRET. No invented paid rank.
@@ -167,15 +171,15 @@ Each heading below is one PR. Dependencies are hard. Do not start the next PR in
 
 | Var | Role |
 |---|---|
-| `POLAR_LIVE` | `1` selects live Polar. Unset / `0` / `true` stay fixture or fail-closed |
-| `POLAR_FIXTURE_ONLY` | `1` always wins |
-| `POLAR_ACCESS_TOKEN` | Live Polar. Missing → live-smoke `BLOCKED-SECRET` |
-| `POLAR_WEBHOOK_SECRET` | Live webhook verify |
-| `POLAR_API_BASE` | Optional. Default `https://api.polar.sh`. Sandbox smoke uses `https://sandbox-api.polar.sh`. Never set in `scripts/test.sh` or Actions. |
-| `POLAR_PRODUCT_ID` | Optional Polar product. Sandbox Checkout requires it. |
+| `PAYMENT_MODE` | Explicit `fixture`, `waffo-test`, or `waffo-prod`; no provider is inferred |
+| `WAFFO_MERCHANT_ID` / `WAFFO_STORE_ID` / `WAFFO_PRODUCT_ID` | Waffo identifiers; required in both Waffo modes |
+| `WAFFO_PRIVATE_KEY` / `WAFFO_PRIVATE_KEY_FILE` | Waffo API signing key; required in both Waffo modes |
+| `WAFFO_WEBHOOK_TEST_PUBLIC_KEY` / `WAFFO_WEBHOOK_PROD_PUBLIC_KEY` | Signed `order.completed` verification keys |
+| `WAFFO_API_BASE` | Official `https://api.waffo.ai` in production; test may use an injected endpoint |
+| `PUBLIC_BASE_URL` / `WAFFO_PUBLIC_BASE_URL` | Production origin-only HTTPS callback base; local fixture may use loopback |
 | `DATABASE_PATH` | SQLite file; default `./data/city-weekend-spot.sqlite` |
 
-Dockerfile / runbook may land with a later deploy PR. Image must not set `POLAR_LIVE=1`.
+Polar variables and the `/api/polar/webhook` endpoint are retained only as inert compatibility debris; they cannot select a provider or settle a payment. Dockerfile / runbook may land with a later deploy PR. Image must use a durable `DATABASE_PATH` and may not enable fixture mode in production.
 
 ---
 

@@ -1,12 +1,8 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import {
-  getPaymentPort,
-  listingForSession,
-  applyPaidEvent,
-} from "../../../billing/port";
 import { resolveCity } from "../../../core/cities";
 import { getBoardListings } from "../../../core/rank";
+import { resolveReturn, type ReturnQuery } from "../../../core/return";
 
 export const dynamic = "force-dynamic";
 
@@ -17,49 +13,10 @@ type ReturnPageProps = {
   searchParams?: Promise<{
     sessionId?: string | string[];
     checkoutId?: string | string[];
+    intent?: string | string[];
     status?: string | string[];
   }>;
 };
-
-function firstQuery(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-export async function resolveReturn(params: {
-  sessionId?: string | string[];
-  checkoutId?: string | string[];
-  status?: string | string[];
-}): Promise<{ status: "paid" | "pending"; listingId?: string }> {
-  const sessionId = firstQuery(params.sessionId) ?? firstQuery(params.checkoutId);
-  const rawStatus = firstQuery(params.status);
-  const canceled =
-    rawStatus === "cancel" ||
-    rawStatus === "canceled" ||
-    rawStatus === "abandoned";
-  const port = getPaymentPort();
-
-  if (!sessionId) {
-    return { status: "pending" };
-  }
-
-  if (canceled) {
-    await port.abandonCheckout(sessionId);
-    return { status: "pending" };
-  }
-
-  const already = listingForSession(sessionId);
-  if (already) {
-    return { status: "paid", listingId: already.id };
-  }
-
-  try {
-    const paid = await port.completeCheckout(sessionId);
-    const listing = applyPaidEvent(paid);
-    return { status: "paid", listingId: listing.id };
-  } catch {
-    return { status: "pending" };
-  }
-}
 
 export default async function ReturnPage({
   params,
@@ -71,7 +28,7 @@ export default async function ReturnPage({
     notFound();
   }
 
-  const query = (await searchParams) ?? {};
+  const query: ReturnQuery = (await searchParams) ?? {};
   const result = await resolveReturn(query);
   const listings = getBoardListings(resolved.city.slug);
   const listing = listings.find((row) => row.id === result.listingId);
