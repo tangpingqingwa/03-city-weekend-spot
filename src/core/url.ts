@@ -83,6 +83,12 @@ const NSFW_PATH_TOKEN_SET = new Set(NSFW_PATH_TOKENS);
 const NSFW_COPY_RE =
   /\b(porn|porno|xxx|nsfw|onlyfans|fansly|hentai|escort|escorts|camgirl|camgirls|nude|nudes|naked)\b/i;
 
+const URL_CONTROL_RE = /[\u0000-\u001f\u007f-\u009f]/;
+
+export function hasUrlControlCharacter(raw: string): boolean {
+  return URL_CONTROL_RE.test(raw);
+}
+
 function hostMatches(host: string, listed: string): boolean {
   return host === listed || host.endsWith(`.${listed}`);
 }
@@ -167,6 +173,14 @@ function isUnusableHost(host: string): boolean {
         `${first >> 8}.${first & 0xff}.${second >> 8}.${second & 0xff}`,
       );
     }
+    const compatibleHex = normalized.match(/^::([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (compatibleHex) {
+      const first = Number.parseInt(compatibleHex[1], 16);
+      const second = Number.parseInt(compatibleHex[2], 16);
+      return isUnusableHost(
+        `${first >> 8}.${first & 0xff}.${second >> 8}.${second & 0xff}`,
+      );
+    }
   }
   const ipv4 = normalized.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!ipv4) return false;
@@ -197,6 +211,9 @@ function stripTracking(parsed: URL): void {
 const BARE_HOST_WITH_PORT =
   /^(?:(?:[a-z0-9](?:[a-z0-9-]*\.)+[a-z]{2,}|localhost|(?:\d{1,3}\.){3}\d{1,3}):\d+)(?:[/?#]|$)/i;
 
+const BARE_BOOKING_HOST =
+  /^(?:(?:[a-z0-9](?:[a-z0-9-]*\.)+[a-z]{2,}|localhost|(?:\d{1,3}\.){3}\d{1,3}|\[[0-9a-f:.]+\])(?::\d+)?)(?:[/?#]|$)/i;
+
 /**
  * URL accepts a hostname without a scheme only when it is given a base URL.
  * Booking URLs are entered by people, so a bare domain is a useful shorthand;
@@ -211,7 +228,8 @@ function parseableBookingUrl(raw: string): string {
     // Backslashes are treated as authority/path separators by the WHATWG
     // parser for special schemes. Do not let protocol-relative shorthand
     // reinterpret `//\\evil.com` or `//evil.com\\path` after prefixing HTTPS.
-    if (raw.slice(2).includes("\\")) return raw;
+    const remainder = raw.slice(2);
+    if (remainder.includes("\\") || !BARE_BOOKING_HOST.test(remainder)) return raw;
     return `https:${raw}`;
   }
 
@@ -225,7 +243,7 @@ function parseableBookingUrl(raw: string): string {
   }
 
   const scheme = /^([a-z][a-z\d+.-]*):/i.exec(raw);
-  if (!scheme) return `https://${raw}`;
+  if (!scheme && BARE_BOOKING_HOST.test(raw)) return `https://${raw}`;
   return raw;
 }
 
@@ -234,6 +252,9 @@ function parseableBookingUrl(raw: string): string {
  * credentials / localhost. Store and display this URL only.
  */
 export function canonicalizeBookingUrl(raw: string): string {
+  if (hasUrlControlCharacter(raw)) {
+    throw new UrlError("url_forbidden");
+  }
   const trimmed = raw.trim();
   if (trimmed.length < 1) {
     throw new UrlError("url_insecure");
@@ -242,6 +263,14 @@ export function canonicalizeBookingUrl(raw: string): string {
   // into slashes and can change the authority represented by user input.
   if (trimmed.includes("\\")) {
     throw new UrlError("url_forbidden");
+  }
+
+  const explicitScheme = /^([a-z][a-z\d+.-]*):/i.exec(trimmed);
+  if (explicitScheme && ["http", "https"].includes(explicitScheme[1]!.toLowerCase())) {
+    const remainder = trimmed.slice(explicitScheme[0].length);
+    if (!remainder.startsWith("//") || remainder.startsWith("///")) {
+      throw new UrlError("url_insecure");
+    }
   }
 
   let parsed: URL;

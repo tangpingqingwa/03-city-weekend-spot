@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MIN_BID_USD, type City } from "../../core/cities";
-import { canonicalizeBookingUrl } from "../../core/url";
+import { canonicalizeBookingUrl, hasUrlControlCharacter } from "../../core/url";
 
 type BidFormProps = {
   city: City;
@@ -33,14 +33,15 @@ function clampAmount(value: number): number {
 }
 
 function hasSafeBookingUrl(value: string): boolean {
-  const candidate = value.trim().split(/\s+/).find((part) => {
-    if (/^(?:https?:\/\/|www\.|\/\/)/i.test(part)) return true;
-    return /^(?:(?:[a-z0-9](?:[a-z0-9-]*\.)+[a-z]{2,}|localhost|(?:\d{1,3}\.){3}\d{1,3})(?::\d+)?)(?:[/?#].*)?$/i.test(part);
-  });
-  if (!candidate) return false;
+  if (hasUrlControlCharacter(value)) return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  const parts = trimmed.split(/\s+/);
+  const candidate = parts.length > 1 ? parts[parts.length - 1]! : trimmed;
   try {
     const canonical = canonicalizeBookingUrl(candidate);
-    return new URL(canonical).hostname.includes(".");
+    const hostname = new URL(canonical).hostname;
+    return hostname.includes(".") || hostname.includes(":");
   } catch {
     return false;
   }

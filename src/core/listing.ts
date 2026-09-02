@@ -1,5 +1,5 @@
 import { MIN_BID_USD, type CitySlug, type VenueKind } from "./cities";
-import { canonicalizeBookingUrl, isNsfwCopy, UrlError } from "./url";
+import { canonicalizeBookingUrl, hasUrlControlCharacter, isNsfwCopy, UrlError } from "./url";
 
 export const VENUE_NAME_MAX = 80;
 export const PITCH_MAX = 120;
@@ -165,7 +165,7 @@ export function looksLikeBookingUrl(raw: string): boolean {
         ? trimmed
         : `https://${trimmed}`;
     const parsed = new URL(parseable);
-    return parsed.hostname.includes(".");
+    return parsed.hostname.includes(".") || parsed.hostname.includes(":");
   } catch {
     return false;
   }
@@ -177,6 +177,9 @@ export function parsePosterVenue(raw: unknown): {
 } {
   if (typeof raw !== "string" || raw.trim().length < 1) {
     throw new ListingError("listing_invalid", "venue is required");
+  }
+  if (hasUrlControlCharacter(raw)) {
+    throw new ListingError("listing_invalid", "venue contains an invalid control character");
   }
   const trimmed = raw.trim();
   const parts = trimmed.split(/\s+/);

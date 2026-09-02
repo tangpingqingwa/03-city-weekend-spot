@@ -1865,14 +1865,13 @@ test("Waffo checkout deadline also covers a response body read", async () => {
 test("Waffo rejects unsafe checkout destinations and implausible expiry", async () => {
   setCheckoutNow(OPEN_NYC);
   const responses = [
-    { checkoutUrl: "https://buyer:secret@127.0.0.1/internal", expiresAt: "2026-08-20T17:00:00.000Z" },
-    { checkoutUrl: "https://checkout.waffo.ai:443/explicit-default-port", expiresAt: "2026-08-20T17:00:00.000Z" },
-    { checkoutUrl: "https://checkout.waffo.ai/expired", expiresAt: "2020-01-01T00:00:00.000Z" },
-    { checkoutUrl: "https://checkout.waffo.ai/far-future", expiresAt: "2030-01-01T00:00:00.000Z" },
+    { sessionId: "CHK_1234567890123456789012", checkoutUrl: "https://buyer:secret@127.0.0.1/internal/CHK_1234567890123456789012", expiresAt: "2026-08-20T17:00:00Z" },
+    { sessionId: "CHK_2234567890123456789012", checkoutUrl: "https://checkout.waffo.ai:443/CHK_2234567890123456789012", expiresAt: "2026-08-20T17:00:00Z" },
+    { sessionId: "CHK_3234567890123456789012", checkoutUrl: "https://checkout.waffo.ai/CHK_3234567890123456789012", expiresAt: "2020-01-01T00:00:00Z" },
+    { sessionId: "CHK_4234567890123456789012", checkoutUrl: "https://checkout.waffo.ai/CHK_4234567890123456789012", expiresAt: "2030-01-01T00:00:00Z" },
   ];
   for (const [index, response] of responses.entries()) {
     const harness = waffoHarness(async () => new Response(JSON.stringify({ data: {
-      sessionId: `CHK_UNSAFE_${index}`,
       ...response,
     } }), { status: 200, headers: { "content-type": "application/json" } }));
     try {
@@ -1887,6 +1886,10 @@ test("Waffo rejects unsafe checkout destinations and implausible expiry", async 
         /waffo_checkout_unknown/,
       );
       assert.equal((harness.db.sqlite.prepare("SELECT status FROM checkout_intents").get() as { status: string }).status, "unknown");
+      assert.equal(
+        (harness.db.sqlite.prepare("SELECT reason FROM checkout_intents").get() as { reason: string }).reason,
+        "provider_checkout_unknown:invalid provider checkout response",
+      );
     } finally {
       harness.db.close();
     }

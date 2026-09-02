@@ -123,7 +123,7 @@ grep -q 'r23 City Weekend identity' src/app/board.css \
   || fail "board CSS must own the r23 City Weekend identity"
 grep -q 'persistedKind' src/app/\[city\]/bid-form.tsx \
   || fail "presentation categories must not broaden persisted VenueKind"
-grep -q 'Outbid' src/app/\[city\]/bid-form.tsx || fail "bid form must render Outbid"
+grep -q 'Claim rank' src/app/\[city\]/bid-form.tsx || fail "bid form must render Claim rank"
 grep -q 'Claim #1' src/app/\[city\]/bid-form.tsx || fail "bid form must clone Claim #1"
 grep -q 'action="/api/checkout"' src/app/\[city\]/bid-form.tsx \
   || fail "bid form must POST to the Waffo-owned checkout route"
@@ -148,7 +148,7 @@ grep -q 'Checkout must be completed before a venue can join the ranking' src/app
   || fail "claim form must say checkout completion is required before ranking"
 grep -q 'before a venue can join the ranking' src/app/\[city\]/bid-form.tsx \
   || fail "claim form must keep unpaid checkout off the ranking"
-python3 - src/app/\[city\]/bid-form.tsx <<'PY' || fail "bid form must put the venue field before one Outbid submit"
+python3 - src/app/\[city\]/bid-form.tsx <<'PY' || fail "bid form must put the venue field before one Claim rank submit"
 import re
 import sys
 
@@ -158,11 +158,11 @@ if not form:
     raise SystemExit("bid form markup missing")
 body = form.group(0)
 venue_at = body.find("{venueField}")
-outbid_at = body.find("{outbidButton}")
-if venue_at < 0 or outbid_at < 0 or venue_at > outbid_at:
-    raise SystemExit("venue field must precede Outbid in the shared bid row")
-if body.count("{venueField}") != 1 or body.count("{outbidButton}") != 1:
-    raise SystemExit("form must render exactly one venue field and one Outbid submit")
+claim_at = body.find("{claimButton}")
+if venue_at < 0 or claim_at < 0 or venue_at > claim_at:
+    raise SystemExit("venue field must precede Claim rank in the shared bid row")
+if body.count("{venueField}") != 1 or body.count("{claimButton}") != 1:
+    raise SystemExit("form must render exactly one venue field and one Claim rank submit")
 if 'className="bid-row"' not in body:
     raise SystemExit("form must keep the shared bid row")
 PY
@@ -171,7 +171,7 @@ grep -q 'data-unpaid-off-board' src/app/board.css \
 grep -q '\.poster\[data-occupied="false"\] \.claim \[data-bid-form\]' src/app/board.css \
   || fail "empty claim CSS must compose the direct bid form"
 grep -q '\.poster\[data-occupied="false"\] \.claim \.bid-row' src/app/board.css \
-  || fail "empty claim CSS must compose the shared venue and Outbid row"
+  || fail "empty claim CSS must compose the shared venue and Claim rank row"
 grep -q 'data-empty-board' src/app/\[city\]/board.tsx || fail "board must have an honest empty state"
 grep -q 'unpublished' src/app/\[city\]/board.tsx || fail "empty board must read like an unpublished weekend"
 grep -q 'empty-answer' src/app/\[city\]/board.tsx || fail "empty board must print No #1 as the weekend answer"
@@ -199,8 +199,8 @@ fi
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'week-window'; then
   fail "unpublished must not reuse occupied week-window chrome"
 fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Outbid'; then
-  fail "unpublished must not offer Outbid when new bids are closed"
+if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Claim rank'; then
+  fail "unpublished copy must not embed Claim rank controls"
 fi
 if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Paid placements remain eligible for seven days'; then
   fail "unpublished must state the seven-day paid-placement eligibility"
@@ -223,10 +223,10 @@ fi
 grep -q 'data-window-closed' src/app/\[city\]/board.tsx \
   || fail "empty closed must stamp window_closed on the poster"
 if grep -q 'occupied || bidsOpen' src/app/\[city\]/board.tsx; then
-  fail "occupied closed must not keep Outbid on occupied || bidsOpen"
+  fail "occupied closed must not keep Claim rank on occupied || bidsOpen"
 fi
 grep -q '{bidsOpen ? (' src/app/\[city\]/board.tsx \
-  || fail "closed must not render Outbid outside Thursday noon–Sunday local"
+  || fail "closed must keep its open-state branch explicit"
 grep -q 'empty-window-closed' src/app/board.css \
   || fail "poster CSS must style unpublished window_closed copy"
 grep -q 'occupied-window-closed' src/app/\[city\]/board.tsx \
@@ -312,8 +312,8 @@ if not re.search(r"bidsOpen \? \(\s*<p className=\"list-venue-line\"", city_boar
     raise SystemExit("occupied List a venue must remain gated on bidsOpen")
 if "<BookingHop" in city_board:
     raise SystemExit("occupied hero must not duplicate the paid-card Book CTA")
-if not re.search(r"\{bidsOpen \? \([\s\S]*?<BidForm", city_board):
-    raise SystemExit("BidForm/Outbid must remain gated on bidsOpen")
+if not re.search(r"<BidForm[\s\S]*?bidsOpen=\{bidsOpen\}", city_board):
+    raise SystemExit("BidForm must receive the explicit bidsOpen state")
 PY
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
@@ -380,8 +380,8 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must name bid-open on unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed' not in css:
     raise SystemExit("empty CSS must name window_closed on unpublished")
-if '.poster[data-occupied="false"][data-window-closed] .outbid' not in css:
-    raise SystemExit("empty CSS must keep Outbid off unpublished when window_closed")
+if '.claim[data-claim-state="closed"] .claim-closed-row .outbid' not in css:
+    raise SystemExit("empty CSS must expose disabled Claim rank when window_closed")
 empty_window = re.search(
     r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window\s*\{([^}]*)\}',
     css,
@@ -408,10 +408,8 @@ if "background: var(--accent)" in empty_closed.group(1):
     raise SystemExit("do not recolor empty window_closed copy")
 if '.poster[data-occupied="true"] .occupied-window-closed' not in css:
     raise SystemExit("occupied CSS must name window_closed on occupied")
-if '.poster[data-occupied="true"][data-window-closed] .outbid' not in css:
-    raise SystemExit("occupied CSS must keep Outbid off occupied when window_closed")
-if '.poster[data-occupied="true"][data-window-closed] .claim' not in css:
-    raise SystemExit("occupied CSS must keep Claim #1 off occupied when window_closed")
+if '.claim[data-claim-state="closed"]' not in css:
+    raise SystemExit("occupied CSS must expose Claim rank status when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] .list-venue' not in css:
     raise SystemExit("occupied CSS must keep List a venue off occupied when window_closed")
 if '.poster[data-occupied="true"][data-window-closed] .list-venue' not in css:
@@ -1064,8 +1062,8 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished occupied-chrome test did not run"
   grep -q 'empty NYC weekend keeps Book #1 and later Book off unpublished' "$test_log" \
     || fail "empty unpublished Book leak test did not run"
-  grep -q 'empty NYC form leads with venue before one Outbid submit' "$test_log" \
-    || fail "empty direct venue-to-Outbid form test did not run"
+  grep -q 'empty NYC form leads with venue before one Claim rank submit' "$test_log" \
+    || fail "empty direct venue-to-Claim rank form test did not run"
   grep -q 'kind, \$bid, clicks, and Book' "$test_log" \
     || fail "place-card test did not run"
   grep -q 'occupied board keeps the paid #1 answer' "$test_log" \
@@ -1114,9 +1112,9 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished rolling last-7-days leftover test did not run"
   grep -q 'empty unpublished names when new bids open' "$test_log" \
     || fail "empty unpublished bid-open leftover test did not run"
-  grep -q 'empty unpublished must not offer Outbid when new bids are closed' "$test_log" \
+  grep -q 'empty unpublished shows a disabled Claim rank when new bids are closed' "$test_log" \
     || fail "empty unpublished window_closed leftover test did not run"
-  grep -q 'occupied closed state hides Outbid' "$test_log" \
+  grep -q 'occupied closed state shows disabled Claim rank' "$test_log" \
     || fail "occupied window_closed leftover test did not run"
   grep -q 'occupied closed state hides the hero list action' "$test_log" \
     || fail "occupied closed List a venue leftover test did not run"

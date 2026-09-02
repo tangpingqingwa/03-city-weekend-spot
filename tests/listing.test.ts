@@ -128,6 +128,10 @@ test("bare booking domains default to HTTPS before storage", () => {
     parsePosterVenue("Sunday Roast //book.example.com/roast").bookingUrl,
     "//book.example.com/roast",
   );
+  assert.equal(
+    parsePosterVenue("IPv6 Cafe [2001:4860:4860::8888]/table").bookingUrl,
+    "[2001:4860:4860::8888]/table",
+  );
 });
 
 test("listing requires venue + city + booking URL", () => {
@@ -336,6 +340,36 @@ test("protocol-relative booking URLs reject backslash authority and path tricks"
       return true;
     },
   );
+});
+
+test("path-only, malformed, and control-containing booking inputs fail closed", () => {
+  for (const bookingUrl of [
+    "/path",
+    "///example.com/path",
+    "https:/example.com/path",
+    "https:///example.com/path",
+    "hTTps:\n//example.com",
+    "https://example.com\n.evil.com",
+  ]) {
+    assert.throws(() => canonicalizeBookingUrl(bookingUrl), (err: unknown) => {
+      assert.ok(err instanceof UrlError);
+      assert.ok(err.code === "url_insecure" || err.code === "url_forbidden");
+      return true;
+    });
+  }
+});
+
+test("private IPv4-compatible IPv6 booking hosts are forbidden", () => {
+  for (const bookingUrl of [
+    "https://[::192.168.0.8]/table",
+    "https://[::127.0.0.1]/table",
+  ]) {
+    assert.throws(() => canonicalizeBookingUrl(bookingUrl), (err: unknown) => {
+      assert.ok(err instanceof UrlError);
+      assert.equal(err.code, "url_forbidden");
+      return true;
+    });
+  }
 });
 
 test("checkout rejects chat, NSFW, and review-speak without listing", async () => {
