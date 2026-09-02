@@ -228,15 +228,18 @@ function UnpublishedWeekend({
     >
       <p className="empty-answer">No #1</p>
       <p className="empty-note">
-        This weekend is still open. No venue has purchased the #1 position on
-        the {city.name} poster.
+        {bidsOpen
+          ? `This weekend is still open. No venue has purchased the #1 position on the ${city.name} poster.`
+          : `No venue has purchased the #1 position on the ${city.name} poster.`}
       </p>
       <p className="empty-window">
         Paid placements remain eligible for seven days.
       </p>
-      <p className="empty-bid-open">
-        New bids open Thursday at noon and close Sunday at 11:59 PM local time.
-      </p>
+      {bidsOpen ? (
+        <p className="empty-bid-open">
+          New bids open Thursday at noon and close Sunday at 11:59 PM local time.
+        </p>
+      ) : null}
       {!bidsOpen ? (
         <p className="empty-window-closed">
           New bids are closed and reopen Thursday at noon local time.
@@ -334,7 +337,7 @@ const CHECKOUT_ERROR_COPY: Record<string, string> = {
   bid_below_min: "First bid must be at least $5. No charge and no rank claimed.",
   bid_not_whole: "Bids are whole US dollars only. No charge and no rank claimed.",
   bid_not_higher: "A raise must beat the current bid. No charge and no rank claimed.",
-  listing_invalid: "Need a venue name and a https booking URL. No rank claimed.",
+  listing_invalid: "Need a venue name and a booking URL. No rank claimed.",
   url_insecure: "Booking URL must be https. No charge and no rank claimed.",
   url_forbidden: "That booking URL is not allowed. No charge and no rank claimed.",
   reviews_forbidden: "No star scores or review-speak. No charge and no rank claimed.",
@@ -368,11 +371,11 @@ function checkoutRecoveryIntentId(code: string | undefined): string | undefined 
   }
 }
 
-/** Occupied closed leftover `?error=window_closed`. BidForm is hidden, so this path must name reopen. */
+/** Occupied closed leftover `?error=window_closed`; keep the reopen time explicit. */
 const OCCUPIED_CLOSED_WINDOW_CLOSED_COPY =
   "This weekend's bidding window is closed. New bids reopen Thursday at noon local time. No charge was made.";
 
-/** Empty unpublished leftover `?error=window_closed`. BidForm is hidden, so this path must name reopen. */
+/** Empty unpublished leftover `?error=window_closed`; keep the reopen time explicit. */
 const EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY =
   "This weekend's bidding window is closed. New bids reopen Thursday at noon local time. No charge was made.";
 
@@ -490,14 +493,13 @@ export function CityBoard({
       </section>
       {occupied ? (
         <>
-          {bidsOpen ? (
-            <BidForm
-              city={city}
-              defaultAmount={defaultAmount}
-              occupied={occupied}
-              notice={errorNotice}
-            />
-          ) : null}
+          <BidForm
+            city={city}
+            defaultAmount={defaultAmount}
+            occupied={occupied}
+            bidsOpen={bidsOpen}
+            notice={bidsOpen || checkoutError !== "window_closed" ? errorNotice : undefined}
+          />
           <Leaderboard
             city={city}
             listings={paid}
@@ -533,14 +535,13 @@ export function CityBoard({
       ) : (
         <>
           <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
-          {bidsOpen ? (
-            <BidForm
-              city={city}
-              defaultAmount={defaultAmount}
-              occupied={occupied}
-              notice={errorNotice}
-            />
-          ) : null}
+          <BidForm
+            city={city}
+            defaultAmount={defaultAmount}
+            occupied={occupied}
+            bidsOpen={bidsOpen}
+            notice={bidsOpen || checkoutError !== "window_closed" ? errorNotice : undefined}
+          />
         </>
       )}
       {occupiedClosedCheckoutError ? (

@@ -165,7 +165,10 @@ function waffoHarness(fetchImpl?: typeof fetch, checkoutTimeoutMs?: number, dire
         data: {
           sessionId: "CHK_1234567890123456789012",
           checkoutUrl: "https://pancake.waffo.ai/store/test-store/checkout/CHK_1234567890123456789012",
-          expiresAt: "2026-08-20T17:00:00.000Z",
+          // The SDK returns the provider's documented ISO value unchanged;
+          // exercise the adapter's canonical UTC persistence with second
+          // precision rather than relying on an already-normalized fixture.
+          expiresAt: "2026-08-20T17:00:00Z",
         },
       }),
       { status: 200, headers: { "content-type": "application/json" } },
@@ -735,6 +738,45 @@ test("Waffo anonymous checkout persists intent before network and sends the offi
     assert.equal(intent?.charge_cents, 500);
     assert.equal(intent?.provider_checkout_id, started.sessionId);
     assert.equal(getBoardListings("nyc", OPEN_NYC, harness.db).length, 0);
+  } finally {
+    harness.db.close();
+  }
+});
+
+test("Waffo accepts the transport envelope and canonicalizes a valid ISO expiry", async () => {
+  setCheckoutNow(OPEN_NYC);
+  const harness = waffoHarness();
+  const sdkEnvelopeClient = {
+    checkout: {
+      anonymous: {
+        create: async () => ({
+          status: 200,
+          data: {
+            sessionId: "CHK_1234567890123456789012",
+            checkoutUrl: "https://pancake.waffo.ai/store/test-store/checkout/CHK_1234567890123456789012",
+            expiresAt: "2026-08-20T17:00:00Z",
+          },
+        }),
+      },
+    },
+  } as unknown as WaffoPancake;
+  const payment = new WaffoPayment({
+    env: harness.env,
+    db: harness.db,
+    client: sdkEnvelopeClient,
+    webhookPublicKey: harness.publicKey,
+  });
+  try {
+    const started = await payment.createCheckout({
+      listingDraft: draft({ venueName: "Envelope Room" }),
+      amountUsd: 5,
+      kind: "create",
+      targetBidUsd: 5,
+      chargeCents: 500,
+    });
+    assert.equal(started.sessionId, "CHK_1234567890123456789012");
+    assert.equal(started.expiresAt, "2026-08-20T17:00:00.000Z");
+    assert.equal(getCheckoutIntent(harness.db, started.intentId!)?.status, "open");
   } finally {
     harness.db.close();
   }

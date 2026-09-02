@@ -89,7 +89,7 @@ test("homepage visual shell exposes context, rail, and disabled-ready controls",
   assert.match(html, /class="category-select"[^>]*aria-expanded="false"/);
   assert.match(html, /class="category-more"[^>]*aria-expanded="false"/);
   assert.match(html, /class="outbid"[^>]*disabled=""/);
-  assert.match(html, />Outbid</);
+  assert.match(html, />Claim rank</);
   assert.match(html, /data-claim-ready="false"/);
   assert.match(html, /Rank is the bid/);
   assert.doesNotMatch(html, /listing-avatar|[\u2315\u263e\u25ce\u2304\u25a6\u2302\u25cc\u2726\u203a]/);

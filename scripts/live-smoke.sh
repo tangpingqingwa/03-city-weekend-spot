@@ -616,16 +616,22 @@ elif ! html_has "$board0" 'data-city="nyc"' \
 elif ! html_has "$board0" "data-window-id=\"${WINDOW_ID}\""; then
   record "nyc-board" "FAIL" "GET /nyc returned a different city/window than ${WINDOW_ID}"
 elif html_has "$board0" 'data-window-closed'; then
-  if html_has "$board0" 'data-bid-form=""|name="amountUsd"|data-action="outbid"|class="outbid"'; then
-    record "nyc-board" "FAIL" "GET /nyc closed response retained bid-form or Outbid UI"
+  if html_has "$board0" 'data-bid-form=""|name="amountUsd"|data-action="outbid"'; then
+    record "nyc-board" "FAIL" "GET /nyc closed response retained bid-form or submit controls"
   elif board_rating_ui "$board0"; then
     record "nyc-board" "FAIL" "GET /nyc closed response retained star/rating UI"
+  elif ! html_has "$board0" 'data-action="claim-rank"|Claim rank'; then
+    record "nyc-board" "FAIL" "GET /nyc closed response omitted disabled Claim rank status"
+  elif ! html_has "$board0" 'Claim rank opens Thursday at noon local time'; then
+    record "nyc-board" "FAIL" "GET /nyc closed response omitted Claim rank reopen copy"
+  elif html_has "$board0" 'This weekend is still open|class="empty-bid-open"|List a venue this weekend|Print this weekend'; then
+    record "nyc-board" "FAIL" "GET /nyc closed response retained contradictory open/action copy"
   elif ! html_has "$board0" 'New bids are closed and reopen Thursday at noon local time'; then
     record "nyc-board" "FAIL" "GET /nyc closed response omitted expected Thursday reopen copy"
   else
-    record "nyc-board" "PASS-ERROR" "GET /nyc ${WINDOW_ID} is closed; bid form/Outbid/star UI absent and Thursday reopen copy present"
+    record "nyc-board" "PASS-ERROR" "GET /nyc ${WINDOW_ID} is closed; disabled Claim rank status and Thursday reopen copy present"
   fi
-elif ! html_has "$board0" 'name="amountUsd"' || ! html_has "$board0" 'Outbid'; then
+elif ! html_has "$board0" 'name="amountUsd"' || ! html_has "$board0" 'Claim rank'; then
   record "nyc-board" "FAIL" "GET /nyc missing open-window bid form"
 elif board_rating_ui "$board0"; then
   record "nyc-board" "FAIL" "GET /nyc invented star/rating UI"

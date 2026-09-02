@@ -105,6 +105,31 @@ test("poster venue field splits name and booking URL", () => {
   );
 });
 
+test("bare booking domains default to HTTPS before storage", () => {
+  assert.equal(
+    canonicalizeBookingUrl("Book.Example.com/roast"),
+    "https://book.example.com/roast",
+  );
+  assert.equal(
+    canonicalizeBookingUrl("//Book.Example.com/roast"),
+    "https://book.example.com/roast",
+  );
+  assert.equal(
+    canonicalizeBookingUrl("book.example.com:8443/roast"),
+    "https://book.example.com:8443/roast",
+  );
+  const listing = createListing(draft({ bookingUrl: "book.example.com/roast" }));
+  assert.equal(listing.bookingUrl, "https://book.example.com/roast");
+  assert.equal(
+    parsePosterVenue("Sunday Roast book.example.com/roast").bookingUrl,
+    "book.example.com/roast",
+  );
+  assert.equal(
+    parsePosterVenue("Sunday Roast //book.example.com/roast").bookingUrl,
+    "//book.example.com/roast",
+  );
+});
+
 test("listing requires venue + city + booking URL", () => {
   assert.throws(
     () => createListing(draft({ venueName: "" })),
@@ -192,6 +217,7 @@ test("utm_source and tracking keys are stripped from the stored booking URL", ()
 test("telegram invite is url_forbidden", () => {
   for (const bookingUrl of [
     "https://t.me/foo",
+    "https://t.me../foo",
     "https://telegram.me/invite",
     "https://wa.me/15555550100",
     "https://chat.whatsapp.com/invite",
@@ -218,6 +244,8 @@ test("NSFW booking URL is url_forbidden", () => {
   for (const bookingUrl of [
     "https://pornhub.com/view",
     "https://onlyfans.com/user",
+    "https://onlyfans.com.../user",
+    "https://sub.onlyfans.com../user",
     "https://example.com/nsfw/table",
     "https://example.com/xxx",
   ]) {
@@ -242,7 +270,9 @@ test("http, javascript, data, and localhost are rejected", () => {
     "javascript:alert(1)",
     "data:text/html,hi",
     "https://localhost/table",
+    "https://localhost.../table",
     "https://127.0.0.1/table",
+    "https://127.0.0.1.../table",
     "https://user:pass@example.com/table",
   ]) {
     assert.throws(() => canonicalizeBookingUrl(bookingUrl), (err: unknown) => {
@@ -251,6 +281,61 @@ test("http, javascript, data, and localhost are rejected", () => {
       return true;
     });
   }
+});
+
+test("scheme-looking ports do not upgrade explicit schemes and private hosts stay forbidden", () => {
+  for (const [bookingUrl, code] of [
+    ["javascript:123", "url_forbidden"],
+    ["data:123", "url_forbidden"],
+    ["ftp:123", "url_insecure"],
+    ["unknown:123", "url_insecure"],
+  ] as const) {
+    assert.throws(() => canonicalizeBookingUrl(bookingUrl), (err: unknown) => {
+      assert.ok(err instanceof UrlError);
+      assert.equal(err.code, code);
+      return true;
+    });
+  }
+
+  for (const bookingUrl of [
+    "localhost:3000/table",
+    "10.0.0.8:3000/table",
+    "172.16.0.8:3000/table",
+    "192.168.0.8:3000/table",
+    "169.254.0.8:3000/table",
+    "https://[::]/table",
+    "https://[::1]/table",
+    "[fe80::1]:3000/table",
+    "[fec0::1]:3000/table",
+    "https://[fc00::8]/table",
+    "[fd00::8]:3000/table",
+    "https://[ff02::1]/table",
+    "[::ffff:192.168.0.8]:3000/table",
+  ]) {
+    assert.throws(() => canonicalizeBookingUrl(bookingUrl), (err: unknown) => {
+      assert.ok(err instanceof UrlError);
+      assert.equal(err.code, "url_forbidden");
+      return true;
+    });
+  }
+});
+
+test("protocol-relative booking URLs reject backslash authority and path tricks", () => {
+  for (const bookingUrl of ["//\\evil.com", "//evil.com\\path"]) {
+    assert.throws(() => canonicalizeBookingUrl(bookingUrl), (err: unknown) => {
+      assert.ok(err instanceof UrlError);
+      assert.equal(err.code, "url_forbidden");
+      return true;
+    });
+  }
+  assert.throws(
+    () => parsePosterVenue("Sunday Roast //\\evil.com"),
+    (err: unknown) => {
+      assert.ok(err instanceof ListingError);
+      assert.equal(err.code, "listing_invalid");
+      return true;
+    },
+  );
 });
 
 test("checkout rejects chat, NSFW, and review-speak without listing", async () => {

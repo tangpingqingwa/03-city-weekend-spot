@@ -278,11 +278,12 @@ function parseCheckoutResponse(
   now: Date,
   _publicBaseUrl: string,
 ): { sessionId: string; checkoutUrl: string; expiresAt: string } | undefined {
-  if (!isRecord(value)) return undefined;
-  const sessionId = readString(value.sessionId);
-  const checkoutUrl = readString(value.checkoutUrl);
-  const expiresAt = readString(value.expiresAt);
-  const expiry = expiresAt ? Date.parse(expiresAt) : Number.NaN;
+  const payload = checkoutResponsePayload(value);
+  if (!payload) return undefined;
+  const sessionId = readString(payload.sessionId);
+  const checkoutUrl = readString(payload.checkoutUrl);
+  const expiresAt = readString(payload.expiresAt);
+  const expiry = expiresAt ? parseWaffoTimestamp(expiresAt) : Number.NaN;
   const nowMs = now.getTime();
   const canonicalExpiry = Number.isFinite(expiry) ? new Date(expiry).toISOString() : "";
   if (
@@ -290,7 +291,6 @@ function parseCheckoutResponse(
     !WAFFO_SESSION_ID.test(sessionId) ||
     !checkoutUrl ||
     !expiresAt ||
-    expiresAt !== canonicalExpiry ||
     !Number.isFinite(expiry) ||
     !Number.isFinite(nowMs) ||
     expiry <= nowMs + 1_000 ||
@@ -302,11 +302,91 @@ function parseCheckoutResponse(
   } catch {
     return undefined;
   }
-  return { sessionId, checkoutUrl, expiresAt };
+  return { sessionId, checkoutUrl, expiresAt: canonicalExpiry };
 }
 
 const WAFFO_SESSION_ID = /^[A-Z]{2,5}_[A-Za-z0-9]{22}$/;
 const WAFFO_STORE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+/** ISO 8601 date-time with an explicit timezone; store the canonical UTC form. */
+const WAFFO_ISO_TIMESTAMP =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-]\d{2}:\d{2})$/;
+
+const CHECKOUT_RESPONSE_FIELDS = ["sessionId", "checkoutUrl", "expiresAt"] as const;
+
+/**
+ * The Pancake SDK unwraps a successful REST envelope before returning it, so
+ * the normal shape is `{ sessionId, checkoutUrl, expiresAt }`. Keep the raw
+ * successful envelope as a compatible source/test seam as well: only an
+ * object with all three documented fields and no provider errors is accepted.
+ * This avoids treating a transport envelope as malformed while preserving the
+ * strict identity, origin, path, and expiry checks below.
+ */
+function checkoutResponsePayload(value: unknown): Record<string, unknown> | undefined {
+  if (!isRecord(value)) return undefined;
+
+  if (Object.prototype.hasOwnProperty.call(value, "errors")) {
+    if (!Array.isArray(value.errors) || value.errors.length > 0) return undefined;
+  }
+  if (Object.prototype.hasOwnProperty.call(value, "status")) {
+    if (
+      typeof value.status !== "number" ||
+      !Number.isInteger(value.status) ||
+      value.status < 200 ||
+      value.status >= 300
+    ) return undefined;
+  }
+
+  const direct = CHECKOUT_RESPONSE_FIELDS.some((field) =>
+    Object.prototype.hasOwnProperty.call(value, field),
+  );
+  if (direct) {
+    return CHECKOUT_RESPONSE_FIELDS.every((field) =>
+      Object.prototype.hasOwnProperty.call(value, field),
+    ) ? value : undefined;
+  }
+
+  if (!isRecord(value.data)) return undefined;
+  return CHECKOUT_RESPONSE_FIELDS.every((field) =>
+    Object.prototype.hasOwnProperty.call(value.data, field),
+  ) ? value.data : undefined;
+}
+
+/**
+ * Parse only the provider's explicit-timezone ISO form and reject calendar
+ * overflow that `Date.parse` would otherwise normalize (for example, Feb 30).
+ * Waffo responses are persisted as canonical UTC timestamps after this check.
+ */
+function parseWaffoTimestamp(raw: string): number {
+  const match = WAFFO_ISO_TIMESTAMP.exec(raw);
+  if (!match) return Number.NaN;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const milliseconds = Number((match[7] ?? "").padEnd(3, "0"));
+  const zone = match[8]!;
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day);
+  date.setUTCHours(hour, minute, second, milliseconds);
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day ||
+    date.getUTCHours() !== hour ||
+    date.getUTCMinutes() !== minute ||
+    date.getUTCSeconds() !== second ||
+    date.getUTCMilliseconds() !== milliseconds
+  ) return Number.NaN;
+
+  if (zone === "Z") return date.getTime();
+  const offsetHours = Number(zone.slice(1, 3));
+  const offsetMinutes = Number(zone.slice(4, 6));
+  if (offsetHours > 23 || offsetMinutes > 59) return Number.NaN;
+  const offset = (offsetHours * 60 + offsetMinutes) * 60 * 1_000;
+  return date.getTime() - (zone[0] === "+" ? offset : -offset);
+}
 
 function isSafeCheckoutUrl(url: URL, _publicBaseUrl: string, sessionId: string, rawValue: string): boolean {
   if (

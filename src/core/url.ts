@@ -88,7 +88,10 @@ function hostMatches(host: string, listed: string): boolean {
 }
 
 function hostnameOf(parsed: URL): string {
-  return parsed.hostname.toLowerCase().replace(/\.$/, "");
+  // Normalize every terminal dot before host-policy checks. WHATWG URL keeps
+  // repeated DNS root-label dots, and leaving one behind would let values such
+  // as `t.me..` or `onlyfans.com...` bypass exact/subdomain denylist matches.
+  return parsed.hostname.toLowerCase().replace(/\.+$/, "");
 }
 
 export function isTrackingQueryKey(key: string): boolean {
@@ -111,7 +114,7 @@ export function isChatUrl(parsed: URL): boolean {
 }
 
 export function isNsfwHost(host: string): boolean {
-  const lowered = host.toLowerCase().replace(/\.$/, "");
+  const lowered = host.toLowerCase().replace(/\.+$/, "");
   if (NSFW_HOSTS.some((listed) => hostMatches(lowered, listed))) {
     return true;
   }
@@ -130,24 +133,57 @@ export function isNsfwCopy(raw: string): boolean {
 }
 
 function isUnusableHost(host: string): boolean {
+  const normalized = host
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.+$/, "");
+  const isIpv6 = normalized.includes(":");
   if (
-    host === "localhost" ||
-    host.endsWith(".localhost") ||
-    host.endsWith(".local") ||
-    host === "::1" ||
-    host === "[::1]" ||
-    host.startsWith("fe80:")
+    normalized === "localhost" ||
+    normalized.endsWith(".localhost") ||
+    normalized.endsWith(".local") ||
+    normalized.endsWith(".internal") ||
+    (isIpv6 && (
+      normalized === "::" ||
+      normalized === "::1" ||
+      /^fe[89a-f]/.test(normalized) ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd") ||
+      normalized.startsWith("ff") ||
+      normalized === "2001:db8" ||
+      normalized.startsWith("2001:db8:")
+    ))
   ) {
     return true;
   }
-  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (isIpv6) {
+    const mappedDotted = normalized.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+    if (mappedDotted) return isUnusableHost(mappedDotted[1]);
+    const mappedHex = normalized.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (mappedHex) {
+      const first = Number.parseInt(mappedHex[1], 16);
+      const second = Number.parseInt(mappedHex[2], 16);
+      return isUnusableHost(
+        `${first >> 8}.${first & 0xff}.${second >> 8}.${second & 0xff}`,
+      );
+    }
+  }
+  const ipv4 = normalized.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!ipv4) return false;
   const octets = ipv4.slice(1).map(Number);
-  if (octets.some((part) => part > 255)) return false;
+  if (octets.some((part) => part > 255)) return true;
   const [a, b] = octets as [number, number, number, number];
-  if (a === 0 || a === 127) return true;
-  if (a === 169 && b === 254) return true;
-  return false;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && (b === 0 || b === 168)) ||
+    (a === 198 && b >= 18 && b <= 19) ||
+    (a === 203 && b === 0) ||
+    a >= 224
+  );
 }
 
 function stripTracking(parsed: URL): void {
@@ -156,6 +192,41 @@ function stripTracking(parsed: URL): void {
       parsed.searchParams.delete(key);
     }
   }
+}
+
+const BARE_HOST_WITH_PORT =
+  /^(?:(?:[a-z0-9](?:[a-z0-9-]*\.)+[a-z]{2,}|localhost|(?:\d{1,3}\.){3}\d{1,3}):\d+)(?:[/?#]|$)/i;
+
+/**
+ * URL accepts a hostname without a scheme only when it is given a base URL.
+ * Booking URLs are entered by people, so a bare domain is a useful shorthand;
+ * add the one safe scheme before parsing it. Explicit schemes stay untouched
+ * so `http:`, `javascript:`, and other non-https values continue to fail
+ * through the checks below instead of being silently upgraded. A dotted host
+ * followed by a numeric port is the one bare-host shape that looks like a
+ * scheme to the WHATWG parser (`book.example:8443/path`).
+ */
+function parseableBookingUrl(raw: string): string {
+  if (raw.startsWith("//")) {
+    // Backslashes are treated as authority/path separators by the WHATWG
+    // parser for special schemes. Do not let protocol-relative shorthand
+    // reinterpret `//\\evil.com` or `//evil.com\\path` after prefixing HTTPS.
+    if (raw.slice(2).includes("\\")) return raw;
+    return `https:${raw}`;
+  }
+
+  // The WHATWG parser reads `book.example.com:8443` as a scheme named
+  // `book.example.com`; recognize only plausible host/port authorities here.
+  // Numeric-leading IPv4 and bracketed IPv6 values fall through to the normal
+  // no-scheme path, while `ftp:123`, `data:123`, and `javascript:123` stay
+  // explicit schemes and are rejected below.
+  if (BARE_HOST_WITH_PORT.test(raw)) {
+    return `https://${raw}`;
+  }
+
+  const scheme = /^([a-z][a-z\d+.-]*):/i.exec(raw);
+  if (!scheme) return `https://${raw}`;
+  return raw;
 }
 
 /**
@@ -167,10 +238,15 @@ export function canonicalizeBookingUrl(raw: string): string {
   if (trimmed.length < 1) {
     throw new UrlError("url_insecure");
   }
+  // Reject before WHATWG URL parsing, which otherwise normalizes backslashes
+  // into slashes and can change the authority represented by user input.
+  if (trimmed.includes("\\")) {
+    throw new UrlError("url_forbidden");
+  }
 
   let parsed: URL;
   try {
-    parsed = new URL(trimmed);
+    parsed = new URL(parseableBookingUrl(trimmed));
   } catch {
     throw new UrlError("url_insecure");
   }

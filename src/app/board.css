@@ -423,7 +423,7 @@ a:hover {
   font-size: 0.95rem;
 }
 
-/* Empty unpublished checkout window_closed names when new bids reopen. BidForm is hidden. */
+/* Empty unpublished checkout window_closed names when new bids reopen. */
 .poster[data-occupied="false"][data-window-closed] .empty-unpublished-checkout-error[data-checkout-error] {
   margin: 0.9rem 0 1.1rem;
   color: var(--ink);
@@ -431,12 +431,8 @@ a:hover {
   text-align: center;
 }
 
-.poster[data-occupied="false"][data-window-closed] .outbid,
-.poster[data-occupied="false"][data-window-closed] .claim,
-.poster[data-occupied="false"][data-window-closed] [data-bid-form],
-.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished][data-window-closed] .outbid {
-  display: none;
-}
+/* Closed boards keep the claim hero visible as an explicit disabled status;
+   only the open form controls are omitted by the component. */
 
 /* Occupied /nyc: window_closed is on the poster, not only a checkout error. Keep Book #1. */
 .poster[data-occupied="true"] .occupied-window-closed {
@@ -445,7 +441,7 @@ a:hover {
   font-size: 0.95rem;
 }
 
-/* Occupied closed checkout window_closed names when new bids reopen. BidForm is hidden. */
+/* Occupied closed checkout window_closed names when new bids reopen. */
 .poster[data-occupied="true"][data-window-closed] .occupied-closed-checkout-error[data-checkout-error] {
   margin: 0.9rem 0 1.1rem;
   color: var(--ink);
@@ -453,9 +449,6 @@ a:hover {
   text-align: center;
 }
 
-.poster[data-occupied="true"][data-window-closed] .outbid,
-.poster[data-occupied="true"][data-window-closed] .claim,
-.poster[data-occupied="true"][data-window-closed] [data-bid-form],
 .poster[data-occupied="true"][data-window-closed] .list-venue,
 .poster[data-occupied="true"][data-window-closed] .list-venue-line,
 .poster[data-occupied="true"][data-window-closed] .later-stack-lists,
@@ -2106,10 +2099,6 @@ input {
 }
 
 .poster[data-window-closed] .masthead .list-venue-line {
-  display: none;
-}
-
-.poster[data-window-closed] .claim {
   display: none;
 }
 
@@ -4159,7 +4148,7 @@ body {
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim h2 {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 0.25rem;
   height: auto;
   min-height: 0;
@@ -4169,7 +4158,7 @@ body {
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.1;
-  text-align: left;
+  text-align: center;
 }
 
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-stepper {
@@ -4439,6 +4428,38 @@ body {
   font-size: 0.77rem;
   line-height: 1.4;
   text-align: left;
+}
+
+/* A closed window still needs a visible, honest primary status. The controls
+   are rendered without a form by BidForm, and this treatment keeps that
+   status centered without making it resemble a missing action. */
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] {
+  display: block;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .claim-closed-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .claim-closed-row .outbid {
+  width: min(100%, 14rem);
+  cursor: not-allowed;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .claim-note[data-claim-disabled] {
+  margin: 0.7rem auto 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .step:disabled,
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .amount-field input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold,
@@ -5043,7 +5064,9 @@ body {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 0.7rem 0.25rem;
+    justify-content: center;
     font-size: 1.45rem;
+    text-align: center;
   }
 
   .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-stepper {
