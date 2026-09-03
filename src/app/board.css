@@ -5073,6 +5073,14 @@ body {
     align-self: center;
   }
 
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .step {
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    min-height: 2.75rem;
+  }
+
   .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .bid-row {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.55rem;
