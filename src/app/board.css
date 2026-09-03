@@ -5069,6 +5069,12 @@ body {
     text-align: center;
   }
 
+  .city-weekend-sheet .poster[data-identity="city-weekend-poster"][data-slot="home-shell"][data-occupied="true"] .claim h2[data-slot="claim-heading"] {
+    height: auto;
+    min-height: 2.75rem;
+    line-height: 1.1;
+  }
+
   .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .amount-stepper {
     align-self: center;
   }

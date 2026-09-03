@@ -109,6 +109,14 @@ test("empty visual shell keeps the honest unpublished and paid-only contract", (
   assert.doesNotMatch(html, /data-top-rank/);
 });
 
+test("occupied mobile claim heading can grow around 44px bid controls", () => {
+  const css = readFileSync(join(process.cwd(), "src", "app", "board.css"), "utf8");
+  assert.match(
+    css,
+    /\.city-weekend-sheet \.poster\[data-identity="city-weekend-poster"\]\[data-slot="home-shell"\]\[data-occupied="true"\] \.claim h2\[data-slot="claim-heading"\] \{[\s\S]*?height: auto;[\s\S]*?min-height: 2\.75rem;[\s\S]*?line-height: 1\.1;[\s\S]*?\}/,
+  );
+});
+
 test("period route state renders and keyboard navigation preserves the real board", async () => {
   const rollingPage = await CityPage({
     params: Promise.resolve({ city: "nyc" }),
