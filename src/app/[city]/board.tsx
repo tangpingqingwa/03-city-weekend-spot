@@ -6,7 +6,6 @@ import {
   type City,
 } from "../../core/cities";
 import { isPaidListing } from "../../core/listing";
-import { currentWindow, isWindowOpen } from "../../core/window";
 import { listingClickPath } from "../../core/click";
 import { getCheckoutIntent, getDb } from "../../db";
 import type { BoardPeriod } from "../period-tabs-state";
@@ -212,10 +211,8 @@ function LaterBookFoot({ listing }: { listing: BoardListing }) {
 
 function UnpublishedWeekend({
   city,
-  bidsOpen,
 }: {
   city: City;
-  bidsOpen: boolean;
 }) {
   return (
     <section
@@ -224,27 +221,19 @@ function UnpublishedWeekend({
       data-empty-board="true"
       data-empty-unpublished=""
       data-poster-empty=""
-      {...(!bidsOpen ? { "data-window-closed": "" } : {})}
     >
       <p className="empty-answer">No #1</p>
       <p className="empty-note">
-        {bidsOpen
-          ? `This weekend is still open. No venue has purchased the #1 position on the ${city.name} poster.`
-          : `No venue has purchased the #1 position on the ${city.name} poster.`}
+        This weekend is still open for claims. No venue has purchased the #1
+        position on the {city.name} poster yet.
       </p>
       <p className="empty-window">
         Paid placements remain eligible for seven days.
       </p>
-      {bidsOpen ? (
-        <p className="empty-bid-open">
-          New bids open Thursday at noon and close Sunday at 11:59 PM local time.
-        </p>
-      ) : null}
-      {!bidsOpen ? (
-        <p className="empty-window-closed">
-          New bids are closed and reopen Thursday at noon local time.
-        </p>
-      ) : null}
+      <p className="empty-bid-open">
+        Claim rank is available any time. The board stays empty until a
+        completed Waffo payment is confirmed.
+      </p>
     </section>
   );
 }
@@ -252,11 +241,9 @@ function UnpublishedWeekend({
 export function Leaderboard({
   city,
   listings,
-  bidsOpen,
 }: {
   city: City;
   listings: readonly BoardListing[];
-  bidsOpen: boolean;
 }) {
   const paid = listings.filter((listing) => paidAtMs(listing) !== undefined);
   if (paid.length === 0) {
@@ -299,22 +286,13 @@ export function Leaderboard({
           data-poster-later-list=""
           aria-label={`Later venues in ${city.name}`}
         >
-          {bidsOpen ? (
-            <p className="later-stack-kicker later-stack-also">
-              Also this weekend
-            </p>
-          ) : null}
-          {!bidsOpen ? (
-            <p className="later-stack-kicker later-stack-closed-kicker">
-              Already ranked
-            </p>
-          ) : null}
+          <p className="later-stack-kicker later-stack-also">
+            Also this weekend
+          </p>
           <p className="later-stack-dek">
-            {bidsOpen ? (
-              <span className="later-stack-lists">
-                Paying less than #1 still lists.{" "}
-              </span>
-            ) : null}
+            <span className="later-stack-lists">
+              Paying less than #1 still lists.{" "}
+            </span>
             These venues are not this weekend&apos;s #1.
           </p>
           {remainingLater.length > 0 ? (
@@ -341,7 +319,7 @@ const CHECKOUT_ERROR_COPY: Record<string, string> = {
   url_insecure: "Booking URL must be https. No charge and no rank claimed.",
   url_forbidden: "That booking URL is not allowed. No charge and no rank claimed.",
   reviews_forbidden: "No star scores or review-speak. No charge and no rank claimed.",
-  window_closed: "This weekend window is closed. No charge and no rank claimed.",
+  window_closed: "Claims are available any time. No charge and no rank claimed.",
   payment_incomplete: "Checkout was not paid. The poster is unchanged.",
   waffo_unavailable: "Checkout is unavailable or still awaiting confirmation. No rank is claimed until payment is confirmed.",
   polar_unavailable: "Checkout is unavailable. No charge and no rank claimed.",
@@ -371,40 +349,18 @@ function checkoutRecoveryIntentId(code: string | undefined): string | undefined 
   }
 }
 
-/** Occupied closed leftover `?error=window_closed`; keep the reopen time explicit. */
-const OCCUPIED_CLOSED_WINDOW_CLOSED_COPY =
-  "This weekend's bidding window is closed. New bids reopen Thursday at noon local time. No charge was made.";
-
-/** Empty unpublished leftover `?error=window_closed`; keep the reopen time explicit. */
-const EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY =
-  "This weekend's bidding window is closed. New bids reopen Thursday at noon local time. No charge was made.";
-
 export function checkoutErrorCopy(
   code: string | undefined,
-  state?: { occupied: boolean; bidsOpen: boolean },
+  _state?: { occupied: boolean; [key: string]: unknown },
 ): string | null {
   const normalizedCode = checkoutErrorCode(code);
   if (!normalizedCode) return null;
-  if (
-    normalizedCode === "window_closed" &&
-    state?.occupied === true &&
-    state.bidsOpen === false
-  ) {
-    return OCCUPIED_CLOSED_WINDOW_CLOSED_COPY;
-  }
-  if (
-    normalizedCode === "window_closed" &&
-    state?.occupied === false &&
-    state.bidsOpen === false
-  ) {
-    return EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY;
-  }
   return CHECKOUT_ERROR_COPY[normalizedCode] ?? "Checkout did not start. No rank claimed.";
 }
 
 function checkoutErrorNotice(
   code: string | undefined,
-  state: { occupied: boolean; bidsOpen: boolean },
+  state: { occupied: boolean },
 ): React.ReactNode {
   const copy = checkoutErrorCopy(code, state);
   if (!copy) return null;
@@ -439,19 +395,11 @@ export function CityBoard({
   const defaultAmount = topBid > 0 ? topBid + 1 : MIN_BID_USD;
   const occupied = paid.length > 0;
   const numberOne = paid.find((listing) => listing.rank === 1);
-  const now = nowProp ?? new Date();
-  const bidsOpen = isWindowOpen(currentWindow(city, now), now);
-  const errorState = { occupied, bidsOpen };
+  // `now` remains an injectable prop for deterministic view tests and callers;
+  // claims no longer depend on the historical Thursday–Sunday interval.
+  void nowProp;
+  const errorState = { occupied };
   const errorNotice = checkoutErrorNotice(checkoutError, errorState);
-  const errorCopy = checkoutErrorCopy(checkoutError, errorState);
-  const occupiedClosedCheckoutError =
-    occupied && !bidsOpen && checkoutError === "window_closed"
-      ? errorCopy
-      : null;
-  const emptyUnpublishedClosedCheckoutError =
-    !occupied && checkoutError === "window_closed" && !bidsOpen
-      ? errorCopy
-      : null;
 
   return (
     <main
@@ -462,7 +410,6 @@ export function CityBoard({
       data-period={period}
       data-slot="home-shell"
       data-identity="city-weekend-poster"
-      {...(!bidsOpen ? { "data-window-closed": "" } : {})}
     >
       <section className="board-context" data-slot="context" data-poster-masthead="">
         <a
@@ -497,71 +444,43 @@ export function CityBoard({
             city={city}
             defaultAmount={defaultAmount}
             occupied={occupied}
-            bidsOpen={bidsOpen}
-            notice={bidsOpen || checkoutError !== "window_closed" ? errorNotice : undefined}
+            notice={errorNotice}
           />
           <Leaderboard
             city={city}
             listings={paid}
-            bidsOpen={bidsOpen}
           />
           {occupied && numberOne ? (
             <details className="board-details" data-board-details="">
               <summary>Weekend details</summary>
-              {bidsOpen ? (
-                <p className="occupied-bid-close">
-                  New bids close Sunday at 11:59 PM local time.
-                </p>
-              ) : (
-                <p className="occupied-window-closed">
-                  New bids are closed and reopen Thursday at noon local time.
-                </p>
-              )}
-              {bidsOpen ? (
-                <p className="list-venue-line">
-                  <a
-                    className="list-venue"
-                    href="#claim"
-                    data-list-venue=""
-                    aria-label="List a venue"
-                  >
-                    List a venue
-                  </a>
-                </p>
-              ) : null}
+              <p className="occupied-bid-close">
+                Claims are available any time. Paid placements remain eligible
+                for seven days after their first payment.
+              </p>
+              <p className="list-venue-line">
+                <a
+                  className="list-venue"
+                  href="#claim"
+                  data-list-venue=""
+                  aria-label="List a venue"
+                >
+                  List a venue
+                </a>
+              </p>
             </details>
           ) : null}
         </>
       ) : (
         <>
-          <UnpublishedWeekend city={city} bidsOpen={bidsOpen} />
+          <UnpublishedWeekend city={city} />
           <BidForm
             city={city}
             defaultAmount={defaultAmount}
             occupied={occupied}
-            bidsOpen={bidsOpen}
-            notice={bidsOpen || checkoutError !== "window_closed" ? errorNotice : undefined}
+            notice={errorNotice}
           />
         </>
       )}
-      {occupiedClosedCheckoutError ? (
-        <p
-          className="stub-note occupied-closed-checkout-error"
-          data-checkout-error="true"
-          data-occupied-closed-checkout-error=""
-        >
-          {occupiedClosedCheckoutError}
-        </p>
-      ) : null}
-      {emptyUnpublishedClosedCheckoutError ? (
-        <p
-          className="stub-note empty-unpublished-checkout-error"
-          data-checkout-error="true"
-          data-empty-unpublished-checkout-error=""
-        >
-          {emptyUnpublishedClosedCheckoutError}
-        </p>
-      ) : null}
     </main>
   );
 }

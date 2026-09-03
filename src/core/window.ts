@@ -253,10 +253,10 @@ function windowFromThursday(
 }
 
 /**
- * Current weekly weekend window for `city` at `now`.
+ * Current weekly weekend label for `city` at `now`.
  * Id is `{city}:{iso_week}` in that city’s timezone (ISO week, Thursday-anchored).
- * Bidding is open Thursday 12:00 through Sunday 23:59:59.999 inclusive.
- * Monday 00:00 is already the next ISO week’s (still closed) window.
+ * The historical Thursday–Sunday bounds are retained for labels and compatibility;
+ * runtime Claim rank checkout is available outside those bounds.
  * Occupied poster rank uses rolling last 7 days from paid createdAt, not this
  * civil Monday midnight cut.
  */
@@ -310,6 +310,8 @@ export function assertWindowOpen(
   slug: string,
   now: Date = new Date(),
 ): ResolveWindowResult {
+  // Compatibility helper only. Runtime board and checkout use resolveCurrentWindow
+  // so this historical display interval never becomes a claim gate.
   const resolved = resolveCurrentWindow(slug, now);
   if (!resolved.ok) {
     return resolved;

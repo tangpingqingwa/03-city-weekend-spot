@@ -5,6 +5,7 @@ import {
   CITY_SLUG_PATTERN,
   MIN_BID_USD,
   activeCities,
+  canonicalBoardPath,
   cityError,
   defaultBoardPath,
   getBoardListings,
@@ -63,8 +64,9 @@ test("unknown slug is city_unknown; nyc resolves", () => {
   });
 });
 
-test("default board path is /nyc while it is the only active city", () => {
-  assert.equal(defaultBoardPath(), "/nyc");
+test("default board path is the canonical root while NYC remains a compatibility alias", () => {
+  assert.equal(defaultBoardPath(), "/");
+  assert.equal(canonicalBoardPath("nyc"), "/");
 });
 
 test("live board invents no venues", () => {

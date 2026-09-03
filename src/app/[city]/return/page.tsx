@@ -1,6 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { resolveCity } from "../../../core/cities";
+import { canonicalBoardPath, resolveCity } from "../../../core/cities";
 import { getBoardListings } from "../../../core/rank";
 import { resolveReturn, type ReturnQuery } from "../../../core/return";
 
@@ -32,7 +32,7 @@ export default async function ReturnPage({
   const result = await resolveReturn(query);
   const listings = getBoardListings(resolved.city.slug);
   const listing = listings.find((row) => row.id === result.listingId);
-  const boardHref = `/${resolved.city.slug}`;
+  const boardHref = canonicalBoardPath(resolved.city.slug);
 
   if (result.status === "pending") {
     return (

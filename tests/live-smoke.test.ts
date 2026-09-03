@@ -73,6 +73,8 @@ test("live-smoke.sh is executable, offline, and exercises the Waffo route contra
   assert.match(script, /fixture child ownership was not proven before request/);
   assert.match(script, /POLAR_SUCCESS_URL/);
   assert.match(script, /POLAR_FIXTURE_ONLY/);
+  assert.match(script, /GET \/ 200 canonical NYC board/);
+  assert.doesNotMatch(script, /expected 302 \/nyc|window closed/);
   assert.ok(script.includes("/nyc"));
   assert.ok(script.includes("/about"));
   assert.ok(script.includes("/rules"));
@@ -147,7 +149,7 @@ test("fixture child scrubs inherited Polar and Waffo selectors without logging s
   const result = runSmoke(sentinelEnv);
   assert.equal(result.status, 0, `${result.stdout}${result.stderr}`);
   const output = `${result.stdout}${result.stderr}`;
-  assert.match(output, /PASS=5 PASS-ERROR=3 BLOCKED-SECRET=0 FAIL=0/);
+  assert.match(output, /PASS=7 PASS-ERROR=1 BLOCKED-SECRET=0 FAIL=0/);
   assert.doesNotMatch(output, /sentinel-/);
 });
 

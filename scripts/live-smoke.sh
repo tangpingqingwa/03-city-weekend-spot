@@ -265,9 +265,8 @@ const server = createServer((req, res) => {
       return;
     }
     if (request.method === "GET" && path === "/") {
-      res.statusCode = 302;
-      res.setHeader("location", "/nyc");
-      res.end();
+      const board = renderNycBoard();
+      sendHtml(res, board.node, board.extra);
       return;
     }
     if (request.method === "GET" && path === "/about") {
@@ -602,45 +601,30 @@ fi
 root_body="${WORKDIR}/root.body"
 root_hdrs="${WORKDIR}/root.hdrs"
 root_code="$(http_get_headers "$BASE" "/" "$root_body" "$root_hdrs" || true)"
-root_loc="$(header_value "$root_hdrs" "location" || true)"
 board0="${WORKDIR}/board0.html"
 board0_code="$(http_get "$BASE" "/nyc" "$board0" || true)"
 board0_count="$(listing_count "$board0" || echo 0)"
-if [[ "$root_code" != "302" && "$root_code" != "307" ]] || [[ "$root_loc" != *"/nyc" ]]; then
-  record "nyc-board" "FAIL" "GET / HTTP ${root_code} loc=${root_loc} (expected 302 /nyc)"
+if [[ "$root_code" != "200" ]]; then
+  record "nyc-board" "FAIL" "GET / HTTP ${root_code} (expected 200 canonical NYC board)"
 elif [[ "$board0_code" != "200" ]]; then
   record "nyc-board" "FAIL" "GET /nyc HTTP ${board0_code}"
-elif ! html_has "$board0" 'data-city="nyc"' \
+elif ! html_has "$root_body" 'data-city="nyc"' \
+  || ! html_has "$root_body" 'data-empty-board="true"|data-bid-form=""' \
+  || ! html_has "$board0" 'data-city="nyc"' \
   || ! html_has "$board0" 'This weekend'; then
-  record "nyc-board" "FAIL" "GET /nyc missing NYC board or weekend copy"
+  record "nyc-board" "FAIL" "GET / or /nyc missing NYC board, weekend copy, or empty/form contract"
 elif ! html_has "$board0" "data-window-id=\"${WINDOW_ID}\""; then
   record "nyc-board" "FAIL" "GET /nyc returned a different city/window than ${WINDOW_ID}"
-elif html_has "$board0" 'data-window-closed'; then
-  if html_has "$board0" 'data-bid-form=""|name="amountUsd"|data-action="outbid"'; then
-    record "nyc-board" "FAIL" "GET /nyc closed response retained bid-form or submit controls"
-  elif board_rating_ui "$board0"; then
-    record "nyc-board" "FAIL" "GET /nyc closed response retained star/rating UI"
-  elif ! html_has "$board0" 'data-action="claim-rank"|Claim rank'; then
-    record "nyc-board" "FAIL" "GET /nyc closed response omitted disabled Claim rank status"
-  elif ! html_has "$board0" 'Claim rank opens Thursday at noon local time'; then
-    record "nyc-board" "FAIL" "GET /nyc closed response omitted Claim rank reopen copy"
-  elif html_has "$board0" 'This weekend is still open|class="empty-bid-open"|List a venue this weekend|Print this weekend'; then
-    record "nyc-board" "FAIL" "GET /nyc closed response retained contradictory open/action copy"
-  elif ! html_has "$board0" 'New bids are closed and reopen Thursday at noon local time'; then
-    record "nyc-board" "FAIL" "GET /nyc closed response omitted expected Thursday reopen copy"
-  else
-    record "nyc-board" "PASS-ERROR" "GET /nyc ${WINDOW_ID} is closed; disabled Claim rank status and Thursday reopen copy present"
-  fi
 elif ! html_has "$board0" 'name="amountUsd"' || ! html_has "$board0" 'Claim rank'; then
   record "nyc-board" "FAIL" "GET /nyc missing open-window bid form"
 elif board_rating_ui "$board0"; then
   record "nyc-board" "FAIL" "GET /nyc invented star/rating UI"
 elif [[ "$board0_count" == "0" ]] && html_has "$board0" 'data-empty-board="true"'; then
-  record "nyc-board" "PASS" "GET / → /nyc 200 window ${WINDOW_ID} empty + bid form; no star UI"
+  record "nyc-board" "PASS" "GET / 200 canonical NYC board; /nyc compatibility alias also 200; window ${WINDOW_ID} empty + bid form; no star UI"
 elif [[ "$board0_count" != "0" ]] \
   && html_has "$board0" 'data-bid' \
   && html_has "$board0" 'data-clicks'; then
-  record "nyc-board" "PASS" "GET / → /nyc 200 window ${WINDOW_ID}; ${board0_count} already-paid card(s); no star UI"
+  record "nyc-board" "PASS" "GET / 200 canonical NYC board; /nyc compatibility alias also 200; window ${WINDOW_ID}; ${board0_count} already-paid card(s); no star UI"
 else
   record "nyc-board" "FAIL" "GET /nyc 200 but empty/paid board contract broken"
 fi
@@ -682,9 +666,6 @@ http_get "$BASE" "/nyc" "$board_min" >/dev/null || true
 if [[ "$min_code" == "400" && "$min_err" == "bid_below_min" ]] \
   && ! html_has "$board_min" "$VENUE"; then
   record "bid-below-min" "PASS-ERROR" "POST /api/checkout \$4 → 400 bid_below_min; board unchanged"
-elif [[ "$min_code" == "400" && "$min_err" == "window_closed" ]] \
-  && ! html_has "$board_min" "$VENUE"; then
-  record "bid-below-min" "PASS-ERROR" "POST /api/checkout while window closed → 400 window_closed; board unchanged"
 else
   record "bid-below-min" "FAIL" "\$4 checkout HTTP ${min_code} error=${min_err}"
 fi
@@ -706,8 +687,6 @@ http_get "$BASE" "/nyc" "$board_unpaid" >/dev/null || true
 if [[ "$fix_code" == "200" && -n "$fix_session" ]] \
   && ! html_has "$board_unpaid" "$VENUE"; then
   record "create-checkout" "PASS" "fixture intent created; unpaid session is not ranked"
-elif [[ "$fix_code" == "400" && "$fix_err" == "window_closed" ]]; then
-  record "create-checkout" "PASS-ERROR" "window_closed; no checkout or listing was invented"
 else
   record "create-checkout" "FAIL" "fixture checkout HTTP ${fix_code} error=${fix_err}"
 fi
@@ -743,35 +722,6 @@ elif [[ "$fix_code" == "200" && -n "$fix_session" ]]; then
       && "$after_clicks" =~ ^[0-9]+$ \
       && "$after_clicks" -eq $((before_clicks + 1)) ]]; then
       record "click" "PASS" "GET /api/click/${listing_id} 302 → stripped URL; clicks ${before_clicks}→${after_clicks}"
-    else
-      record "click" "FAIL" "GET /api/click/${listing_id} HTTP ${click_code} loc=${click_loc} clicks ${before_clicks}→${after_clicks}"
-    fi
-  fi
-elif [[ "$fix_code" == "400" && "$fix_err" == "window_closed" ]]; then
-  seed_body="${WORKDIR}/seed.json"
-  seed_hdrs="${WORKDIR}/seed.hdrs"
-  seed_code="$(http_post_json "$BASE" "/__smoke/apply-paid" \
-    "{\"venueName\":\"${VENUE}\",\"bookingUrl\":\"${TRACKED_URL}\",\"sessionId\":\"fix_closed_${STAMP}\"}" \
-    "$seed_body" "$seed_hdrs" || true)"
-  listing_id="$(json_field "$seed_body" "id" || true)"
-  board_paid="${WORKDIR}/board-paid.html"
-  http_get "$BASE" "/nyc" "$board_paid" >/dev/null || true
-  if [[ "$seed_code" != "200" || -z "$listing_id" ]]; then
-    record "click" "FAIL" "window_closed and fixture seed failed HTTP ${seed_code}"
-  else
-    before_clicks="$(clicks_for_id "$board_paid" "$listing_id" || echo "0")"
-    click_body="${WORKDIR}/click.body"
-    click_hdrs="${WORKDIR}/click.hdrs"
-    click_code="$(http_get_headers "$BASE" "/api/click/${listing_id}" "$click_body" "$click_hdrs" || true)"
-    click_loc="$(header_value "$click_hdrs" "location" || true)"
-    board_clicked="${WORKDIR}/board-clicked.html"
-    http_get "$BASE" "/nyc" "$board_clicked" >/dev/null || true
-    after_clicks="$(clicks_for_id "$board_clicked" "$listing_id" || echo "")"
-    if [[ "$click_code" == "302" \
-      && "$click_loc" == "${STRIPPED_URL}" \
-      && "$after_clicks" =~ ^[0-9]+$ \
-      && "$after_clicks" -eq $((before_clicks + 1)) ]]; then
-      record "click" "PASS" "window_closed; fixture listing GET /api/click/${listing_id} 302; clicks ${before_clicks}→${after_clicks}"
     else
       record "click" "FAIL" "GET /api/click/${listing_id} HTTP ${click_code} loc=${click_loc} clicks ${before_clicks}→${after_clicks}"
     fi

@@ -101,8 +101,24 @@ do
   [[ -f "$f" ]] || fail "missing $f"
   [[ -s "$f" ]] || fail "empty $f"
 done
-grep -q 'redirect' src/app/page.tsx || fail "src/app/page.tsx must redirect / to the default city"
-grep -q 'defaultBoardPath' src/app/page.tsx || fail "src/app/page.tsx must use defaultBoardPath"
+if grep -q 'redirect' src/app/page.tsx; then
+  fail "src/app/page.tsx must render the canonical NYC board without a redirect"
+fi
+grep -q 'getBoardListings' src/app/page.tsx || fail "src/app/page.tsx must load the default NYC board"
+grep -q 'data-city=\"nyc\"' src/app/page.tsx || grep -q 'resolveCity(\"nyc\")' src/app/page.tsx \
+  || fail "src/app/page.tsx must resolve NYC directly"
+grep -q 'canonical' src/app/page.tsx || fail "src/app/page.tsx must declare root canonical metadata"
+grep -q 'defaultBoardPath' src/core/cities.ts || fail "cities.ts must expose the default board path"
+grep -q 'canonicalBoardPath' src/core/cities.ts || fail "cities.ts must expose canonical city paths"
+grep -Fq 'alternates: { canonical: "/" }' src/app/page.tsx \
+  || fail "homepage metadata must canonicalize to /"
+grep -Fq 'start_url: "/"' src/app/manifest.ts \
+  || fail "manifest must start at the canonical root board"
+grep -Fq '`${SITE_URL}/`' src/app/sitemap.ts \
+  || fail "sitemap must publish the canonical root board"
+if grep -Fq '`${SITE_URL}/nyc`' src/app/sitemap.ts; then
+  fail "sitemap must not publish the NYC compatibility alias"
+fi
 grep -q 'slug: "nyc"' src/core/cities.ts || fail "cities.ts must catalog nyc"
 grep -q 'America/New_York' src/core/cities.ts || fail "cities.ts must use America/New_York for nyc"
 grep -q 'getBoardListings' src/core/cities.ts || fail "cities.ts must expose getBoardListings"
@@ -199,94 +215,35 @@ fi
 if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'week-window'; then
   fail "unpublished must not reuse occupied week-window chrome"
 fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Claim rank'; then
+if grep -n 'function UnpublishedWeekend' -A 55 src/app/\[city\]/board.tsx | grep -qE 'data-action="claim-rank"|data-bid-form|<button'; then
   fail "unpublished copy must not embed Claim rank controls"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'Paid placements remain eligible for seven days'; then
+if ! grep -n 'function UnpublishedWeekend' -A 55 src/app/\[city\]/board.tsx | grep -q 'Paid placements remain eligible for seven days'; then
   fail "unpublished must state the seven-day paid-placement eligibility"
 fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -qE 'Monday 00:00 UTC|anytime in the rolling week'; then
-  fail "unpublished must not promise a civil-midnight or anytime rolling-week claim"
+if ! grep -n 'function UnpublishedWeekend' -A 55 src/app/\[city\]/board.tsx | grep -q 'Claim rank is available any time'; then
+  fail "unpublished must advertise an always-open Claim rank"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'New bids open Thursday at noon'; then
-  fail "unpublished must name Thursday noon bid-open"
+if grep -n 'function UnpublishedWeekend' -A 55 src/app/\[city\]/board.tsx | grep -qE 'Monday 00:00 UTC|New bids open Thursday|close Sunday|New bids are closed|empty-window-closed'; then
+  fail "unpublished must not advertise the retired Thursday–Sunday gate"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'close Sunday at 11:59 PM local time'; then
-  fail "unpublished must name Sunday local bid close"
+if grep -qE 'data-window-closed|data-claim-state=\"closed\"|empty-window-closed|occupied-window-closed|occupied-closed-checkout-error|empty-unpublished-checkout-error' \
+  src/app/\[city\]/board.tsx src/app/board.css; then
+  fail "board UI must not render a time-closed state"
 fi
-if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'empty-window-closed'; then
-  fail "unpublished must name window_closed on the empty poster"
-fi
-if ! grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'New bids are closed'; then
-  fail "unpublished must say new bids are closed"
-fi
-grep -q 'data-window-closed' src/app/\[city\]/board.tsx \
-  || fail "empty closed must stamp window_closed on the poster"
-if grep -q 'occupied || bidsOpen' src/app/\[city\]/board.tsx; then
-  fail "occupied closed must not keep Claim rank on occupied || bidsOpen"
-fi
-grep -q '{bidsOpen ? (' src/app/\[city\]/board.tsx \
-  || fail "closed must keep its open-state branch explicit"
-grep -q 'empty-window-closed' src/app/board.css \
-  || fail "poster CSS must style unpublished window_closed copy"
-grep -q 'occupied-window-closed' src/app/\[city\]/board.tsx \
-  || fail "occupied closed must name window_closed on the occupied poster"
-grep -q 'occupied-window-closed' src/app/board.css \
-  || fail "poster CSS must style occupied window_closed copy"
-if ! grep -n 'className="occupied-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids are closed and reopen Thursday at noon local time'; then
-  fail "occupied closed must name when new bids reopen"
+if grep -qE 'bidsOpen|assertWindowOpen|isWindowOpen' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/billing/port.ts; then
+  fail "runtime board and checkout must not gate claims on the historical window"
 fi
 grep -q 'occupied-bid-close' src/app/\[city\]/board.tsx \
-  || fail "occupied open must name when new bids close"
+  || fail "occupied details must retain a quiet rolling eligibility note"
 grep -q 'occupied-bid-close' src/app/board.css \
-  || fail "poster CSS must style occupied-open bid-close copy"
-if ! grep -n 'className="occupied-bid-close"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids close Sunday'; then
-  fail "occupied open must name when new bids close"
+  || fail "poster CSS must style occupied rolling eligibility copy"
+if ! grep -n 'className="occupied-bid-close"' -A 5 src/app/\[city\]/board.tsx | grep -q 'Claims are available any time'; then
+  fail "occupied details must say claims are available any time"
 fi
-if ! grep -n 'className="occupied-bid-close"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids close Sunday at 11:59 PM local time'; then
-  fail "occupied open must name Sunday local bid close"
-fi
-if grep -n 'className="occupied-bid-close"' -A 4 src/app/\[city\]/board.tsx | grep -q 'Thursday noon'; then
-  fail "occupied open must not stamp Thursday noon–Sunday local close clock"
-fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'occupied-bid-close'; then
+if grep -n 'function UnpublishedWeekend' -A 55 src/app/\[city\]/board.tsx | grep -q 'occupied-bid-close'; then
   fail "do not restamp empty unpublished with occupied-bid-close"
 fi
-grep -q 'occupied-closed-checkout-error' src/app/\[city\]/board.tsx \
-  || fail "occupied closed checkout window_closed must render outside BidForm"
-grep -q 'OCCUPIED_CLOSED_WINDOW_CLOSED_COPY' src/app/\[city\]/board.tsx \
-  || fail "occupied closed checkout window_closed must name reopen copy"
-grep -q 'occupied-closed-checkout-error' src/app/board.css \
-  || fail "poster CSS must style occupied closed checkout window_closed"
-grep -q 'empty-unpublished-checkout-error' src/app/\[city\]/board.tsx \
-  || fail "empty unpublished checkout window_closed must render outside BidForm"
-grep -q 'EMPTY_UNPUBLISHED_CLOSED_WINDOW_CLOSED_COPY' src/app/\[city\]/board.tsx \
-  || fail "empty unpublished checkout window_closed must name reopen copy"
-grep -q 'empty-unpublished-checkout-error' src/app/board.css \
-  || fail "poster CSS must style empty unpublished checkout window_closed"
-if ! grep -n 'className="empty-window-closed"' -A 4 src/app/\[city\]/board.tsx | grep -q 'New bids are closed and reopen Thursday at noon local time'; then
-  fail "empty unpublished closed must name when new bids reopen"
-fi
-if grep -n 'function UnpublishedWeekend' -A 45 src/app/\[city\]/board.tsx | grep -q 'occupied-window-closed'; then
-  fail "do not restamp empty unpublished with occupied-window-closed"
-fi
-if grep -qE 'data-window-closed-after|data-claim-after-closed|data-list-after-closed|data-outbid-after-open' src/app/\[city\]/board.tsx src/app/\[city\]/bid-form.tsx src/app/board.css; then
-  fail "window_closed must not stamp another named hop"
-fi
-grep -q '\[data-window-closed\] .list-venue' src/app/board.css \
-  || fail "occupied CSS must keep List a venue off occupied when window_closed"
-grep -Fq '.poster[data-occupied="true"][data-window-closed] .list-venue' src/app/board.css \
-  || fail "occupied CSS must keep the single List a venue action off when window_closed"
-grep -q 'later-stack-lists' src/app/\[city\]/board.tsx \
-  || fail "occupied later-stack must name listing copy so closed can withhold it"
-grep -q '\[data-window-closed\] .later-stack-lists' src/app/board.css \
-  || fail "occupied CSS must keep later-stack listing copy off occupied when window_closed"
-grep -q 'later-stack-also' src/app/\[city\]/board.tsx \
-  || fail "occupied later-stack must name the invitational kicker so closed can withhold it"
-grep -q 'later-stack-closed-kicker' src/app/\[city\]/board.tsx \
-  || fail "occupied closed later-stack kicker must name already-ranked copy when List is gone"
-grep -q '\[data-window-closed\] .later-stack-also' src/app/board.css \
-  || fail "occupied CSS must keep invitational later-stack kicker off occupied when window_closed"
 python3 - src/app/\[city\]/board.tsx <<'PY' || fail "occupied board must expose one ordinary list action"
 import re
 import sys
@@ -308,12 +265,12 @@ if src.count('className="list-venue"') != 1:
 city_board = src[src.index("export function CityBoard"):]
 if not re.search(r"occupied && numberOne", city_board):
     raise SystemExit("occupied board must keep its paid answer branch")
-if not re.search(r"bidsOpen \? \(\s*<p className=\"list-venue-line\"", city_board):
-    raise SystemExit("occupied List a venue must remain gated on bidsOpen")
+if "bidsOpen" in city_board:
+    raise SystemExit("occupied board must not gate List a venue or Claim rank on bidsOpen")
 if "<BookingHop" in city_board:
     raise SystemExit("occupied hero must not duplicate the paid-card Book CTA")
-if not re.search(r"<BidForm[\s\S]*?bidsOpen=\{bidsOpen\}", city_board):
-    raise SystemExit("BidForm must receive the explicit bidsOpen state")
+if city_board.count("<BidForm") < 2:
+    raise SystemExit("both empty and occupied boards must render the Claim rank form")
 PY
 grep -q 'data-occupied' src/app/\[city\]/board.tsx \
   || fail "board must mark occupied vs empty so occupied chrome cannot leak"
@@ -378,10 +335,6 @@ if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] 
     raise SystemExit("empty CSS must name the rolling window on unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open' not in css:
     raise SystemExit("empty CSS must name bid-open on unpublished")
-if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed' not in css:
-    raise SystemExit("empty CSS must name window_closed on unpublished")
-if '.claim[data-claim-state="closed"] .claim-closed-row .outbid' not in css:
-    raise SystemExit("empty CSS must expose disabled Claim rank when window_closed")
 empty_window = re.search(
     r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window\s*\{([^}]*)\}',
     css,
@@ -398,105 +351,18 @@ if not empty_bid_open:
     raise SystemExit("empty-bid-open CSS missing")
 if "background: var(--accent)" in empty_bid_open.group(1):
     raise SystemExit("do not recolor empty bid-open copy")
-empty_closed = re.search(
-    r'\.poster\[data-occupied="false"\] \.unpublished-weekend\[data-empty-unpublished\] \.empty-window-closed\s*\{([^}]*)\}',
-    css,
-)
-if not empty_closed:
-    raise SystemExit("empty-window-closed CSS missing")
-if "background: var(--accent)" in empty_closed.group(1):
-    raise SystemExit("do not recolor empty window_closed copy")
-if '.poster[data-occupied="true"] .occupied-window-closed' not in css:
-    raise SystemExit("occupied CSS must name window_closed on occupied")
-if '.claim[data-claim-state="closed"]' not in css:
-    raise SystemExit("occupied CSS must expose Claim rank status when window_closed")
-if '.poster[data-occupied="true"][data-window-closed] .list-venue' not in css:
-    raise SystemExit("occupied CSS must keep List a venue off occupied when window_closed")
-if '.poster[data-occupied="true"][data-window-closed] .list-venue' not in css:
-    raise SystemExit("occupied CSS must keep the single List a venue action off occupied when window_closed")
 if re.search(r"data-list-after-book|data-book-after-list|list-after-book|book-after-list", css):
     raise SystemExit("poster CSS must not carry the removed action ladder")
-if '.poster[data-occupied="true"][data-window-closed] .later-stack-lists' not in css:
-    raise SystemExit("occupied CSS must keep later-stack listing copy off occupied when window_closed")
-if '.poster[data-occupied="true"][data-window-closed] .later-stack-also' not in css:
-    raise SystemExit("occupied CSS must keep invitational later-stack kicker off occupied when window_closed")
-if '.poster[data-occupied="true"][data-window-closed] [href="#claim"]' not in css:
-    raise SystemExit("occupied CSS must keep #claim List hops off occupied when window_closed")
-occupied_closed = re.search(
-    r'\.poster\[data-occupied="true"\] \.occupied-window-closed\s*\{([^}]*)\}',
-    css,
-)
-if not occupied_closed:
-    raise SystemExit("occupied-window-closed CSS missing")
-if "background: var(--accent)" in occupied_closed.group(1):
-    raise SystemExit("do not recolor occupied window_closed copy")
-if "display: none" in occupied_closed.group(1):
-    raise SystemExit("do not hide occupied window_closed copy")
-if '.poster[data-occupied="true"][data-window-closed] .occupied-closed-checkout-error[data-checkout-error]' not in css:
-    raise SystemExit("occupied CSS must name occupied closed checkout window_closed")
-if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-closed-checkout-error' not in css:
-    raise SystemExit("empty CSS must keep occupied closed checkout error off unpublished")
-occupied_checkout = re.search(
-    r'\.poster\[data-occupied="true"\]\[data-window-closed\] \.occupied-closed-checkout-error\[data-checkout-error\]\s*\{([^}]*)\}',
-    css,
-)
-if not occupied_checkout:
-    raise SystemExit("occupied closed checkout window_closed CSS missing")
-if "background: var(--accent)" in occupied_checkout.group(1):
-    raise SystemExit("do not recolor occupied closed checkout window_closed error")
-if "display: none" in occupied_checkout.group(1):
-    raise SystemExit("do not hide occupied closed checkout window_closed error")
-if '.poster[data-occupied="false"][data-window-closed] .empty-unpublished-checkout-error[data-checkout-error]' not in css:
-    raise SystemExit("empty CSS must name empty unpublished checkout window_closed")
-if '.poster[data-occupied="true"] .empty-unpublished-checkout-error' not in css:
-    raise SystemExit("occupied CSS must keep empty unpublished checkout error off occupied")
-empty_checkout = re.search(
-    r'\.poster\[data-occupied="false"\]\[data-window-closed\] \.empty-unpublished-checkout-error\[data-checkout-error\]\s*\{([^}]*)\}',
-    css,
-)
-if not empty_checkout:
-    raise SystemExit("empty unpublished checkout window_closed CSS missing")
-if "background: var(--accent)" in empty_checkout.group(1):
-    raise SystemExit("do not recolor empty unpublished checkout window_closed error")
-if "display: none" in empty_checkout.group(1):
-    raise SystemExit("do not hide empty unpublished checkout window_closed error")
-if re.search(
-    r'\.poster\[data-occupied="true"\]\[data-window-closed\][^{]*week-window[^{]*\{[^}]*display:\s*none',
-    css,
-):
-    raise SystemExit("do not hide occupancy rolling copy when occupied window_closed")
-if re.search(
-    r'\.poster\[data-occupied="true"\]\[data-window-closed\][^{]*\.book-one[^{]*\{[^}]*display:\s*none',
-    css,
-):
-    raise SystemExit("do not hide occupied Book #1 when window_closed")
-if re.search(
-    r'\.poster\[data-occupied="true"\]\[data-window-closed\][^{]*\.later-stack\[data-later-stack\][^{]*\{[^}]*display:\s*none',
-    css,
-):
-    raise SystemExit("do not hide occupied later-stack when window_closed")
-if re.search(
-    r'\.poster\[data-occupied="true"\]\[data-window-closed\][^{]*\.later-stack-closed-kicker[^{]*\{[^}]*display:\s*none',
-    css,
-):
-    raise SystemExit("do not hide occupied closed later-stack kicker when window_closed")
-if re.search(
-    r'\.poster\[data-occupied="true"\]\[data-window-closed\][^{]*\.later-stack-kicker[^{]*\{[^}]*display:\s*none',
-    css,
-):
-    raise SystemExit("do not hide occupied later-stack kicker chrome when window_closed")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] [data-rolling-week]' not in css:
     raise SystemExit("empty CSS must keep occupied rolling-week chrome off unpublished")
 if '.poster[data-occupied="true"] .period-meta.week-window[data-rolling-week]' not in css:
     raise SystemExit("occupied rolling-week chrome must stay occupied-only")
 if '.poster[data-occupied="true"] .occupied-bid-close' not in css:
-    raise SystemExit("occupied CSS must name when new bids close")
+    raise SystemExit("occupied CSS must name rolling eligibility details")
 if '.poster[data-occupied="false"] .occupied-bid-close' not in css:
-    raise SystemExit("empty CSS must keep occupied-open bid-close off unpublished")
+    raise SystemExit("empty CSS must keep occupied details off unpublished")
 if '.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-bid-close' not in css:
-    raise SystemExit("empty unpublished CSS must keep occupied-open bid-close off unpublished")
-if '.poster[data-occupied="true"][data-window-closed] .occupied-bid-close' not in css:
-    raise SystemExit("occupied CSS must keep occupied-open bid-close off occupied when window_closed")
+    raise SystemExit("empty unpublished CSS must keep occupied details off unpublished")
 occupied_bid_close = re.search(
     r'\.poster\[data-occupied="true"\] \.occupied-bid-close\s*\{([^}]*)\}',
     css,
@@ -1112,28 +978,18 @@ if [[ -f package.json ]]; then
     || fail "empty unpublished rolling last-7-days leftover test did not run"
   grep -q 'empty unpublished names when new bids open' "$test_log" \
     || fail "empty unpublished bid-open leftover test did not run"
-  grep -q 'empty unpublished shows a disabled Claim rank when new bids are closed' "$test_log" \
-    || fail "empty unpublished window_closed leftover test did not run"
-  grep -q 'occupied closed state shows disabled Claim rank' "$test_log" \
-    || fail "occupied window_closed leftover test did not run"
-  grep -q 'occupied closed state hides the hero list action' "$test_log" \
-    || fail "occupied closed List a venue leftover test did not run"
-  grep -q 'occupied closed state has no obsolete hop copy' "$test_log" \
-    || fail "occupied closed leftover Book hop test did not run"
-  grep -q 'occupied closed later stack describes ranked venues' "$test_log" \
-    || fail "occupied closed later-stack leftover test did not run"
-  grep -q 'occupied closed later stack uses the already-ranked kicker' "$test_log" \
-    || fail "occupied closed later-stack kicker leftover test did not run"
-  grep -q 'occupied closed window_closed names when new bids reopen' "$test_log" \
-    || fail "occupied closed reopen copy leftover test did not run"
-  grep -q 'occupied closed checkout window_closed names when new bids reopen' "$test_log" \
-    || fail "occupied closed checkout window_closed leftover test did not run"
-  grep -q 'empty unpublished checkout window_closed names when new bids reopen' "$test_log" \
-    || fail "empty unpublished checkout window_closed leftover test did not run"
-  grep -q 'empty unpublished window_closed names when new bids reopen' "$test_log" \
-    || fail "empty unpublished poster window_closed leftover test did not run"
-  grep -q 'occupied open names when new bids close' "$test_log" \
-    || fail "occupied open bid-close leftover test did not run"
+  grep -q 'empty board keeps Claim rank available outside the historical display window' "$test_log" \
+    || fail "empty always-open Claim rank test did not run"
+  grep -q 'occupied historical window keeps Claim rank open' "$test_log" \
+    || fail "occupied always-open Claim rank test did not run"
+  grep -q 'occupied window_closed compatibility keeps claims open all week' "$test_log" \
+    || fail "window helper compatibility test did not run"
+  grep -q 'occupied window_closed checkout errors stay recoverable' "$test_log" \
+    || fail "checkout window compatibility test did not run"
+  grep -q 'empty board stays claimable when window_closed is requested' "$test_log" \
+    || fail "empty checkout window compatibility test did not run"
+  grep -q 'occupied board names rolling eligibility while claims stay open' "$test_log" \
+    || fail "occupied rolling eligibility copy test did not run"
   grep -Fq 'rolling last-7-days window is 7 * 24h' "$test_log" \
     || fail "window tests must cover rolling last-7-days window"
   grep -q 'Monday 00:00 UTC does not drop a bid still inside the rolling week' "$test_log" \

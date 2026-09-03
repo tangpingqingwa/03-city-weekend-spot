@@ -88,10 +88,11 @@ export default function RulesPage() {
             </td>
           </tr>
           <tr>
-            <th>New bids</th>
+            <th>Claim rank</th>
             <td>
-              New claims open Thursday at noon and close Sunday at the end of
-              the day, New York time.
+              Claim rank is available any time of year. The weekly label is
+              Thursday-anchored, but its historical display hours never close
+              the form or checkout.
             </td>
           </tr>
           <tr>

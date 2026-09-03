@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   creator: SITE_NAME,
   publisher: SITE_NAME,
   manifest: "/manifest.webmanifest",
+  alternates: { canonical: "/" },
   icons: {
     icon: [{ url: "/brand-mark.svg", type: "image/svg+xml" }],
     shortcut: "/brand-mark.svg",
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "/nyc",
+    url: "/",
     siteName: SITE_NAME,
     title: "City Weekend — New York Weekend Board",
     description: SITE_DESCRIPTION,

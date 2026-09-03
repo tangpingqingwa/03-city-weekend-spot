@@ -71,14 +71,16 @@ export function resolveCity(slug: string): ResolveCityResult {
   return { ok: true, city };
 }
 
-/** `/` sends here while exactly one city is active. */
+/** Canonical board path. NYC owns `/`; the city path remains a compatibility alias. */
 export function defaultBoardPath(): string {
   const active = activeCities();
-  const only = active[0];
-  if (active.length === 1 && only) {
-    return `/${only.slug}`;
-  }
+  if (active.length === 1 && active[0]?.slug === "nyc") return "/";
   return "/";
+}
+
+/** Canonical public URL for a city board. NYC is the v1 root lane. */
+export function canonicalBoardPath(city: CitySlug): string {
+  return city === "nyc" ? "/" : `/${city}`;
 }
 
 /** Live board has no paid rows until checkout lands. Never invent venues. */

@@ -39,7 +39,7 @@ WHERE city = ? AND window_id = current_window(city)
 ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
 ```
 
-`current_window(city)` uses that city’s IANA timezone for the ISO `{city}:{iso_week}` label and new-bid hours. Occupied live board filters Waffo-paid `firstPaidAt` in the rolling last 7 days, not Monday 00:00 UTC. Adding `london` must not touch this `ORDER BY`.
+`current_window(city)` uses that city’s IANA timezone for the ISO `{city}:{iso_week}` label. The historical Thursday–Sunday bounds remain available to the window helper, while runtime claims are open year-round. Occupied live board filters Waffo-paid `firstPaidAt` in the rolling last 7 days, not Monday 00:00 UTC. Adding `london` must not touch this `ORDER BY`.
 
 ---
 
@@ -57,8 +57,8 @@ ORDER BY bid_usd DESC, first_paid_at ASC, id ASC
   docs/live-smoke.md
   src/
     app/
-      page.tsx                 # redirect → /nyc
-      [city]/page.tsx          # public board
+      page.tsx                 # canonical NYC board at /
+      [city]/page.tsx          # public board; /nyc is a compatibility alias
       about/page.tsx
       rules/page.tsx
       api/checkout/route.ts
@@ -127,13 +127,13 @@ Each heading below is one PR. Dependencies are hard. Do not start the next PR in
 - **Description:** Public NYC board: one URL/venue field, whole-dollar amount, Outbid button, ranked cards with **$** and **clicks**. No stars.
 - **Files:** `src/app/page.tsx`, `src/app/[city]/page.tsx`, `src/core/cities.ts`, board styles
 - **Dependencies:** PR 1
-- **Acceptance:** `/` redirects to `/nyc`. Empty window renders the form. Cards show money not stars.
+- **Acceptance:** `/` directly renders the canonical NYC board with 200 status; `/nyc` remains a compatibility alias. Empty board renders the form. Cards show money not stars.
 
 ### PR 3: City lanes and weekend window
 - **Description:** City catalog + deterministic weekly weekend window. Listing row is venue + city + booking URL. Shared `rank.ts`.
 - **Files:** `src/core/window.ts`, `src/core/rank.ts`, `src/core/listing.ts`, `src/db.ts`, `tests/window.test.ts`, `tests/rank.test.ts`
 - **Dependencies:** PR 2
-- **Acceptance:** SPEC window bounds. Unknown city 404. Ranking function takes `city`; NYC is data.
+- **Acceptance:** Window helper keeps deterministic labels and rolling eligibility. Runtime claims remain available outside historical Thursday–Sunday hours. Unknown city 404. Ranking function takes `city`; NYC is data.
 
 ### PR 4: Waffo checkout and fixture
 - **Description:** `PaymentPort.createCheckout`. Fixture adapter for tests. Waffo Pancake behind explicit `waffo-test`/`waffo-prod` config. Rank changes only on the signed Waffo webhook / fixture event; the old Polar path is inert.

@@ -640,7 +640,7 @@ test("unknown city is 404 city_unknown; http booking URL is rejected", async () 
   assert.equal(rankedNyc().length, 0);
 });
 
-test("checkout outside the weekly weekend window is window_closed", async () => {
+test("checkout outside the historical display window remains available", async () => {
   setCheckoutNow(CLOSED_NYC);
   const closed = await postJson({
     city: "nyc",
@@ -648,8 +648,10 @@ test("checkout outside the weekly weekend window is window_closed", async () => 
     bookingUrl: "https://book.example.com/monday",
     amountUsd: 5,
   });
-  assert.equal(closed.status, 400);
-  assert.deepEqual(await closed.json(), { error: "window_closed" });
+  assert.equal(closed.status, 200);
+  const started = await closed.json() as { checkoutUrl?: unknown; sessionId?: unknown };
+  assert.equal(typeof started.checkoutUrl, "string");
+  assert.equal(typeof started.sessionId, "string");
   assert.equal(rankedNyc().length, 0);
 });
 

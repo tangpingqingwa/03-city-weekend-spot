@@ -8,7 +8,7 @@ Operator-only. `bash scripts/live-smoke.sh` is not called from `scripts/test.sh`
 bash scripts/live-smoke.sh
 ```
 
-The script refuses CI, always starts its own isolated fixture process on loopback with a disposable file-backed SQLite database, and checks `/healthz`, `/nyc`, `/about`, `/rules`, `/api/checkout`, the read-only `/checkout/complete?intent=...` route, canonical `/api/waffo/webhook`, retired `/api/polar/webhook` (410), `/api/click/:id`, and unknown-city handling. It then removes only its own temporary process and work directory. It never attaches to an existing process, makes provider traffic, or accepts an external base override; that boundary is enforced before dependency installation or HTTP.
+The script refuses CI, always starts its own isolated fixture process on loopback with a disposable file-backed SQLite database, and checks `/healthz`, canonical `/`, the `/nyc` compatibility alias, `/about`, `/rules`, `/api/checkout`, the read-only `/checkout/complete?intent=...` route, canonical `/api/waffo/webhook`, retired `/api/polar/webhook` (410), `/api/click/:id`, and unknown-city handling. It then removes only its own temporary process and work directory. It never attaches to an existing process, makes provider traffic, or accepts an external base override; that boundary is enforced before dependency installation or HTTP.
 
 The checkout probe is fixture-only and records `PASS` only when an unpaid intent is not ranked. The click hop uses an explicit fixture settlement so the smoke can verify redirect stripping and click persistence without inventing a paid rank. No Waffo credentials, dashboard action, charge, refund, or live request is accepted by this script.
 
@@ -19,7 +19,7 @@ The checkout probe is fixture-only and records `PASS` only when an unpaid intent
 | Label | Meaning |
 |---|---|
 | `PASS` | The offline route or data-flow contract completed. |
-| `PASS-ERROR` | A documented product error (for example, a closed window) occurred without mutation or invented rank. |
+| `PASS-ERROR` | A documented product validation error (for example, a below-minimum bid) occurred without mutation or invented rank. |
 | `BLOCKED-SECRET` | Reserved for an explicitly missing secret in a separate operator check; this offline script does not emit it. |
 | `FAIL` | A route, persistence, privacy, or ranking contract failed. |
 

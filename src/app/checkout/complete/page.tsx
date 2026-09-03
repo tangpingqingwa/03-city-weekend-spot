@@ -1,6 +1,6 @@
 import React from "react";
 import { getCheckoutIntent, getDb, type CheckoutIntentRow } from "../../../db";
-import { resolveCity } from "../../../core/cities";
+import { canonicalBoardPath, resolveCity } from "../../../core/cities";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,7 @@ export default async function CheckoutCompletePage({ searchParams }: CompletePag
   const intent = intentId ? getCheckoutIntent(getDb(), intentId) : undefined;
   const state = stateForIntent(intent);
   const city = intent ? resolveCity(intent.city) : undefined;
-  const boardHref = city?.ok ? `/${city.city.slug}` : "/";
+  const boardHref = city?.ok ? canonicalBoardPath(city.city.slug) : "/";
 
   if (state === "paid") {
     return (

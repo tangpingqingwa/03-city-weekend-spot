@@ -12,7 +12,7 @@ import {
   type Listing,
   type ListingDraft,
 } from "../core/listing";
-import { assertWindowOpen } from "../core/window";
+import { resolveCurrentWindow } from "../core/window";
 import {
   attachCheckoutIntent,
   checkoutIntentByProviderCheckout,
@@ -194,11 +194,11 @@ export function parseListingDraft(body: Record<string, unknown>, windowId: strin
 
 export function resolveCheckoutWindow(cityRaw: unknown): { city: CitySlug; windowId: string } {
   const slug = typeof cityRaw === "string" ? cityRaw.trim() : "";
-  const resolved = resolveCity(slug);
-  if (!resolved.ok) throw new CheckoutError(resolved.code, 404);
-  const window = assertWindowOpen(resolved.city.slug, checkoutNow());
-  if (!window.ok) throw new CheckoutError(window.code, window.http);
-  return { city: resolved.city.slug, windowId: window.window.id };
+  const resolved = resolveCurrentWindow(slug, checkoutNow());
+  if (!resolved.ok) throw new CheckoutError(resolved.code, resolved.http);
+  // The weekly window is an audit/ranking label. Claims stay available
+  // outside the historical Thursday–Sunday display interval.
+  return { city: resolved.city.slug, windowId: resolved.window.id };
 }
 
 function readRequiredText(raw: unknown, field: string): string {

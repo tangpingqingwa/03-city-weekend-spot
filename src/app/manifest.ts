@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "City Weekend",
     short_name: "City Weekend",
     description: "A transparent paid board for New York City weekends.",
-    start_url: "/nyc",
+    start_url: "/",
     display: "standalone",
     background_color: "#fff1ed",
     theme_color: "#db765d",

@@ -156,17 +156,16 @@ a:hover {
   font-size: 0.86rem;
 }
 
-/* Occupied /nyc: name when new bids close. Not Thursday noon on this poster. Keep Book #1. */
+/* Occupied rolling board details stay quiet while claims remain available. */
 .poster[data-occupied="true"] .occupied-bid-close {
   margin: 0.35rem 0 0;
   color: var(--muted);
   font-size: 0.86rem;
 }
 
-/* Empty unpublished / occupied closed must not stamp occupied-open bid-close. */
+/* Empty unpublished boards do not show occupied-only details. */
 .poster[data-occupied="false"] .occupied-bid-close,
-.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-bid-close,
-.poster[data-occupied="true"][data-window-closed] .occupied-bid-close {
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-bid-close {
   display: none;
 }
 
@@ -409,58 +408,14 @@ a:hover {
   font-size: 0.86rem;
 }
 
-/* Empty unpublished names when new bids open. Not anytime in the rolling week. */
+/* Empty unpublished boards advertise the always-open claim action. */
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open {
   margin: 0.35rem 0 0;
   color: var(--muted);
   font-size: 0.86rem;
 }
 
-/* Empty unpublished: window_closed is on the poster, not only a checkout error. */
-.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed {
-  margin: 0.55rem 0 0;
-  color: var(--ink);
-  font-size: 0.95rem;
-}
-
-/* Empty unpublished checkout window_closed names when new bids reopen. */
-.poster[data-occupied="false"][data-window-closed] .empty-unpublished-checkout-error[data-checkout-error] {
-  margin: 0.9rem 0 1.1rem;
-  color: var(--ink);
-  font-size: 0.95rem;
-  text-align: center;
-}
-
-/* Closed boards keep the claim hero visible as an explicit disabled status;
-   only the open form controls are omitted by the component. */
-
-/* Occupied /nyc: window_closed is on the poster, not only a checkout error. Keep Book #1. */
-.poster[data-occupied="true"] .occupied-window-closed {
-  margin: 0.55rem 0 0;
-  color: var(--ink);
-  font-size: 0.95rem;
-}
-
-/* Occupied closed checkout window_closed names when new bids reopen. */
-.poster[data-occupied="true"][data-window-closed] .occupied-closed-checkout-error[data-checkout-error] {
-  margin: 0.9rem 0 1.1rem;
-  color: var(--ink);
-  font-size: 0.95rem;
-  text-align: center;
-}
-
-.poster[data-occupied="true"][data-window-closed] .list-venue,
-.poster[data-occupied="true"][data-window-closed] .list-venue-line,
-.poster[data-occupied="true"][data-window-closed] .later-stack-lists,
-.poster[data-occupied="true"][data-window-closed] .later-stack-also,
-.poster[data-occupied="true"][data-window-closed] [href="#claim"] {
-  display: none;
-}
-
 /* Occupied Book #1 / later Book / later-facts cannot attach to unpublished /nyc. */
-.poster[data-occupied="true"] .empty-unpublished-checkout-error,
-.poster[data-occupied="false"] .occupied-closed-checkout-error,
-.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .occupied-closed-checkout-error,
 .poster[data-occupied="false"] .fold,
 .poster[data-occupied="false"] .book-one,
 .poster[data-occupied="false"] .book-later,
@@ -1371,17 +1326,6 @@ input {
   color: var(--accent);
 }
 
-.masthead .occupied-window-closed {
-  position: absolute;
-  top: 8px;
-  right: 0;
-  left: 0;
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 18px;
-}
-
 .claim {
   order: 2;
   position: relative;
@@ -2089,28 +2033,12 @@ input {
 }
 
 .poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window,
-.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open,
-.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-window-closed {
+.poster[data-occupied="false"] .unpublished-weekend[data-empty-unpublished] .empty-bid-open {
   max-width: 36rem;
   margin: 8px auto 0;
   color: var(--muted);
   font-size: 12px;
   line-height: 18px;
-}
-
-.poster[data-window-closed] .masthead .list-venue-line {
-  display: none;
-}
-
-.poster > .occupied-closed-checkout-error,
-.poster > .empty-unpublished-checkout-error {
-  order: 4;
-  width: 100%;
-  margin: 16px 0 0;
-  color: var(--accent);
-  font-size: 13px;
-  line-height: 20px;
-  text-align: center;
 }
 
 @media (max-width: 40rem) {
@@ -2720,8 +2648,7 @@ input {
   color: var(--ink);
 }
 
-.poster[data-occupied="true"] .board-details .occupied-bid-close,
-.poster[data-occupied="true"] .board-details .occupied-window-closed {
+.poster[data-occupied="true"] .board-details .occupied-bid-close {
   position: static;
   margin: 8px 0 0;
   color: var(--muted);
@@ -4430,38 +4357,6 @@ body {
   text-align: left;
 }
 
-/* A closed window still needs a visible, honest primary status. The controls
-   are rendered without a form by BidForm, and this treatment keeps that
-   status centered without making it resemble a missing action. */
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] {
-  display: block;
-}
-
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .claim-closed-row {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .claim-closed-row .outbid {
-  width: min(100%, 14rem);
-  cursor: not-allowed;
-}
-
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .claim-note[data-claim-disabled] {
-  margin: 0.7rem auto 0;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.45;
-  text-align: center;
-}
-
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .step:disabled,
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .claim[data-claim-state="closed"] .amount-field input:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .fold,
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend {
   width: 100%;
@@ -4870,7 +4765,6 @@ body {
 }
 
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details .occupied-bid-close,
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details .occupied-window-closed,
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .board-details .list-venue-line {
   margin: 0.65rem 0 0;
   color: var(--muted);
@@ -4916,8 +4810,7 @@ body {
 }
 
 .city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-window,
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-bid-open,
-.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-window-closed {
+.city-weekend-sheet .poster[data-identity="city-weekend-poster"] .unpublished-weekend .empty-bid-open {
   max-width: 35rem;
   margin: 0.75rem 0 0;
   color: var(--muted);

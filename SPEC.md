@@ -12,7 +12,7 @@ One public board per city. Venues bid whole USD for the #1 “where to go this F
 
 ## 1. Product statement
 
-A weekly weekend window auction for the first place a local looks when deciding where to eat, drink, or see a show this Friday or Saturday.
+A rolling weekend board for the first place a local looks when deciding where to eat, drink, or see a show this Friday or Saturday. The board keeps one weekly label for ranking and auditability, but a venue may submit a Claim rank at any time.
 
 v1 lane is **NYC** (`nyc`, `America/New_York`). Architecture is multi-city from day one: ranking is `(city, window)` and does not hard-code New York.
 
@@ -30,7 +30,7 @@ One-line pitch: **This weekend in this city, #1 is whoever paid the most.**
 - Equal bids: **older wins ties** (first paid at that amount stays above).
 - Same listing can raise; **raise pays difference** only.
 - Listing is **venue + city + booking URL**. Optional one-line pitch. Optional kind (`restaurant` | `bar` | `show`).
-- **Weekly weekend window.** Occupied rank is the rolling last 7 days from paid `createdAt`. Not Monday 00:00 UTC. Bids older than 7 days do not carry.
+- **Weekly weekend window label.** Occupied rank is the rolling last 7 days from paid `createdAt`. Not Monday 00:00 UTC. Bids older than 7 days do not carry. The historical Thursday–Sunday display hours do not close the claim form or checkout.
 - **No fake reviews.** No star ratings, no invented quotes, no scraped scores.
 - Strip tracking and affiliate query strings. No chat / invite links. No NSFW.
 - Public click counts on the booking URL.
@@ -61,24 +61,25 @@ More cities (London, Lisbon, Bali, …) are additional rows. They share the same
 
 Unknown slug → `404 city_unknown`. Inactive slug → `404 city_inactive`.
 
-Default board URL `/` redirects to `/nyc` until a second active city exists. After that, `/` is a city picker only — never a global mash-up rank.
+Default board URL `/` directly renders the only active NYC board. `/nyc` remains a compatibility alias and canonicalizes to `/`. If a second city is activated, its own city path remains separate; `/` is never a global mash-up rank.
 
 ---
 
 ## 4. Weekly weekend window (normative)
 
-Each city has one open **weekly weekend window** at a time.
+Each city has one current **weekly weekend window label** at a time.
 
 ```
 city local timezone
-new bids open: Thursday 12:00 (noon)
-new bids close: Sunday 23:59:59.999
+historical display label: Thursday 12:00 through Sunday 23:59:59.999
+claim submission: available any time
 occupied rank: rolling last 7 days from paid createdAt
 slot meaning:  “this Friday / Saturday”
 ```
 
 - Occupied poster rank is Waffo-paid rows whose `firstPaidAt` (`createdAt`) is still inside the **rolling last 7 days**. Not Monday 00:00 UTC. Not a 24h lock on #1.
-- New bids still open Thursday noon through Sunday 23:59:59.999 local. `{city}:{iso_week}` is a provider/audit label, Thursday-anchored. Do not invent a second clock.
+- `{city}:{iso_week}` is a provider/audit label, Thursday-anchored. The old Thursday-noon-to-Sunday display interval may remain available to window helpers for labels and compatibility, but it is not a runtime claim or checkout gate.
+- A valid venue + booking URL can start a Claim rank checkout any time of year. Waffo payment must still complete before the listing appears.
 - A traveler outside civil Monday midnight does not lose the occupied poster on a timezone tax.
 - Bids older than 7 days never reappear on the live board. Want #1 again? Pay again.
 
@@ -184,8 +185,9 @@ Rank updates **only** after a successful paid event. Abandoned checkout does not
 ## 9. Pages
 
 ```
-GET  /                         → 302 /nyc   (while nyc is the only active city)
-GET  /:city                    public board for that city + current window
+GET  /                         → 200 canonical NYC board (while nyc is the only active city)
+GET  /nyc                      compatibility alias for `/`; canonical is `/`
+GET  /:city                    public board for that city + current window label
 POST /:city/checkout           { venueName, bookingUrl, amountUsd, kind?, pitch? }
                                → PaymentPort.createCheckout (create or raise)
 GET  /:city/return             checkout return; show paid / pending, never trust query alone
@@ -211,7 +213,7 @@ Board UI (clone outbid.lol, not a redesign):
 |---|---|---|
 | `city_unknown` | 404 | slug not in catalog |
 | `city_inactive` | 404 | slug exists but `active=0` |
-| `window_closed` | 400 | new bid outside Thursday noon–Sunday local; occupied rank still rolls 7 days |
+| `window_closed` | — | Retained only for old helper/error compatibility; runtime checkout never closes for the historical display interval |
 | `bid_not_whole` | 400 | cents or non-integer |
 | `bid_below_min` | 400 | first bid &lt; $5 |
 | `bid_not_higher` | 400 | raise ≤ current |
@@ -229,7 +231,7 @@ Zero invented listings on any error.
 
 | # | Case | Expected |
 |---|---|---|
-| 1 | NYC board, empty window | 200, zero cards, bid form visible |
+| 1 | NYC board, empty window | `GET /` is 200 and canonical; zero cards; bid form visible; `/nyc` is a compatible alias |
 | 2 | First bid $5 fixture | listing appears; rank 1; `$5` |
 | 3 | Second listing $8 | new listing #1; $5 listing #2 |
 | 4 | Two $8 bids | older listing stays above |
@@ -241,6 +243,7 @@ Zero invented listings on any error.
 | 10 | London slug before it is active | `city_unknown` or `city_inactive`; NYC rank untouched |
 | 11 | After 7 days from paid createdAt | board drops that listing; Monday 00:00 UTC does not |
 | 12 | `PAYMENT_MODE=fixture` | offline fixture / fail-closed; no Waffo network |
+| 13 | Claim outside Thursday–Sunday | valid form starts checkout any time; no `window_closed`; unpaid intent remains off-board |
 
 ---
 
